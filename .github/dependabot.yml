@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # Check for updates to pub dependencies in oui package
+  - package-ecosystem: "pub"
+    directory: "/oui"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # Check for updates to pub dependencies in oui_showcase
+  - package-ecosystem: "pub"
+    directory: "/oui_showcase"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # Check for updates to GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
