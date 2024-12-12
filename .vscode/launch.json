@@ -1,0 +1,48 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "oui",
+      "cwd": "oui",
+      "request": "launch",
+      "type": "dart"
+    },
+    {
+      "name": "oui (profile mode)",
+      "cwd": "oui",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "oui (release mode)",
+      "cwd": "oui",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release"
+    },
+    {
+      "name": "oui_showcase",
+      "cwd": "oui_showcase",
+      "request": "launch",
+      "type": "dart"
+    },
+    {
+      "name": "oui_showcase (profile mode)",
+      "cwd": "oui_showcase",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "oui_showcase (release mode)",
+      "cwd": "oui_showcase",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release"
+    }
+  ]
+}
