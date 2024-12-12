@@ -25,3 +25,25 @@ graph TD
   Theme -->|provide typography, colors and various settings| Screens
   Components[Component Library] -->|buttons, text, inputs| Screens
 ```
+
+## CI Build Status
+
+![CI](https://github.com/onezerocompany/oui/actions/workflows/ci.yml/badge.svg)
+
+## Running Tests Locally
+
+To run tests locally, use the following command:
+
+```sh
+flutter test
+```
+
+## Viewing Test Coverage Reports
+
+To generate and view test coverage reports, use the following commands:
+
+```sh
+flutter test --coverage
+genhtml coverage/lcov.info -o coverage/html
+open coverage/html/index.html
+```
