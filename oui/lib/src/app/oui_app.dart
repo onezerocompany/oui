@@ -7,7 +7,13 @@ import 'package:oui/oui.dart';
 /// of your application.
 class OuiApp extends StatelessWidget {
   /// The theme configuration for the application.
-  final OuiTheme theme;
+  final OuiConfig theme;
+
+  /// Authentication provider for the application.
+  final OuiAuthProvider? authProvider;
+
+  /// App detail provider for the application.
+  final OuiMetadataProvider appDetailProvider;
 
   /// Parser responsible for converting URLs into state objects.
   final OuiRouteInformationParser _routerInformationParser;
@@ -23,8 +29,10 @@ class OuiApp extends StatelessWidget {
   OuiApp({
     super.key,
     required OuiScreen root,
+    required this.appDetailProvider,
     OuiScreen? authScreen,
-    this.theme = const OuiTheme(),
+    this.authProvider,
+    this.theme = const OuiConfig(),
   })  : _routerInformationParser = OuiRouteInformationParser(root),
         _routerDelegate = OuiRouterDelegate();
 

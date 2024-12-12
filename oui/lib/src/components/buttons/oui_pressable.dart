@@ -67,30 +67,57 @@ class OuiPressableTheme {
   }
 }
 
+class OuiPressableActions {
+  final OuiAction? tap;
+  final OuiAction? longPress;
+  final OuiAction? doubleTap;
+
+  const OuiPressableActions({
+    required this.tap,
+    required this.longPress,
+    required this.doubleTap,
+  }) : assert(tap != null || longPress != null || doubleTap != null);
+
+  OuiAction? call(OuiPressType type) {
+    switch (type) {
+      case OuiPressType.tap:
+        return tap;
+      case OuiPressType.longPress:
+        return longPress;
+      case OuiPressType.doubleTap:
+        return doubleTap;
+    }
+  }
+
+  factory OuiPressableActions.tap(OuiAction action) {
+    return OuiPressableActions(
+      tap: action,
+      longPress: null,
+      doubleTap: null,
+    );
+  }
+}
+
 /// A widget that detects various press interactions and changes its state accordingly.
 class OuiPressable extends HookWidget {
   /// The child widget to display inside the Pressable.
   final Widget child;
 
   /// Callback to be called when a press interaction occurs.
-  final OuiPressableCallback? onPressed;
-
-  /// The type of press interaction to detect.
-  final OuiPressType pressType;
+  final OuiPressableActions? actions;
 
   /// Creates a Pressable widget.
-  const OuiPressable({
+  const OuiPressable(
+    this.child,
+    this.actions, {
     super.key,
-    required this.child,
-    this.onPressed,
-    this.pressType = OuiPressType.tap,
   });
 
   @override
   Widget build(BuildContext context) {
     final hovering = useState(false);
     final state = useState<OuiPressableState>(OuiPressableState.idle);
-    final theme = context.ouiTheme.pressableTheme;
+    final theme = context.theme.pressableTheme;
     return MouseRegion(
       onEnter: (_) {
         hovering.value = true;
@@ -115,13 +142,13 @@ class OuiPressable extends HookWidget {
           state.value = OuiPressableState.idle;
         },
         onTap: () {
-          onPressed?.call(OuiPressType.tap);
+          actions?.call(OuiPressType.tap);
         },
         onLongPress: () {
-          onPressed?.call(OuiPressType.longPress);
+          actions?.call(OuiPressType.longPress);
         },
         onDoubleTap: () {
-          onPressed?.call(OuiPressType.doubleTap);
+          actions?.call(OuiPressType.doubleTap);
         },
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 100),

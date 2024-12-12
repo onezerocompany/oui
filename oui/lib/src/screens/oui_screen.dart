@@ -42,9 +42,9 @@ abstract class OuiScreen extends HookConsumerWidget {
 
   /// The path pattern for this screen, with localization support.
   Localized<OuiPath> get path => Localized(
-        OuiPath([
-          OuiPathSegment.static(id),
-        ]),
+        OuiPath(
+          [OuiPathSegment.static(id)],
+        ),
       );
 
   /// Find the best matching child screen for the given URL segments.
@@ -80,7 +80,10 @@ abstract class OuiScreen extends HookConsumerWidget {
       final remaining = segments.skip(match.count).toList();
       final childMatch = _bestChild(remaining, locale);
       if (childMatch.isMatch) {
-        return match.add(childMatch, leftovers: remaining);
+        return match.add(
+          childMatch,
+          leftovers: remaining,
+        );
       }
     }
     return match;

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:oui/oui.dart';
 
 import 'test_screen.dart';
@@ -15,6 +16,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return OuiApp(
       root: const TestScreen(),
+      appDetailProvider: OuiMetadataProvider(
+        icon: (_) {
+          return const Icon(Icons.ac_unit);
+        },
+        name: (_) {
+          return 'OUI Showcase';
+        },
+      ),
     );
   }
 }
