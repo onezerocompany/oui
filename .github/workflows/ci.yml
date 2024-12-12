@@ -22,12 +22,11 @@ jobs:
           channel: stable
 
       - name: Cache Flutter
-        uses: actions/cache@v3
-
+        uses: actions/cache@v4
         with:
           path: |
             ~/.pub-cache
-            ${{ github.workspace }}/oui/.flutter
+            ${{ github.workspace }}/.flutter
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
           restore-keys: |
             ${{ runner.os }}-flutter-
@@ -36,11 +35,7 @@ jobs:
         run: flutter pub get
         working-directory: oui
 
-      - name: Run tests
-        run: flutter test
-        working-directory: oui
-
-      - name: Collect coverage
+      - name: Run tests with coverage
         run: flutter test --coverage
         working-directory: oui
 
