@@ -23,22 +23,26 @@ jobs:
 
       - name: Cache Flutter
         uses: actions/cache@v3
+
         with:
           path: |
             ~/.pub-cache
-            ${{ github.workspace }}/.flutter
+            ${{ github.workspace }}/oui/.flutter
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
           restore-keys: |
             ${{ runner.os }}-flutter-
 
       - name: Install dependencies
         run: flutter pub get
+        working-directory: oui
 
       - name: Run tests
         run: flutter test
+        working-directory: oui
 
       - name: Collect coverage
         run: flutter test --coverage
+        working-directory: oui
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -48,3 +52,4 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: true
+          working-directory: oui
