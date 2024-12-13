@@ -17,9 +17,9 @@ class OuiRouterDelegate extends RouterDelegate<OuiPathMatch>
   }
 
   @override
-  Future<bool> popRoute() async {
+  Future<bool> popRoute() {
     if (_currentPath.count > 0) {
-      _currentPath = _currentPath.pop(count);
+      _currentPath = _currentPath.pop(1);  // Default to popping one segment
       notifyListeners();
       return true;
     }
