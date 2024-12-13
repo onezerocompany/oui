@@ -1,4 +1,4 @@
-# oui
+# Oui!
 
 > Multi-platform UI library for Flutter.
 
@@ -30,20 +30,14 @@ graph TD
 
 ![CI](https://github.com/onezerocompany/oui/actions/workflows/ci.yml/badge.svg)
 
+#### Code Coverage on the `main` branch
+
+![Coverage](https://codecov.io/gh/onezerocompany/oui/graphs/sunburst.svg?token=AFSGsPs8ch)
+
 ## Running Tests Locally
 
 To run tests locally, use the following command:
 
 ```sh
 flutter test
-```
-
-## Viewing Test Coverage Reports
-
-To generate and view test coverage reports, use the following commands:
-
-```sh
-flutter test --coverage
-genhtml coverage/lcov.info -o coverage/html
-open coverage/html/index.html
 ```

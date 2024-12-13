@@ -1,4 +1,4 @@
-name: CI
+name: Oui! Tests
 
 on:
   push:
