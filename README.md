@@ -1,3 +1,5 @@
+> **⚠️ Note:** This framework is currently in early development. The documentation is written quickly with the assistance of various AI tools (though all content is manually verified). Both the framework and documentation may change rapidly and frequently.
+
 # Oui!
 
 > Multi-platform UI library for Flutter.
