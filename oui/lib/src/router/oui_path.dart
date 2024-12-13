@@ -65,4 +65,17 @@ class OuiPath {
     }
     return matches;
   }
+
+  /// Adds new segments to the end of the path.
+  OuiPath push(List<OuiPathSegment> newSegments) {
+    return OuiPath([...segments, ...newSegments]);
+  }
+
+  /// Removes the last [count] segments from the path.
+  OuiPath pop([int count = 1]) {
+    if (segments.isEmpty || count >= segments.length) {
+      return OuiPath.empty;
+    }
+    return OuiPath(segments.sublist(0, segments.length - count));
+  }
 }

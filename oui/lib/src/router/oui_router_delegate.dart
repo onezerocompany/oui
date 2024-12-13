@@ -17,8 +17,12 @@ class OuiRouterDelegate extends RouterDelegate<OuiPathMatch>
   }
 
   @override
-  Future<bool> popRoute() {
-    // TODO: implement popRoute
-    throw UnimplementedError();
+  Future<bool> popRoute() async {
+    if (_currentPath.count > 0) {
+      _currentPath = _currentPath.pop(count);
+      notifyListeners();
+      return true;
+    }
+    return false;
   }
 }
