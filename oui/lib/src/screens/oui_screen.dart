@@ -1,91 +1,97 @@
 import 'package:oui/oui.dart';
 
+export 'oui_screen_registry.dart';
+export 'oui_screen_metadata.dart';
+export 'oui_screen_size.dart';
+
 /// Defines the possible types of screens in the OUI framework.
 ///
-/// - [fullscreen]: Occupies the entire screen space
-/// - [screen]: Standard screen with normal layout
-/// - [modal]: Displays as a modal dialog
-/// - [sheet]: Displays as a bottom sheet
+/// This enum is used to specify how a screen should be displayed within the
+/// application's user interface. The different screen types provide flexibility
+/// in presenting content based on the available space and user interaction requirements.
+///
+/// - `panel`: Displays the screen within the scaffold if there is enough space.
+///   If the screen does not fit within the scaffold, it will be shown as a sheet.
+///   This type is useful for adaptive layouts where the screen can dynamically
+///   adjust its presentation based on the available space.
+///
+/// - `sheet`: Always shows the screen as a sheet overlaying the scaffold.
+///   This type is ideal for presenting supplementary content that does not
+///   require full-screen attention, such as forms or additional options.
+///
+/// - `modal`: Displays the screen as a modal dialog, which requires user interaction
+///   before returning to the underlying content. This type is suitable for
+///   critical actions or information that needs to be acknowledged by the user.
+///
+/// - `fullscreen`: Covers the entire scaffold with the screen, providing an
+///   immersive experience. This type is best for content that requires the user's
+///   full attention, such as media playback or detailed data views.
 enum OuiScreenType {
-  fullscreen,
-  screen,
-  modal,
+  panel,
   sheet,
+  modal,
+  fullscreen,
 }
 
-/// Type alias for a list of OuiScreen instances
-typedef OuiScreens = List<OuiScreen>;
+/// Represents a screen in the OUI framework.
+class OuiScreen {
+  /// The unique identifier of the screen.
+  final String id;
 
-/// An abstract widget that represents a screen in the OUI framework.
-///
-/// This class serves as the base for all screen implementations and provides
-/// routing capabilities through path matching and child screen management.
-abstract class OuiScreen extends HookConsumerWidget {
-  /// Creates an OuiScreen with optional child screens.
+  /// The type of the screen.
+  final OuiScreenType type;
+
+  /// The localized metadata for the screen.
+  final OuiLocalized<OuiScreenMetadata> metadata;
+
+  /// The size constraints for the screen.
+  final OuiScreenSize size;
+
+  /// The child screens of the screen.
+  final List<OuiScreen> children;
+
+  /// The builder function for the screen.
+  final WidgetBuilder builder;
+
+  /// A screen widget for the Oui application.
+  ///
+  /// The `OuiScreen` widget is used to display a screen with specific properties
+  /// such as an identifier, metadata, a builder function, size, type, and children.
+  ///
+  /// Parameters:
+  /// - `id`: A unique identifier for the screen.
+  /// - `metadata`: Metadata associated with the screen.
+  /// - `builder`: A function that builds the content of the screen.
+  /// - `size`: The size of the screen. Defaults to an instance of `OuiScreenSize`.
+  /// - `type`: The type of the screen. Defaults to `OuiScreenType.panel`.
+  /// - `children`: A list of child widgets to be displayed within the screen. Defaults to an empty list.
+  ///
+  /// Example usage:
+  /// ```dart
+  /// OuiScreen(
+  ///   id: 'screen1',
+  ///   metadata: someMetadata,
+  ///   builder: (context) => SomeWidget(),
+  ///   size: OuiScreenSize(width: 100, height: 200),
+  ///   type: OuiScreenType.panel,
+  ///   children: [ChildWidget1(), ChildWidget2()],
+  /// );
+  /// ```
   const OuiScreen({
-    super.key,
+    required this.id,
+    required this.metadata,
+    required this.builder,
+    this.size = const OuiScreenSize(),
+    this.type = OuiScreenType.panel,
     this.children = const [],
   });
 
-  /// List of child screens that can be nested under this screen.
-  final List<OuiScreen> children;
-
-  /// Unique identifier for the screen.
-  String get id;
-
-  /// The type of screen this instance represents.
-  /// Defaults to [OuiScreenType.screen].
-  OuiScreenType get type => OuiScreenType.screen;
-
-  /// Icon data for the screen, with localization support.
-  Localized<IconData?> get icon => const Localized(null);
-
-  /// The path pattern for this screen, with localization support.
-  Localized<OuiPath> get path => Localized(
-        OuiPath(
-          [OuiPathSegment.static(id)],
-        ),
-      );
-
-  /// Find the best matching child screen for the given URL segments.
-  /// Match the one that has the most segments in common with the URL.
-  OuiPathMatch _bestChild(
-    List<String> segments,
-    Locale locale,
-  ) {
-    final childMatches = children
-        .map((child) => child.match(segments, locale))
-        .where((childMatch) => childMatch.isMatch)
-        .toList();
-    if (childMatches.isNotEmpty) {
-      childMatches.sort((a, b) => a.count.compareTo(b.count));
-      return childMatches.first;
-    }
-    return OuiPathMatch.noMatch;
-  }
-
-  /// Matches the given URL segments against this screen's path pattern.
-  ///
-  /// [segments] - URL segments to match against
-  /// [locale] - Current locale for path localization
-  ///
-  /// Returns a [OuiPathMatch] indicating whether the path matches and contains
-  /// any remaining segments for child routing.
-  OuiPathMatch match(
-    List<String> segments,
-    Locale locale,
-  ) {
-    final match = OuiPathMatch.forScreen(this, segments, locale);
-    if (match.isMatch) {
-      final remaining = segments.skip(match.count).toList();
-      final childMatch = _bestChild(remaining, locale);
-      if (childMatch.isMatch) {
-        return match.add(
-          childMatch,
-          leftovers: remaining,
-        );
-      }
-    }
-    return match;
+  /// Returns a string representation of the screen.
+  @override
+  String toString() {
+    return 'OuiScreen($id, $type)';
   }
 }
+
+/// A list of [OuiScreen] instances.
+typedef OuiScreens = List<OuiScreen>;

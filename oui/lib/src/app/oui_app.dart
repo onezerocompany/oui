@@ -7,43 +7,52 @@ import 'package:oui/oui.dart';
 /// of your application.
 class OuiApp extends StatelessWidget {
   /// The theme configuration for the application.
-  final OuiConfig theme;
+  final OuiConfig config;
 
   /// Authentication provider for the application.
   final OuiAuthProvider? authProvider;
 
   /// App detail provider for the application.
-  final OuiMetadataProvider appDetailProvider;
+  final OuiMetadata appDetailProvider;
+
+  /// Registry that contains all screens in the application.
+  final OuiScreenRegistry _registry;
 
   /// Parser responsible for converting URLs into state objects.
-  final OuiRouteInformationParser _routerInformationParser;
+  late final OuiRouteInformationParser _routerInformationParser;
 
   /// Delegate that handles routing decisions.
-  final OuiRouterDelegate _routerDelegate;
+  late final OuiRouter _router;
 
   /// Creates an [OuiApp].
   ///
   /// The [root] parameter defines the initial screen of the application.
+  /// The [notFound] parameter specifies the screen to show when a route is not found.
   /// The optional [authScreen] parameter specifies an authentication screen.
-  /// The [theme] parameter allows customization of the application's visual properties.
+  /// The [config] parameter allows customization of the application's visual properties.
   OuiApp({
     super.key,
     required OuiScreen root,
     required this.appDetailProvider,
-    OuiScreen? authScreen,
     this.authProvider,
-    this.theme = const OuiConfig(),
-  })  : _routerInformationParser = OuiRouteInformationParser(root),
-        _routerDelegate = OuiRouterDelegate();
+    this.config = const OuiConfig(),
+  }) : _registry = OuiScreenRegistry(root, null) {
+    _routerInformationParser = OuiRouteInformationParser(_registry);
+    _router = OuiRouter(_registry);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ProviderScope(
-      child: WidgetsApp.router(
-        color: const Color.fromARGB(255, 0, 0, 0),
-        routerDelegate: _routerDelegate,
-        routeInformationParser: _routerInformationParser,
-        debugShowCheckedModeBanner: false, // hide debug banners
+    return OuiAppContext(
+      router: _router,
+      config: config,
+      child: ProviderScope(
+        child: WidgetsApp.router(
+          color: const Color.fromARGB(255, 0, 0, 0),
+          routerDelegate: _router,
+          routeInformationParser: _routerInformationParser,
+          debugShowCheckedModeBanner: false, // hide debug banners
+        ),
       ),
     );
   }

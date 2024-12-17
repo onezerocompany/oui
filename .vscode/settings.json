@@ -1,3 +1,17 @@
 {
-  "cSpell.words": ["Pressable"]
+  "cSpell.words": ["Pressable"],
+  "cSpell.files": ["**/src/**"],
+  "github.copilot.chat.generateTests.codeLens": true,
+  "github.branchProtection": true,
+  "github.copilot.editor.enableCodeActions": true,
+  "github.copilot.chat.fixTestFailure.enabled": true,
+  "[dart]": {
+    "editor.defaultFormatter": "Dart-Code.dart-code",
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file"
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  }
 }

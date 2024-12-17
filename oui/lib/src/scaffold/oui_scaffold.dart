@@ -24,7 +24,7 @@ class OuiScaffold extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      color: context.theme.backdropColor,
+      color: context.config.backdropColor,
       child: Row(
         children: [
           // if (config.rails[OuiRectSide.left].enabled)
@@ -35,7 +35,7 @@ class OuiScaffold extends HookConsumerWidget {
                 // if (config.rails.top.enabled)
                 const OuiScaffoldRail(OuiRectSide.top),
                 Expanded(
-                  child: Container(),
+                  child: currentPath.screens.last.builder(context),
                 ),
                 // if (config.rails.bottom.enabled)
                 const OuiScaffoldRail(OuiRectSide.bottom),

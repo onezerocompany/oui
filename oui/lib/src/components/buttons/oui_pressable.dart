@@ -117,7 +117,7 @@ class OuiPressable extends HookWidget {
   Widget build(BuildContext context) {
     final hovering = useState(false);
     final state = useState<OuiPressableState>(OuiPressableState.idle);
-    final theme = context.theme.pressableTheme;
+    final theme = context.config.pressableTheme;
     return MouseRegion(
       onEnter: (_) {
         hovering.value = true;

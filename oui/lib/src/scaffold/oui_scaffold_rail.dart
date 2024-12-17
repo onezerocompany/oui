@@ -39,7 +39,7 @@ class OuiScaffoldRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final config =
-        context.theme.scaffold.rails[side]; // Access the correct config
+        context.config.scaffold.rails[side]; // Access the correct config
 
     final List<Widget> items = [];
     final decoration = BoxDecoration(
