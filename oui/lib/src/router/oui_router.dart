@@ -12,6 +12,9 @@ class OuiRouter extends RouterDelegate<OuiPathMatch> with ChangeNotifier {
   OuiRouter(this._registry);
 
   @override
+  OuiPathMatch? get currentConfiguration => _activeMatch;
+
+  @override
   Future<void> setNewRoutePath(OuiPathMatch configuration) {
     _activeMatch = configuration;
     notifyListeners();

@@ -17,7 +17,7 @@ class OuiAppContext extends InheritedWidget {
 
   @override
   bool updateShouldNotify(OuiAppContext oldWidget) {
-    return router != oldWidget.router;
+    return router != oldWidget.router || config != oldWidget.config;
   }
 }
 

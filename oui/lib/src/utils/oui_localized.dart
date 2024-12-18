@@ -24,7 +24,10 @@ class OuiLocale {
   /// Parameters:
   /// - `languageCode`: A string representing the language code.
   /// - `countryCode`: An optional string representing the country code.
-  const OuiLocale(this.languageCode, [this.countryCode]);
+  const OuiLocale(this.languageCode, [this.countryCode])
+    : assert(languageCode.length == 2, 'Language code must be ISO 639-1 compliant (2 letters)'),
+      assert(countryCode == null || countryCode.length == 2,
+             'Country code must be ISO 3166-1 alpha-2 compliant (2 letters)');
 }
 
 /// A class that provides localized values for different locales.
