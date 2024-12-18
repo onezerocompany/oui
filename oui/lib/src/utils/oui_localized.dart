@@ -8,16 +8,6 @@ class OuiLocale {
   /// The optional country code for localization, typically a two-letter code (e.g., 'US' for United States).
   final String? countryCode;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is OuiLocale &&
-          other.languageCode == languageCode &&
-          other.countryCode == countryCode;
-
-  @override
-  int get hashCode => Object.hash(languageCode, countryCode);
-
   /// Creates an instance of `OuiLocale` with the given language code and an optional country code.
   ///
   /// The `languageCode` parameter is required and should be a valid ISO 639-1 language code.
@@ -112,18 +102,22 @@ class OuiLocalized<T> {
     }
 
     // Try exact match first (language + country)
-    if (_values.containsKey(locale)) {
-      return _values[locale]!;
+    final exactMatch = _values.keys.firstWhereOrNull(
+      (key) =>
+          key.languageCode.toLowerCase() == locale.languageCode.toLowerCase() &&
+          (key.countryCode?.toLowerCase() ?? '') ==
+              (locale.countryCode?.toLowerCase() ?? ''),
+    );
+    if (exactMatch != null) {
+      return _values[exactMatch]!;
     }
 
     // Try language-only match
-    final languageMatch = _values.keys
-        .firstWhereOrNull((key) => key.languageCode == locale.languageCode);
+    final languageMatch = _values.keys.firstWhereOrNull(
+      (key) =>
+          key.languageCode.toLowerCase() == locale.languageCode.toLowerCase(),
+    );
     if (languageMatch != null) {
-      return _values[languageMatch]!;
-    }
-
-    if (_values.containsKey(languageMatch)) {
       return _values[languageMatch]!;
     }
 

@@ -57,5 +57,15 @@ void main() {
       expect(localized.forLocale(const OuiLocale('en', 'US')), 'always');
       expect(localized.forLocale(const OuiLocale('fr', 'FR')), 'always');
     });
+
+    test('should be case insensitive for language/country codes', () {
+      const localized = OuiLocalized<String>(
+        'default',
+        {
+          OuiLocale('en', 'US'): 'Hello',
+        },
+      );
+      expect(localized.forLocale(const OuiLocale('EN', 'us')), 'Hello');
+    });
   });
 }
