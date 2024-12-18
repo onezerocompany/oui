@@ -50,6 +50,18 @@ void main() {
       expect(updated.attributes['newKey'], 'newValue');
       expect(metadata.attributes['newKey'], isNull);
     });
+    
+    test('should handle copyWith with null icon', () {
+      const iconData = IconData(0xe900, fontFamily: 'MaterialIcons');
+      var metadata = OuiMetadata(
+        name: 'Test',
+        icon: iconData,
+      );
+      
+      final updated = metadata.copyWith(icon: null);
+      expect(updated.icon, isNull);
+      expect(metadata.icon, equals(iconData));
+    });
 
     test('should implement value equality', () {
       var metadata1 = OuiMetadata(name: 'Test');
