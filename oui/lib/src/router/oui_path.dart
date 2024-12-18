@@ -14,9 +14,9 @@ class OuiPathSegment {
   /// Private constructor for creating a path segment.
   const OuiPathSegment._({
     required this.id,
-    required this.isParametric,
+    this.isParametric = false,
     this.pattern,
-  });
+  }) : assert(id.length != 0, 'The id of a path segment cannot be empty.');
 
   /// Creates a static path segment.
   ///
@@ -29,7 +29,6 @@ class OuiPathSegment {
     return OuiPathSegment._(
       id: value,
       pattern: '^${RegExp.escape(value)}\$',
-      isParametric: false,
     );
   }
 
