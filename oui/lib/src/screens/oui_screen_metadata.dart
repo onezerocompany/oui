@@ -13,7 +13,7 @@ import 'package:oui/oui.dart';
 class OuiScreenMetadata extends OuiMetadata {
   final OuiPathSegments path;
 
-  const OuiScreenMetadata({
+  OuiScreenMetadata({
     required this.path,
     required super.name,
     super.icon,
