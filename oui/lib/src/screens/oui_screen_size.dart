@@ -41,7 +41,8 @@ class OuiScreenSizeDimension {
     this.minimum = 300,
     this.maximum = 1400,
     this.weight = 1,
-  }) : assert(minimum <= maximum, 'minimum must be less than or equal to maximum');
+  }) : assert(minimum <= maximum,
+            'minimum must be less than or equal to maximum');
 
   /// Checks if the given [width] is within the range defined by [minimum] and [maximum].
   ///
@@ -63,8 +64,8 @@ class OuiScreenSize {
   /// Example usage:
   /// ```dart
   /// final screenSize = OuiScreenSize(
-  ///   width: OuiScreenSizeDimension(value: 1080),
-  ///   height: OuiScreenSizeDimension(value: 1920),
+  ///   width: OuiScreenSizeDimension(minimum: 1080, maximum: 1920),
+  ///   height: OuiScreenSizeDimension(minimum: 1080, maximum: 1920),
   /// );
   /// ```
   ///
