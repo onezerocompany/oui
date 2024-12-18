@@ -1,4 +1,8 @@
-import 'package:oui/oui.dart';
+import 'package:flutter/widgets.dart';
+import '../app/oui_app_context.dart';
+import '../utils/background.dart';
+import '../utils/oui_border.dart';
+import '../utils/oui_sides.dart';
 
 class OuiScaffoldRailConfig {
   final Background? background;
@@ -48,11 +52,12 @@ class OuiScaffoldRail extends StatelessWidget {
       ),
     );
 
-    if (side.direction.isHorizontal) {
+    if ([OuiRectSide.top, OuiRectSide.bottom].contains(side)) {
       return Container(
         height: 72,
         decoration: decoration,
         child: Row(
+          mainAxisSize: MainAxisSize.max,
           children: items,
         ),
       );
@@ -61,6 +66,7 @@ class OuiScaffoldRail extends StatelessWidget {
         width: 72,
         decoration: decoration,
         child: Column(
+          mainAxisSize: MainAxisSize.max,
           children: items,
         ),
       );

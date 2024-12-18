@@ -1,4 +1,7 @@
-import 'package:oui/oui.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:oui/src/router/oui_path_match.dart';
+import 'package:oui/src/screens/oui_screen_registry.dart';
 
 /// A route information parser that converts URIs to [OuiPathMatch] objects.
 ///

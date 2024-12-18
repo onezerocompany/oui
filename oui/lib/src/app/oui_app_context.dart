@@ -1,4 +1,6 @@
-import 'package:oui/oui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:oui/src/config/oui_config.dart';
+import 'package:oui/src/router/oui_router.dart';
 
 class OuiAppContext extends InheritedWidget {
   final OuiConfig config;

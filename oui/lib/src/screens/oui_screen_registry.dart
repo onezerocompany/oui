@@ -1,4 +1,7 @@
-import 'package:oui/oui.dart';
+import '../router/oui_path.dart';
+import '../router/oui_path_match.dart';
+import '../utils/oui_localized.dart';
+import 'oui_screen.dart';
 
 /// Represents an entry in the Oui screen registry.
 ///

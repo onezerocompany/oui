@@ -1,8 +1,7 @@
-import 'package:oui/oui.dart';
-
-export 'oui_screen_registry.dart';
-export 'oui_screen_metadata.dart';
-export 'oui_screen_size.dart';
+import 'package:flutter/widgets.dart';
+import 'package:oui/src/screens/oui_screen_metadata.dart';
+import 'package:oui/src/screens/oui_screen_size.dart';
+import 'package:oui/src/utils/oui_localized.dart';
 
 /// Defines the possible types of screens in the OUI framework.
 ///

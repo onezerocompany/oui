@@ -1,7 +1,8 @@
-import 'package:oui/oui.dart';
-
-export 'oui_path.dart';
-export 'oui_path_match.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'oui_path_match.dart';
+import '../scaffold/oui_scaffold.dart';
+import '../screens/oui_screen_registry.dart';
 
 class OuiRouter extends RouterDelegate<OuiPathMatch> with ChangeNotifier {
   final OuiScreenRegistry _registry;

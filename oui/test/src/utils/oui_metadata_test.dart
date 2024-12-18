@@ -1,5 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/oui.dart';
+import 'package:oui/src/utils/oui_metadata.dart';
 
 void main() {
   group('OuiMetadata', () {

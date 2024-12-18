@@ -1,4 +1,4 @@
-import 'package:oui/oui.dart';
+import 'package:flutter/widgets.dart';
 
 /// Provider class for resolving metadata about OUI components.
 ///

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/oui.dart';
+import 'package:oui/src/router/oui_path.dart';
+import 'package:oui/src/router/oui_path_match.dart';
 import '../screens/screen_testing_utils.dart';
 
 void main() {

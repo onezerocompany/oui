@@ -1,4 +1,5 @@
-import 'package:oui/oui.dart';
+import 'package:flutter/rendering.dart';
+import 'package:oui/src/utils/oui_sides.dart';
 
 /// A class that defines the border properties for Oui components.
 class OuiBorder {
