@@ -188,6 +188,7 @@ class OuiPath {
   /// Returns a new [OuiPath] with the given [segments] appended to the end.
   /// If [segments] is empty, returns this path.
   OuiPath add(List<OuiPathSegment> segments) {
+    assert(segments.every((s) => s != null), 'Cannot add null segments to path');
     if (segments.isEmpty) {
       return this;
     }
