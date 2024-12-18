@@ -40,6 +40,36 @@ void main() {
       expect(pathMatch.count, 1);
     });
 
+    test('rate calculation with various segment counts', () {
+      final testCases = [
+        (matched: 1, expected: 2, rate: 0.5),
+        (matched: 2, expected: 1, rate: 2.0),
+        (matched: 0, expected: 1, rate: 0.0),
+        // Add more cases
+      ];
+
+      for (final testCase in testCases) {
+        final segment = OuiPathSegment.argument('userId');
+        final matches = List.filled(
+          testCase.matched,
+          OuiPathSegmentMatch(segment: segment, original: '123'),
+        );
+        final pathMatch = OuiPathMatch(
+          List.filled(testCase.matched, testScreen('test')),
+          matches,
+          [],
+          testCase.expected,
+        );
+
+        expect(
+          pathMatch.rate,
+          testCase.rate,
+          reason:
+              'Failed for ${testCase.matched} matches and ${testCase.expected} expected',
+        );
+      }
+    });
+
     test('rate returns the correct percentage of segments that matched', () {
       final segment = OuiPathSegment.argument('userId');
       final match = OuiPathSegmentMatch(segment: segment, original: '123');
