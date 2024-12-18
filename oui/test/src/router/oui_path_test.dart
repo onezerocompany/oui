@@ -26,6 +26,35 @@ void main() {
       expect(segment.isParametric, true);
     });
 
+    test('match parametric segment with complex patterns', () {
+      final testCases = [
+        (
+          pattern: r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', // Email
+          input: 'test@example.com',
+          shouldMatch: true
+        ),
+        (
+          pattern: r'[!@#$%^&*(),.?":{}|<>]', // Special characters
+          input: '@#\$',
+          shouldMatch: true
+        ),
+      ];
+
+      for (final testCase in testCases) {
+        final segment =
+            OuiPathSegment.argument('param', pattern: testCase.pattern);
+        final path = OuiPath([segment]);
+        final match = path.match([testCase.input], []);
+
+        expect(
+          match.segments.isNotEmpty,
+          testCase.shouldMatch,
+          reason:
+              'Failed for pattern: ${testCase.pattern} with input: ${testCase.input}',
+        );
+      }
+    });
+
     test('toString method', () {
       final segment = OuiPathSegment.static('home');
       expect(
