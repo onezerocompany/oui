@@ -23,10 +23,22 @@ class OuiAppContext extends InheritedWidget {
 
 extension OuiAppContextExtension on BuildContext {
   OuiConfig get config {
-    return OuiAppContext.of(this)!.config;
+    final context = OuiAppContext.of(this);
+    if (context == null) {
+      throw FlutterError(
+        'OuiAppContext not found in context. Make sure to wrap your app with OuiApp.\nThe context used to retrieve the config must be a descendant of OuiAppContext.',
+      );
+    }
+    return context.config;
   }
 
   OuiRouter get router {
-    return OuiAppContext.of(this)!.router;
+    final context = OuiAppContext.of(this);
+    if (context == null) {
+      throw FlutterError(
+        'OuiAppContext not found in context. Make sure to wrap your app with OuiApp.\nThe context used to retrieve the router must be a descendant of OuiAppContext.',
+      );
+    }
+    return context.router;
   }
 }
