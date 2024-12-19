@@ -16,11 +16,15 @@ void main() {
       (container.decoration as BoxDecoration?)?.color,
       const Color(0xFFFF0000),
     );
+    expect(find.byType(Container), findsOneWidget);
   });
 
   testWidgets('Background with gradient', (WidgetTester tester) async {
-    const gradient =
-        LinearGradient(colors: [Color(0xFFFF0000), Color(0xFF0000FF)]);
+    const gradient = LinearGradient(
+      colors: [Color(0xFFFF0000), Color(0xFF0000FF)],
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    );
 
     await tester.pumpWidget(
       WidgetsApp(
@@ -30,7 +34,8 @@ void main() {
     );
 
     final container = tester.widget<Container>(find.byType(Container));
-    expect((container.decoration as BoxDecoration?)?.gradient, gradient);
+    final boxDecoration = container.decoration as BoxDecoration?;
+    expect(boxDecoration?.gradient, gradient);
   });
 
   testWidgets('Background with custom widget', (WidgetTester tester) async {
@@ -68,8 +73,11 @@ void main() {
 
   testWidgets('Background with gradient and custom widget',
       (WidgetTester tester) async {
-    const gradient =
-        LinearGradient(colors: [Color(0xFFFF0000), Color(0xFF0000FF)]);
+    const gradient = LinearGradient(
+      colors: [Color(0xFFFF0000), Color(0xFF0000FF)],
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    );
 
     await tester.pumpWidget(
       WidgetsApp(
@@ -82,7 +90,8 @@ void main() {
     );
 
     final container = tester.widget<Container>(find.byType(Container));
-    expect((container.decoration as BoxDecoration?)?.gradient, gradient);
+    final boxDecoration = container.decoration as BoxDecoration?;
+    expect(boxDecoration?.gradient, gradient);
     expect(find.text('Custom Widget'), findsOneWidget);
   });
 }

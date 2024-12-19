@@ -11,17 +11,10 @@ class Background extends StatelessWidget {
     this.custom,
   });
 
-  factory Background.color(Color color) => Background._(
-        color: color,
-        gradient: null,
-        custom: null,
-      );
+  factory Background.color(Color color) => Background._(color: color);
 
-  factory Background.gradient(Gradient gradient) => Background._(
-        gradient: gradient,
-        color: null,
-        custom: null,
-      );
+  factory Background.gradient(Gradient gradient) =>
+      Background._(gradient: gradient);
 
   factory Background.custom(
     Widget Function(BuildContext) custom, {
@@ -44,8 +37,7 @@ class Background extends StatelessWidget {
       );
     } else if (color != null) {
       background = Container(
-        decoration:
-            BoxDecoration(color: color), // Use BoxDecoration to include color
+        decoration: BoxDecoration(color: color),
       );
     }
 
