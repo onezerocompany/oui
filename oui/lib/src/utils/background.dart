@@ -11,10 +11,17 @@ class Background extends StatelessWidget {
     this.custom,
   });
 
-  factory Background.color(Color color) => Background._(color: color);
+  factory Background.color(Color color) => Background._(
+        color: color,
+        gradient: null,
+        custom: null,
+      );
 
-  factory Background.gradient(Gradient gradient) =>
-      Background._(gradient: gradient);
+  factory Background.gradient(Gradient gradient) => Background._(
+        gradient: gradient,
+        color: null,
+        custom: null,
+      );
 
   factory Background.custom(
     Widget Function(BuildContext) custom, {
@@ -36,20 +43,26 @@ class Background extends StatelessWidget {
         decoration: BoxDecoration(gradient: gradient),
       );
     } else if (color != null) {
-      background = Container(color: color);
-    }
-
-    if (custom != null && background != null) {
-      background = Stack(
-        children: [
-          background,
-          custom!(context),
-        ],
+      background = Container(
+        decoration:
+            BoxDecoration(color: color), // Use BoxDecoration to include color
       );
-    } else {
-      background = custom!(context);
     }
 
-    return background;
+    if (custom != null) {
+      if (background != null) {
+        background = Stack(
+          children: [
+            background,
+            custom!(context),
+          ],
+        );
+      } else {
+        background = custom!(context);
+      }
+    }
+
+    // Fallback to an empty widget if all parameters are null
+    return background ?? const SizedBox.shrink();
   }
 }
