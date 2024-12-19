@@ -16,6 +16,38 @@ void main() {
     });
   });
 
+  test('should handle invalid language codes', () {
+    expect(() => OuiLocale('invalid'), throwsAssertionError);
+    expect(() => OuiLocale('e'), throwsAssertionError);
+  });
+
+  test('should handle empty strings', () {
+    expect(() => OuiLocale(''), throwsAssertionError);
+    expect(() => OuiLocale('en', ''), throwsAssertionError);
+  });
+
+  test('should implement toString correctly', () {
+    expect(const OuiLocale('en').toString(), 'en');
+    expect(const OuiLocale('en', 'US').toString(), 'en_US');
+  });
+
+  test('should implement equality correctly', () {
+    expect(const OuiLocale('en'), equals(const OuiLocale('en')));
+    expect(const OuiLocale('en', 'US'), equals(const OuiLocale('en', 'US')));
+    expect(const OuiLocale('en'), isNot(equals(const OuiLocale('fr'))));
+  });
+
+  test('should have consistent hashCode', () {
+    expect(
+      const OuiLocale('en').hashCode,
+      equals(const OuiLocale('en').hashCode),
+    );
+    expect(
+      const OuiLocale('en', 'US').hashCode,
+      equals(const OuiLocale('en', 'US').hashCode),
+    );
+  });
+
   group('OuiLocalized', () {
     test('should return default value when no locale is provided', () {
       const localized = OuiLocalized<String>('default');

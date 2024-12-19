@@ -28,12 +28,12 @@ class OuiMetadata {
 
   OuiMetadata copyWith({
     String? name,
-    IconData? icon,
+    IconData? icon = const IconData(0),
     Map<String, dynamic>? attributes,
   }) {
     return OuiMetadata(
       name: name ?? this.name,
-      icon: icon ?? this.icon,
+      icon: icon == const IconData(0) ? this.icon : icon,
       attributes: attributes ?? this.attributes,
     );
   }

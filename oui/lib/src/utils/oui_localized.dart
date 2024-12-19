@@ -35,6 +35,11 @@ class OuiLocale {
           countryCode == null || countryCode.length == 2,
           'Country code must be ISO 3166-1 alpha-2 compliant (2 letters)',
         );
+
+  @override
+  String toString() {
+    return countryCode == null ? languageCode : '${languageCode}_$countryCode';
+  }
 }
 
 /// A class that provides localized values for different locales.
