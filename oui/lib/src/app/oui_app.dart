@@ -47,7 +47,7 @@ class OuiApp extends StatelessWidget {
     this.config = const OuiConfig(),
   }) : _registry = OuiScreenRegistry(root, null) {
     _routerInformationParser = OuiRouteInformationParser(_registry);
-    _router = OuiRouter(_registry);
+    _router = OuiRouter();
   }
 
   @override
