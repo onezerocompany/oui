@@ -1,31 +1,7 @@
-import 'package:oui/oui.dart';
+import 'dart:ui';
 
-class OuiConfigProvider extends InheritedWidget {
-  final OuiConfig theme;
-
-  const OuiConfigProvider({
-    required this.theme,
-    required super.child,
-    super.key,
-  });
-
-  static OuiConfig of(BuildContext context) {
-    final OuiConfigProvider? provider =
-        context.dependOnInheritedWidgetOfExactType<OuiConfigProvider>();
-    return provider?.theme ?? const OuiConfig();
-  }
-
-  static OuiConfig? maybeOf(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<OuiConfigProvider>()
-        ?.theme;
-  }
-
-  @override
-  bool updateShouldNotify(covariant OuiConfigProvider oldWidget) {
-    return theme != oldWidget.theme;
-  }
-}
+import 'package:oui/src/components/oui_pressable.dart';
+import 'package:oui/src/scaffold/oui_scaffold.dart';
 
 class OuiConfig {
   final Color backdropColor;
@@ -37,8 +13,4 @@ class OuiConfig {
     this.pressableTheme = const OuiPressableTheme(),
     this.scaffold = const OuiScaffoldConfig(),
   });
-}
-
-extension OuiThemeExtension on BuildContext {
-  OuiConfig get theme => OuiConfigProvider.of(this);
 }

@@ -1,36 +1,73 @@
-import 'package:oui/oui.dart';
+import '../screens/oui_screen.dart';
+import 'oui_path.dart';
 
-/// Represents a matched segment in a path, containing the original segment,
-/// its potential value, and the segment pattern that matched it.
-class OuiPathMatchSegment {
-  /// The pattern segment that was matched
+/// Represents a match for a specific path segment.
+///
+/// This class holds details about a path segment, its original value,
+/// and an optional transformed value.
+///
+/// Example usage:
+/// ```dart
+/// final segment = OuiPathSegment(id: 'userId');
+/// final match = OuiPathSegmentMatch(
+///   segment: segment,
+///   original: '123',
+///   value: 'user_123',
+/// );
+/// print(match.id);       // Outputs: 'userId'
+/// print(match.content);  // Outputs: 'user_123'
+/// ```
+class OuiPathSegmentMatch {
+  /// The segment associated with this match.
   final OuiPathSegment segment;
 
-  /// The parsed value of the segment, if any
+  /// The optional value of the segment match.
+  ///
+  /// If `_value` is `null`, the [original] value will be used as the content.
   final String? _value;
 
-  /// The original segment string from the path
+  /// The original value of the path segment match.
   final String original;
 
-  /// The identifier of the segment pattern
+  /// A unique identifier derived from the associated [segment].
   String get id => segment.id;
 
-  /// The content of the segment, either the parsed value or original string
+  /// The effective content of the match.
+  ///
+  /// Returns the transformed `_value` if provided; otherwise, returns [original].
   String get content => _value ?? original;
 
-  const OuiPathMatchSegment({
+  /// Creates an instance of [OuiPathSegmentMatch].
+  ///
+  /// - [segment]: The path segment associated with this match.
+  /// - [original]: The original value of the path segment.
+  /// - [value]: An optional transformed value for the segment.
+  ///
+  /// Example:
+  /// ```dart
+  /// final segment = OuiPathSegment(id: 'userId');
+  /// final match = OuiPathSegmentMatch(
+  ///   segment: segment,
+  ///   original: '123',
+  ///   value: 'user_123',
+  /// );
+  /// ```
+  const OuiPathSegmentMatch({
     required this.segment,
     required this.original,
     String? value,
   }) : _value = value;
 }
 
+/// A list of [OuiPathSegmentMatch] objects.
+typedef OuiPathSegmentMatches = List<OuiPathSegmentMatch>;
+
 /// Represents the result of matching a path against a route pattern.
 /// Contains information about whether the path matches, how many segments matched,
 /// the matched screens, and any path arguments that were extracted.
 class OuiPathMatch {
   /// List of segments that matched the pattern
-  final List<OuiPathMatchSegment> segments;
+  final List<OuiPathSegmentMatch> segments;
 
   /// Segments from the path that didn't match any pattern
   final List<String> leftovers;
@@ -38,12 +75,15 @@ class OuiPathMatch {
   /// The screens associated with the matched path segments
   final List<OuiScreen> screens;
 
+  /// Number of sections that were expected to match
+  final int expectedSegmentCount;
+
   /// The original segments from the path, before any value parsing
   List<String> get rawSegments =>
       segments.map((segment) => segment.original).toList();
 
-  /// Whether the path matched any segments
-  bool get isMatch => segments.isNotEmpty;
+  /// Whether the path can be popped
+  bool get canPop => screens.isNotEmpty;
 
   /// Constructs a Uri from the matched raw segments
   Uri get uri => Uri(pathSegments: rawSegments);
@@ -51,52 +91,47 @@ class OuiPathMatch {
   /// Number of segments that matched
   int get count => segments.length;
 
-  const OuiPathMatch._({
-    required this.segments,
-    required this.leftovers,
-    required this.screens,
-  });
+  /// Percentage of segments that matched
+  /// Note this can go over 1 (100%)
+  double get rate =>
+      expectedSegmentCount == 0 ? 0 : count / expectedSegmentCount;
 
-  /// Creates a match with a single screen
-  factory OuiPathMatch.forScreen(
-    OuiScreen screen,
-    List<String> segments,
-    Locale locale,
-  ) {
-    final path = screen.path.forLocale(locale);
-    final matches = path.matches(segments);
-    if (matches.length == path.length) {
-      return OuiPathMatch._(
-        segments: matches,
-        screens: [screen],
-        leftovers: segments.skip(matches.length).toList(),
-      );
-    }
-    return noMatch;
-  }
-
-  /// Represents no match found
-  static const noMatch = OuiPathMatch._(
-    segments: [],
-    leftovers: [],
-    screens: [],
+  /// Creates a new [OuiPathMatch] with the given [segments], [leftovers], and [screens].
+  const OuiPathMatch(
+    this.screens,
+    this.segments,
+    this.leftovers,
+    this.expectedSegmentCount,
   );
 
-  /// Combines this match with another match, concatenating their segments,
-  /// leftovers, and screens
-  OuiPathMatch add(
-    OuiPathMatch child, {
-    List<String> leftovers = const [],
-  }) {
-    return OuiPathMatch._(
-      segments: [...segments, ...child.segments],
-      screens: [...screens, ...child.screens],
-      leftovers: leftovers,
-    );
-  }
+  /// Represents no match found
+  static const noMatch = OuiPathMatch([], [], [], 0);
 
-  @override
-  String toString() {
-    return 'OuiPathMatch(segments: $segments, leftovers: $leftovers, screens: $screens)';
+  /// Removes the last [count] segments from the match
+  OuiPathMatch pop([int count = 1]) {
+    if (count <= 0) {
+      return this;
+    }
+
+    if (count >= screens.length) {
+      return OuiPathMatch.noMatch;
+    }
+
+    final screensToPop = screens.skip(screens.length - count);
+    final segmentsToPop = screensToPop.map(
+      (screen) => screen.metadata.base.path.length,
+    );
+
+    return OuiPathMatch(
+      screens.sublist(0, screens.length - count),
+      segments.sublist(0, segments.length - count),
+      [
+        ...segments
+            .skip(segmentsToPop.length - count)
+            .map((segment) => segment.original),
+        ...leftovers,
+      ],
+      0,
+    );
   }
 }

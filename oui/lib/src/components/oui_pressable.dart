@@ -1,4 +1,7 @@
-import 'package:oui/oui.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import '../actions/oui_action.dart';
+import '../app/oui_app_context.dart';
 
 /// Represents the state of the Pressable widget.
 enum OuiPressableState {
@@ -117,7 +120,7 @@ class OuiPressable extends HookWidget {
   Widget build(BuildContext context) {
     final hovering = useState(false);
     final state = useState<OuiPressableState>(OuiPressableState.idle);
-    final theme = context.theme.pressableTheme;
+    final theme = context.config.pressableTheme;
     return MouseRegion(
       onEnter: (_) {
         hovering.value = true;
