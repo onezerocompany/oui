@@ -1,40 +1,62 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import '../actions/oui_action.dart';
+import '../../core/actions/oui_action.dart';
 import '../app/oui_app_context.dart';
 
 /// Represents the state of the Pressable widget.
 enum OuiPressableState {
+  /// The widget is in its default state.
   idle,
+
+  /// The widget is being hovered over.
   hover,
+
+  /// The widget is being actively pressed.
   active,
 }
 
 /// Represents the type of press interaction.
 enum OuiPressType {
+  /// A single tap interaction.
   tap,
+
+  /// A long press interaction.
   longPress,
+
+  /// A double tap interaction.
   doubleTap,
 }
 
 /// Callback type for press interactions.
 typedef OuiPressableCallback = void Function(OuiPressType state);
 
+/// Defines the visual state of the Pressable widget.
 class OuiPressableThemeState {
+  /// The scale of the widget.
   final double scale;
+
+  /// The opacity of the widget.
   final double opacity;
 
+  /// Creates a theme state with the given scale and opacity.
   const OuiPressableThemeState({
     this.scale = 1,
     this.opacity = 1,
   });
 }
 
+/// Defines the theme for the Pressable widget in different states.
 class OuiPressableTheme {
+  /// The theme state when the widget is idle.
   final OuiPressableThemeState idle;
+
+  /// The theme state when the widget is hovered over.
   final OuiPressableThemeState hover;
+
+  /// The theme state when the widget is actively pressed.
   final OuiPressableThemeState active;
 
+  /// Creates a theme with the given states for idle, hover, and active.
   const OuiPressableTheme({
     this.idle = const OuiPressableThemeState(),
     this.hover = const OuiPressableThemeState(
@@ -47,6 +69,7 @@ class OuiPressableTheme {
     ),
   });
 
+  /// Returns the opacity for the given state.
   double opacity(OuiPressableState state) {
     switch (state) {
       case OuiPressableState.idle:
@@ -58,6 +81,7 @@ class OuiPressableTheme {
     }
   }
 
+  /// Returns the scale for the given state.
   double scale(OuiPressableState state) {
     switch (state) {
       case OuiPressableState.idle:
@@ -70,17 +94,25 @@ class OuiPressableTheme {
   }
 }
 
+/// Defines the actions to be performed on different press interactions.
 class OuiPressableActions {
+  /// Action to be performed on a tap interaction.
   final OuiAction? tap;
+
+  /// Action to be performed on a long press interaction.
   final OuiAction? longPress;
+
+  /// Action to be performed on a double tap interaction.
   final OuiAction? doubleTap;
 
+  /// Creates a set of actions for tap, long press, and double tap interactions.
   const OuiPressableActions({
     required this.tap,
     required this.longPress,
     required this.doubleTap,
   }) : assert(tap != null || longPress != null || doubleTap != null);
 
+  /// Returns the action for the given press type.
   OuiAction? call(OuiPressType type) {
     switch (type) {
       case OuiPressType.tap:
@@ -92,6 +124,7 @@ class OuiPressableActions {
     }
   }
 
+  /// Creates a set of actions with only a tap action.
   factory OuiPressableActions.tap(OuiAction action) {
     return OuiPressableActions(
       tap: action,

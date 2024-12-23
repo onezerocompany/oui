@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
-import 'package:oui/src/screens/oui_screen_metadata.dart';
-import 'package:oui/src/screens/oui_screen_size.dart';
-import 'package:oui/src/utils/oui_localized.dart';
+
+import '../box/oui_box.dart';
+import '../../core/localization/oui_localized.dart';
+import 'oui_screen_metadata.dart';
+import 'oui_screen_size.dart';
 
 /// Defines the possible types of screens in the OUI framework.
 ///
@@ -21,19 +23,25 @@ import 'package:oui/src/utils/oui_localized.dart';
 /// - `modal`: Displays the screen as a modal dialog, which requires user interaction
 ///   before returning to the underlying content. This type is suitable for
 ///   critical actions or information that needs to be acknowledged by the user.
-///
-/// - `fullscreen`: Covers the entire scaffold with the screen, providing an
-///   immersive experience. This type is best for content that requires the user's
-///   full attention, such as media playback or detailed data views.
 enum OuiScreenType {
   panel,
   sheet,
-  modal,
-  fullscreen,
+  modal;
+
+  OuiScreenType demote() {
+    switch (this) {
+      case OuiScreenType.panel:
+        return OuiScreenType.sheet;
+      case OuiScreenType.sheet:
+        return OuiScreenType.sheet;
+      case OuiScreenType.modal:
+        return OuiScreenType.modal;
+    }
+  }
 }
 
 /// Represents a screen in the OUI framework.
-class OuiScreen {
+class OuiScreen extends OuiBox {
   /// The unique identifier of the screen.
   final String id;
 
@@ -49,10 +57,7 @@ class OuiScreen {
   /// The child screens of the screen.
   final List<OuiScreen> children;
 
-  /// The builder function for the screen.
-  final WidgetBuilder builder;
-
-  /// A screen widget for the Oui application.
+  /// A screen widget for the Oui framework.
   ///
   /// The `OuiScreen` widget is used to display a screen with specific properties
   /// such as an identifier, metadata, a builder function, size, type, and children.
@@ -64,6 +69,7 @@ class OuiScreen {
   /// - `size`: The size of the screen. Defaults to an instance of `OuiScreenSize`.
   /// - `type`: The type of the screen. Defaults to `OuiScreenType.panel`.
   /// - `children`: A list of child widgets to be displayed within the screen. Defaults to an empty list.
+  /// - `background`: An optional background for the screen.
   ///
   /// Example usage:
   /// ```dart
@@ -74,22 +80,23 @@ class OuiScreen {
   ///   size: OuiScreenSize(width: 100, height: 200),
   ///   type: OuiScreenType.panel,
   ///   children: [ChildWidget1(), ChildWidget2()],
+  ///   background: someBackground,
   /// );
   /// ```
   const OuiScreen({
+    super.key,
     required this.id,
     required this.metadata,
-    required this.builder,
-    this.size = const OuiScreenSize(),
+    required Widget content,
+    super.background,
+    super.alignment,
+    super.border,
+    super.corner,
+    super.shadow,
     this.type = OuiScreenType.panel,
     this.children = const [],
-  });
-
-  /// Returns a string representation of the screen.
-  @override
-  String toString() {
-    return 'OuiScreen($id, $type)';
-  }
+    this.size = const OuiScreenSize(),
+  }) : super(child: content);
 }
 
 /// A list of [OuiScreen] instances.

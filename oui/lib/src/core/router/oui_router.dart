@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'oui_path_match.dart';
-import '../scaffold/oui_scaffold.dart';
+import '../../components/scaffold/oui_scaffold.dart';
 
 class OuiRouter extends RouterDelegate<OuiPathMatch> with ChangeNotifier {
   OuiPathMatch _activeMatch = OuiPathMatch.noMatch;

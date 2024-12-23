@@ -38,7 +38,7 @@ class OuiScreenSizeDimension {
   /// );
   /// ```
   const OuiScreenSizeDimension({
-    this.minimum = 300,
+    this.minimum = 440,
     this.maximum = 1400,
     this.weight = 1,
   }) : assert(

@@ -1,4 +1,4 @@
-import '../screens/oui_screen.dart';
+import '../../components/screen/oui_screen.dart';
 import 'oui_path_match.dart';
 
 /// Represents a segment of a path in the Oui routing system.

@@ -1,4 +1,4 @@
-import '../screens/oui_screen.dart';
+import '../../components/screen/oui_screen.dart';
 import 'oui_path.dart';
 
 /// Represents a match for a specific path segment.

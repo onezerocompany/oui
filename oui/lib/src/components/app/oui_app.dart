@@ -1,13 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:oui/src/app/oui_app_context.dart';
-import 'package:oui/src/auth/oui_auth_provider.dart';
-import 'package:oui/src/config/oui_config.dart';
-import 'package:oui/src/router/oui_route_information_parser.dart';
-import 'package:oui/src/router/oui_router.dart';
-import 'package:oui/src/screens/oui_screen.dart';
-import 'package:oui/src/screens/oui_screen_registry.dart';
-import 'package:oui/src/utils/oui_metadata.dart';
+import 'package:oui/src/components/app/oui_app_context.dart';
+import 'package:oui/src/core/auth/oui_auth_provider.dart';
+import 'package:oui/src/core/config/oui_config.dart';
+import 'package:oui/src/core/router/oui_route_information_parser.dart';
+import 'package:oui/src/core/router/oui_router.dart';
+import 'package:oui/src/components/screen/oui_screen.dart';
+import 'package:oui/src/components/screen/oui_screen_registry.dart';
+import 'package:oui/src/core/shared/oui_metadata.dart';
 
 /// A widget that serves as the root of the OUI application.
 ///

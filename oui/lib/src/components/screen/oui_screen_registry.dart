@@ -1,6 +1,7 @@
-import '../router/oui_path.dart';
-import '../router/oui_path_match.dart';
-import '../utils/oui_localized.dart';
+import 'package:oui/src/core/localization/oui_locale.dart';
+
+import '../../core/router/oui_path.dart';
+import '../../core/router/oui_path_match.dart';
 import 'oui_screen.dart';
 
 /// Represents an entry in the Oui screen registry.
@@ -100,7 +101,11 @@ class OuiScreenRegistry {
   OuiScreenRegistry(
     OuiScreen screen,
     OuiLocale? locale,
-  )   : _entries = _buildRegistry(
+  )   : assert(
+          screen.type == OuiScreenType.panel,
+          'Root screen must be of type Panel',
+        ),
+        _entries = _buildRegistry(
           screen,
           locale,
         ),

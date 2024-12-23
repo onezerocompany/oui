@@ -1,5 +1,5 @@
-import '../utils/oui_metadata.dart';
-import '../router/oui_path.dart';
+import '../../core/shared/oui_metadata.dart';
+import '../../core/router/oui_path.dart';
 
 /// Provider class for resolving metadata about OUI screens.
 ///
