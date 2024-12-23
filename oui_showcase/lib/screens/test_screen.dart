@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:oui/oui.dart';
-import 'package:oui_showcase/screens/sub_screen.dart';
+
+import 'sub_screen.dart';
 
 final testScreen = OuiScreen(
   id: "test",
@@ -10,10 +11,14 @@ final testScreen = OuiScreen(
       name: 'Test Screen',
     ),
   ),
-  children: [subScreen],
-  builder: (context) {
-    return const Center(
-      child: Text('Test Screen'),
-    );
-  },
+  background: OuiBackground.gradient(OuiGradient.linear(stops: [
+    OuiGradientStop(0, OuiColor.fromRGB(1, 0, 0)),
+    OuiGradientStop(1, OuiColor.fromRGB(0, 1, 0)),
+  ])),
+  content: Center(
+    child: Text("Test Screen"),
+  ),
+  children: [
+    subScreen,
+  ],
 );

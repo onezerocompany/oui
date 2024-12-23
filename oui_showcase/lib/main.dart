@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:oui/oui.dart';
-import 'package:oui_showcase/screens/test_screen.dart';
+
+import 'screens/test_screen.dart';
 
 void main() {
   // usePathUrlStrategy();
