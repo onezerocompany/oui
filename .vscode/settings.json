@@ -1,6 +1,9 @@
 {
-  "cSpell.words": ["Pressable"],
+  "cSpell.words": ["AARRGGBB", "cmyk", "lerped", "Pressable", "RRGGBBAA"],
   "cSpell.files": ["**/src/**"],
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "github.copilot.chat.edits.suggestRelatedFilesForTests": true,
+  "github.copilot.chat.edits.suggestRelatedFilesFromGitHistory": true,
   "[dart]": {
     "editor.defaultFormatter": "Dart-Code.dart-code",
     "editor.formatOnPaste": true,
