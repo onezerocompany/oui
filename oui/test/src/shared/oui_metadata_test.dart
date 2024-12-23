@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/src/utils/oui_metadata.dart';
+import 'package:oui/src/core/shared/oui_metadata.dart';
 
 void main() {
   group('OuiMetadata', () {
@@ -50,14 +50,14 @@ void main() {
       expect(updated.attributes['newKey'], 'newValue');
       expect(metadata.attributes['newKey'], isNull);
     });
-    
+
     test('should handle copyWith with null icon', () {
       const iconData = IconData(0xe900, fontFamily: 'MaterialIcons');
       var metadata = OuiMetadata(
         name: 'Test',
         icon: iconData,
       );
-      
+
       final updated = metadata.copyWith(icon: null);
       expect(updated.icon, isNull);
       expect(metadata.icon, equals(iconData));
