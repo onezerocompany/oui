@@ -1,1 +1,1 @@
-export 'oui_auth_provider.dart';
+export 'auth_provider.dart';

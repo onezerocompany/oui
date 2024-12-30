@@ -1,6 +1,6 @@
-export 'oui_corner_border_radius.dart';
-export 'oui_corner_border.dart';
-export 'oui_corner_clip.dart';
-export 'oui_corner_path.dart';
-export 'oui_corner_processed_radius.dart';
-export 'oui_corner_radius.dart';
+export 'clip_corner_rect.dart';
+export 'corner_border.dart';
+export 'corner_border_radius.dart';
+export 'corner_path.dart';
+export 'corner_radius.dart';
+export 'processed_corner_radius.dart';

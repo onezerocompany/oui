@@ -1,19 +1,19 @@
 import 'package:flutter/widgets.dart';
-import 'package:oui/src/core/router/oui_path.dart';
-import 'package:oui/src/components/screen/oui_screen.dart';
-import 'package:oui/src/components/screen/oui_screen_metadata.dart';
-import 'package:oui/src/core/localization/oui_localized.dart';
+import 'package:oui/src/components/screen/screen.dart';
+import 'package:oui/src/core/localization/localized.dart';
+import 'package:oui/src/core/metadata/screen_metadata.dart';
+import 'package:oui/src/core/router/path.dart';
 
-OuiScreen testScreen(
+Screen testScreen(
   String id, {
-  List<OuiPathSegment> segments = const [],
-  List<OuiScreen> children = const [],
+  List<PathSegment> segments = const [],
+  List<Screen> children = const [],
 }) {
-  return OuiScreen(
+  return Screen(
     id: id,
-    metadata: OuiLocalized(
-      OuiScreenMetadata(
-        path: segments.isEmpty ? [OuiPathSegment.static(id)] : segments,
+    metadata: Localized(
+      ScreenMetadata(
+        path: segments.isEmpty ? [PathSegment.static(id)] : segments,
         name: id,
       ),
     ),

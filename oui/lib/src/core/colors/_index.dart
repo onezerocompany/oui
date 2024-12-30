@@ -1,4 +1,6 @@
-export 'oui_color.dart';
-export 'oui_color_hsl.dart';
-export 'oui_color_hsv.dart';
-export 'oui_gradient.dart';
+export 'generator/_index.dart';
+export 'palette/_index.dart';
+export 'color.dart';
+export 'gradient.dart';
+export 'hsl_color.dart';
+export 'hsv_color.dart';

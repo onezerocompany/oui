@@ -1,24 +1,29 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' show Center, Text;
 import 'package:oui/oui.dart';
 
 import 'sub_screen.dart';
 
-final testScreen = OuiScreen(
+final testScreen = Screen(
   id: "test",
-  metadata: OuiLocalized(
-    OuiScreenMetadata(
-      path: [OuiPathSegment.static('test')],
+  metadata: Localized(
+    ScreenMetadata(
+      path: [PathSegment.static('test')],
       name: 'Test Screen',
     ),
   ),
-  background: OuiBackground.gradient(OuiGradient.linear(stops: [
-    OuiGradientStop(0, OuiColor.fromRGB(1, 0, 0)),
-    OuiGradientStop(1, OuiColor.fromRGB(0, 1, 0)),
-  ])),
   content: Center(
     child: Text("Test Screen"),
   ),
   children: [
     subScreen,
   ],
+).background(
+  Background.gradient(
+    Gradient.linear(
+      stops: [
+        GradientStop(0, Color.fromRGB(1, 0, 0)),
+        GradientStop(1, Color.fromRGB(0, 0, 1)),
+      ],
+    ),
+  ),
 );

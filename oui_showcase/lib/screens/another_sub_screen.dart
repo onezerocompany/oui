@@ -1,11 +1,11 @@
 import 'package:flutter/widgets.dart';
 import 'package:oui/oui.dart';
 
-final anotherSubScreen = OuiScreen(
+final anotherSubScreen = Screen(
   id: "anotherSub",
-  metadata: OuiLocalized(
-    OuiScreenMetadata(
-      path: [OuiPathSegment.static('another')],
+  metadata: Localized(
+    ScreenMetadata(
+      path: [PathSegment.static('another')],
       name: 'Another Sub Screen',
     ),
   ),

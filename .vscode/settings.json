@@ -1,5 +1,16 @@
 {
-  "cSpell.words": ["AARRGGBB", "cmyk", "lerped", "Pressable", "RRGGBBAA"],
+  "cSpell.words": [
+    "AARRGGBB",
+    "Accentable",
+    "APCA",
+    "cmyk",
+    "desaturated",
+    "lerped",
+    "Pressable",
+    "RRGGBB",
+    "RRGGBBAA",
+    "WCAG"
+  ],
   "cSpell.files": ["**/src/**"],
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,
   "github.copilot.chat.edits.suggestRelatedFilesForTests": true,
@@ -8,6 +19,9 @@
     "editor.defaultFormatter": "Dart-Code.dart-code",
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true,
-    "editor.formatOnSaveMode": "file"
+    "editor.formatOnSaveMode": "file",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "always"
+    }
   }
 }

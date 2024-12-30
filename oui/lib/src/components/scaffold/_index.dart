@@ -1,3 +1,3 @@
-export 'oui_rail.dart';
-export 'oui_scaffold.dart';
-export 'oui_scaffold_layout.dart';
+export 'rail.dart';
+export 'scaffold.dart';
+export 'scaffold_layout.dart';

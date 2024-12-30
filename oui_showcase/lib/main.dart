@@ -16,9 +16,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return OuiApp(
       root: testScreen,
-      appDetailProvider: OuiMetadata(
-        icon: Icons.ac_unit,
-        name: 'OUI Showcase',
+      config: Config(
+        app: AppDetails(
+          name: 'OUI Showcase',
+          version: '1.0.0',
+        ),
       ),
     );
   }
