@@ -50,7 +50,7 @@ void main() {
     group('Single-level tree', () {
       test('should handle single-level tree with one screen', () {
         final screen = testScreen('home');
-        final registry = ScreenRegistry(screen, null);
+        final registry = ScreenRegistry(screen);
 
         final match = registry.match(['home']);
         expect(match.screens.first, screen);
@@ -60,7 +60,7 @@ void main() {
           'profile',
           segments: [PathSegment.argument('userId')],
         );
-        final registry = ScreenRegistry(screen, null);
+        final registry = ScreenRegistry(screen);
 
         final match = registry.match(['123']);
         expect(match.screens.first, screen);
@@ -70,7 +70,7 @@ void main() {
           'profile',
           segments: [PathSegment.argument('userId', pattern: r'\d+')],
         );
-        final registry = ScreenRegistry(screen, null);
+        final registry = ScreenRegistry(screen);
 
         final match = registry.match(['123']);
         expect(match.screens.first, screen);
@@ -107,7 +107,6 @@ void main() {
               ),
             ],
           ),
-          null,
         );
       });
 
@@ -134,7 +133,7 @@ void main() {
         final about = testScreen('about', children: [aboutTeam]);
         final root = testScreen('root', children: [about]);
 
-        final registry = ScreenRegistry(root, null);
+        final registry = ScreenRegistry(root);
 
         final match = registry.match(['root', 'about']);
         expect(match.screens.length, 2);
@@ -158,7 +157,7 @@ void main() {
         );
         final root = testScreen('users', children: [userProfile]);
 
-        final registry = ScreenRegistry(root, null);
+        final registry = ScreenRegistry(root);
 
         final match = registry.match(['users', '42']);
         expect(match.screens.length, 2);
@@ -171,7 +170,7 @@ void main() {
           segments: [PathSegment.argument('id')],
         );
 
-        final registry = ScreenRegistry(screen, null);
+        final registry = ScreenRegistry(screen);
 
         final match = registry.match(['123']);
         expect(match.screens.first.id, 'screen1');
@@ -190,7 +189,7 @@ void main() {
           children: [childScreen],
         );
 
-        final registry = ScreenRegistry(parentScreen, null);
+        final registry = ScreenRegistry(parentScreen);
 
         final match = registry.match(['parent', '123']);
         expect(match.screens.length, 2);
@@ -217,7 +216,7 @@ void main() {
           children: [profileScreen],
         );
 
-        final registry = ScreenRegistry(usersScreen, null);
+        final registry = ScreenRegistry(usersScreen);
 
         final match = registry.match(['users', '123', 'data']);
         expect(match.screens.length, 3);
@@ -232,7 +231,7 @@ void main() {
     group('Edge cases', () {
       test('should handle empty path segments gracefully', () {
         final root = testScreen('root');
-        final registry = ScreenRegistry(root, null);
+        final registry = ScreenRegistry(root);
 
         final match = registry.match([]);
         expect(match.screens.first, root);
@@ -240,7 +239,7 @@ void main() {
 
       test('should return root match for unmatched paths', () {
         final root = testScreen('root');
-        final registry = ScreenRegistry(root, null);
+        final registry = ScreenRegistry(root);
 
         final match = registry.match(['unmatched', 'path']);
         expect(match.screens.first, root);
@@ -252,7 +251,7 @@ void main() {
         final root = testScreen('root', children: [duplicate1, duplicate2]);
 
         expect(
-          () => ScreenRegistry(root, null),
+          () => ScreenRegistry(root),
           throwsException,
         );
       });
@@ -261,7 +260,7 @@ void main() {
         final screen =
             testScreen('screen1', segments: [PathSegment.static('home')]);
 
-        final registry = ScreenRegistry(screen, null);
+        final registry = ScreenRegistry(screen);
 
         final match = registry.match([]);
         expect(match.screens.first.id, 'screen1');
@@ -271,14 +270,14 @@ void main() {
         final screen = testScreen('duplicate');
         final root = testScreen('root', children: [screen, screen]);
 
-        expect(() => ScreenRegistry(root, null), throwsException);
+        expect(() => ScreenRegistry(root), throwsException);
       });
     });
 
     group('Screen retrieval', () {
       test('should retrieve screen by ID', () {
         final screen = testScreen('screen1');
-        final registry = ScreenRegistry(screen, null);
+        final registry = ScreenRegistry(screen);
 
         final retrieved = registry.getScreenById('screen1');
         expect(retrieved, screen);
@@ -288,7 +287,7 @@ void main() {
         final screen =
             testScreen('screen1', segments: [PathSegment.static('home')]);
 
-        final registry = ScreenRegistry(screen, null);
+        final registry = ScreenRegistry(screen);
 
         expect(registry.count, 1);
         expect(registry.getScreenById('screen1'), screen);
@@ -304,7 +303,7 @@ void main() {
           children: [childScreen],
         );
 
-        final registry = ScreenRegistry(parentScreen, null);
+        final registry = ScreenRegistry(parentScreen);
 
         expect(registry.count, 2);
         expect(registry.getScreenById('parent1'), parentScreen);
@@ -315,7 +314,7 @@ void main() {
         final screen =
             testScreen('screen1', segments: [PathSegment.static('home')]);
 
-        final registry = ScreenRegistry(screen, null);
+        final registry = ScreenRegistry(screen);
 
         final match = registry.match(['home']);
         expect(match.screens.first.id, 'screen1');

@@ -16,41 +16,7 @@ import 'package:flutter/widgets.dart'
         StatelessWidget,
         Transform,
         Widget;
-
-import '../../core/colors/color.dart';
-import '../../core/geometry/size.dart';
-import '../../core/router/path_match.dart';
-import '../box/box.dart';
-import '../box/modifiers/background.dart';
-import '../screen/screen.dart';
-import 'rail.dart';
-import 'scaffold_layout.dart';
-
-class ScaffoldDivider extends Box {
-  const ScaffoldDivider({
-    super.key,
-  });
-
-  @override
-  Size? get size => Size.fixed(width: 1);
-
-  @override
-  Background? get background => const Background.color(Color.fromRGB(0, 0, 0));
-}
-
-// class ScaffoldDivider extends StatelessWidget {
-//   const ScaffoldDivider({
-//     super.key,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       color: const Color(0xFF000000),
-//       width: 1,
-//     );
-//   }
-// }
+import 'package:oui/oui.dart';
 
 class ScaffoldPanels extends StatelessWidget {
   final List<Widget> panels;
@@ -84,7 +50,7 @@ class Scaffold extends Box {
         .expand(
           (screen) => [
             Flexible(
-              flex: screen.size.width.weight ?? 1,
+              flex: screen.currentSize?.width.weight ?? 1,
               fit: FlexFit.loose,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -102,7 +68,7 @@ class Scaffold extends Box {
   }
 
   @override
-  Widget? get child {
+  Widget? get content {
     return ScaffoldLayoutBuilder(
       currentPath: currentPath,
       builder: (context, layout) {
@@ -143,5 +109,19 @@ class Scaffold extends Box {
         );
       },
     );
+  }
+}
+
+class ScaffoldDivider extends Box {
+  const ScaffoldDivider({
+    super.key,
+  });
+
+  @override
+  List<BoxModifier> get modifiers {
+    return [
+      BoxSize.fixed(width: 1),
+      const Background.color(Color.black),
+    ];
   }
 }

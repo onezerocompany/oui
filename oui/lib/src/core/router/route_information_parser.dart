@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart' show SynchronousFuture;
-import 'package:flutter/widgets.dart' show BuildContext, RouteInformation;
 import 'package:flutter/widgets.dart' as widgets show RouteInformationParser;
+import 'package:flutter/widgets.dart' show BuildContext, RouteInformation;
 
 import '../../components/screen/screen_registry.dart';
+import '../localization/locale.dart';
 import 'path_match.dart';
 
 /// A route information parser that converts URIs to [PathMatch] objects.
@@ -31,7 +32,7 @@ class RouteInformationParser extends widgets.RouteInformationParser<PathMatch> {
     final segments = routeInformation.uri.pathSegments
         .where((segment) => segment.isNotEmpty)
         .toList();
-    return SynchronousFuture(_registry.match(segments));
+    return SynchronousFuture(_registry.match(segments, context.currentLocale));
   }
 
   /// Converts an [PathMatch] back into [RouteInformation].

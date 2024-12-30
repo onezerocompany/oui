@@ -1,3 +1,5 @@
+import 'package:oui/src/core/localization/localized.dart';
+
 import '../../core/localization/locale.dart';
 import '../../core/router/path.dart';
 import '../../core/router/path_match.dart';
@@ -40,47 +42,56 @@ class ScreenRegistryEntry {
   List<Screen> get screens => [...parents, screen];
 }
 
+typedef ScreenRegistryEntries = List<ScreenRegistryEntry>;
+
 /// Represents a registry of screens for the Oui routing system.
 ///
 /// This class holds a list of screen registry entries and provides a method
 /// to match a list of path segments against the registry.
 class ScreenRegistry {
-  final List<ScreenRegistryEntry> _entries;
+  final Localized<ScreenRegistryEntries> _entries;
   final PathMatch _rootMatch;
 
-  /// Builds the registry of screens for the given [screen] and [locale].
-  ///
-  /// This method recursively adds screens and their paths to the registry,
-  /// ensuring that the longest paths are matched first.
-  static List<ScreenRegistryEntry> _buildRegistry(
-    Screen screen,
-    Locale? locale,
-  ) {
-    final screens = <ScreenRegistryEntry>[];
+  static ScreenRegistryEntries _buildEntries(Screen root, [Locale? locale]) {
+    final entries = <ScreenRegistryEntry>[];
 
     void addScreen(
       Screen screen, [
       Path? parentPath,
       List<Screen>? parents,
     ]) {
-      if (screens.any((entry) => entry.screen.id == screen.id)) {
+      if (entries.any((entry) => entry.screen.id == screen.id)) {
         throw Exception('Duplicate screen ID: ${screen.id}');
       }
       final segments = screen.metadata.forLocale(locale).path;
       final path = parentPath?.add(segments) ?? Path(segments);
-      screens.add(ScreenRegistryEntry(screen, path, parents ?? []));
+      entries.add(ScreenRegistryEntry(screen, path, parents ?? []));
       for (final child in screen.children) {
         addScreen(child, path, [...?parents, screen]);
       }
     }
 
-    addScreen(screen);
+    addScreen(root);
 
-    // sort the screens by path length so that the longest paths are matched
-    // first, allowing for more specific paths to be matched earlier
-    screens.sort((a, b) => b.path.length.compareTo(a.path.length));
+    entries.sort((a, b) => b.path.length.compareTo(a.path.length));
 
-    return screens;
+    return entries;
+  }
+
+  /// Builds the registry of screens for the given [root] and [locale].
+  ///
+  /// This method recursively adds screens and their paths to the registry,
+  /// ensuring that the longest paths are matched first.
+  static Localized<ScreenRegistryEntries> _buildRegistry(
+    Screen root,
+    Locales supportedLocales,
+  ) {
+    Map<Locale, ScreenRegistryEntries> localized = {};
+    for (final locale in supportedLocales) {
+      localized[locale] = _buildEntries(root, locale);
+    }
+
+    return Localized(_buildEntries(root), localized);
   }
 
   /// Creates a new screen registry for the given [screen] and [locale].
@@ -98,23 +109,20 @@ class ScreenRegistry {
   /// final registry = ScreenRegistry(screen, locale);
   /// ```
   ScreenRegistry(
-    Screen screen,
-    Locale? locale,
-  )   : assert(
+    Screen screen, [
+    Locales supportedLocales = const [Locale.english],
+  ])  : assert(
           screen.type == ScreenType.panel,
           'Root screen must be of type Panel',
         ),
-        _entries = _buildRegistry(
-          screen,
-          locale,
-        ),
+        _entries = _buildRegistry(screen, supportedLocales),
         _rootMatch = PathMatch([screen], [], [], 0);
 
   /// Retrieves the screen with the given [id].
   ///
   /// Returns the screen if found, otherwise returns null.
   Screen? getScreenById(String id) {
-    for (final entry in _entries) {
+    for (final entry in _entries.base) {
       if (entry.screen.id == id) {
         return entry.screen;
       }
@@ -126,12 +134,13 @@ class ScreenRegistry {
   ///
   /// Returns the best matching [PathMatch] object, or the root match if no
   /// match is found.
-  PathMatch match(List<String> segments) {
+  PathMatch match(List<String> segments, [Locale? locale]) {
     if (segments.isEmpty) {
       return _rootMatch;
     }
 
     final matches = _entries
+        .forLocale(locale)
         .where((entry) => entry.path.length <= segments.length)
         .map((entry) => entry.path.match(segments, entry.screens))
         .toList();
@@ -148,5 +157,5 @@ class ScreenRegistry {
   }
 
   /// Returns the number of entries in the registry.
-  int get count => _entries.length;
+  int get count => _entries.base.length;
 }

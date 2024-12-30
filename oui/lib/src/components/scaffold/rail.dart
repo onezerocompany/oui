@@ -14,22 +14,23 @@ enum RailContainerStyle {
   fullWidth,
 }
 
-class Rail extends Box {
+class Rail extends StatelessWidget {
   final BoxSide side;
-
-  @override
-  Border? get border {
-    final opposite = side.opposite;
-    return Border.forBoxSide(
-      opposite,
-      BorderSide.none,
-    );
-  }
 
   const Rail(
     this.side, {
     super.key,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    return const Box().border(
+      Border.forBoxSide(
+        side.opposite,
+        BorderSide.none,
+      ),
+    );
+  }
 }
 
 class RailedContainer extends StatelessWidget {

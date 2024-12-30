@@ -1,25 +1,27 @@
 import 'package:oui/src/core/colors/generator/base_color_generator.dart';
 import 'package:oui/src/core/colors/generator/color_palette_levels_generator.dart';
+import 'package:oui/src/core/config/color_config.dart';
 
 import '../../shared/generator.dart';
 import '../color.dart';
 import '../palette/color_palette.dart';
 
 class ColorPaletteGenerator extends Generator<ColorPalette> {
-  final BaseColorGenerator baseColorGenerator;
+  final ColorConfig config;
+  late final BaseColorGenerator _baseColorGenerator;
 
-  const ColorPaletteGenerator(
-    this.baseColorGenerator,
-  );
+  ColorPaletteGenerator(this.config) {
+    _baseColorGenerator = BaseColorGenerator.fromColor(config.seed);
+  }
 
   @override
   ColorPalette generate() {
     return ColorPalette(
       levels: ColorPaletteLevelsGenerator(
-        baseColorGenerator,
+        _baseColorGenerator,
         6,
       ).generate(),
-      barrier: baseColorGenerator.generateFor<Color>(
+      barrier: _baseColorGenerator.generateFor<Color>(
         (color) => color.color.withAlpha(0.5),
       ),
     );

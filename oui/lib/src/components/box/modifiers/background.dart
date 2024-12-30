@@ -8,9 +8,6 @@ import '../background_image.dart';
 /// A class that represents the background of a widget, which can be a color,
 /// gradient, image, or a custom widget.
 class Background extends BoxModifier {
-  /// Use default background color.
-  final bool isStandard;
-
   /// The background color.
   final Color? color;
 
@@ -25,14 +22,11 @@ class Background extends BoxModifier {
 
   /// Private constructor for creating an [Background] instance.
   const Background._({
-    this.isStandard = false,
     this.color,
     this.gradient,
     this.image,
     this.custom,
   });
-
-  const Background.standard() : this._(isStandard: true);
 
   /// Creates an [Background] with a solid color.
   ///
@@ -56,14 +50,6 @@ class Background extends BoxModifier {
 
   @override
   void modify(BoxModifierContext context) {
-    if (isStandard) {
-      context.decorate(
-        context.decoration.copyWith(
-          color: Color.white.uiColor,
-        ),
-      );
-    }
-
     if (color != null || gradient != null || image != null) {
       context.decorate(
         context.decoration.copyWith(

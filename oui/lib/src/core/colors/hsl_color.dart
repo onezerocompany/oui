@@ -1,7 +1,5 @@
 import 'package:oui/oui.dart';
 
-import '../shared/range.dart';
-
 /// A class representing a color in the HSL (Hue, Saturation, Lightness) color space.
 class HslColor {
   /// The hue of the color, in degrees [0, 360).

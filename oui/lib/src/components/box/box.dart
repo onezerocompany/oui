@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart'
     show BoxDecoration, BuildContext, DecoratedBox, SizedBox, Widget;
 
+import '../../core/geometry/size.dart';
 import '../shared/modifiable_component.dart';
 import 'box_modifier.dart';
 import 'modifiers/alignment.dart';
@@ -34,6 +35,14 @@ class Box extends ModifiableComponent<BoxModifier, BoxModifierContext> {
     this.content,
     required super.modifiers,
   });
+
+  Size? get currentSize => modifiers.whereType<BoxSize>().lastOrNull?.size;
+
+  const Box.withModifiers(
+    BoxModifiers modifiers, {
+    super.key,
+    this.content,
+  }) : super(modifiers: modifiers);
 
   @override
   BoxModifierContext createContext(BuildContext context) {

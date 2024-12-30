@@ -2,7 +2,7 @@ import 'package:flutter/rendering.dart' as rendering show Alignment;
 import 'package:flutter/widgets.dart'
     show LinearGradient, RadialGradient, SweepGradient;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/src/components/box/modifiers/alignment.dart';
+import 'package:oui/src/components/shared/flow_direction.dart';
 import 'package:oui/src/core/colors/color.dart';
 import 'package:oui/src/core/colors/gradient.dart';
 

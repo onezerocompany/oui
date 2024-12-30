@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart' show IconData;
+import 'package:oui/src/core/localization/localized.dart';
 
 /// Provider class for resolving metadata about OUI components.
 ///
@@ -53,3 +54,5 @@ class Metadata {
   @override
   int get hashCode => name.hashCode ^ icon.hashCode ^ attributes.hashCode;
 }
+
+typedef LocalizedMetadata = Localized<Metadata>;

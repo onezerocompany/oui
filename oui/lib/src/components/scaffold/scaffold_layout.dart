@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart'
 
 import '../../core/geometry/size.dart';
 import '../../core/router/path_match.dart';
-import '../app/app_context.dart';
+import '../app/static_app_context.dart';
 import '../screen/screen.dart';
 
 class ScaffoldLayout {
@@ -45,10 +45,11 @@ class ScaffoldLayoutBuilder extends StatelessWidget {
       final totalMinWidth = panels.fold<double>(
         0,
         (previousValue, screen) =>
-            previousValue + (screen.size?.width.start ?? minPanelWidth),
+            previousValue + (screen.currentSize?.width.start ?? minPanelWidth),
       );
 
-      return totalMinWidth + (screen.size?.width.start ?? minPanelWidth) <=
+      return totalMinWidth +
+              (screen.currentSize?.width.start ?? minPanelWidth) <=
           size.width.start;
     }
 
