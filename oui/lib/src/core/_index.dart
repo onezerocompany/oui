@@ -7,3 +7,4 @@ export 'localization/_index.dart';
 export 'metadata/_index.dart';
 export 'router/_index.dart';
 export 'shared/_index.dart';
+export 'utils/_index.dart';

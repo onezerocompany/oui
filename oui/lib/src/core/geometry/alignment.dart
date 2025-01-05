@@ -1,11 +1,10 @@
 import 'package:flutter/rendering.dart' as rendering;
-import 'package:flutter/widgets.dart' show Align;
-import 'package:oui/src/components/box/box_modifier.dart';
+import 'package:flutter/widgets.dart' show AlignmentGeometry;
 import 'package:oui/src/components/shared/flow_direction.dart';
 import 'package:oui/src/components/shared/position.dart';
 
 /// Class representing the alignment within a container.
-class Alignment extends BoxModifier {
+class Alignment {
   /// The main position within the alignment.
   final Position main;
 
@@ -109,16 +108,6 @@ class Alignment extends BoxModifier {
               : cross == Position.trailing
                   ? 0.5
                   : -0.5),
-    );
-  }
-
-  @override
-  void modify(BoxModifierContext context) {
-    context.modifyContent(
-      Align(
-        alignment: uiAlignment,
-        child: context.content,
-      ),
     );
   }
 }

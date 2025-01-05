@@ -2,9 +2,9 @@ import 'package:flutter/rendering.dart' show CrossAxisAlignment;
 import 'package:flutter/widgets.dart'
     show BuildContext, Column, Flexible, Row, StatelessWidget, Widget;
 
+import '../../core/geometry/rectangle_side.dart';
+import '../borders/border_side.dart';
 import '../box/box.dart';
-import '../box/box_side.dart';
-import '../box/modifiers/border.dart';
 
 enum RailContainerStyle {
   // The rails on the sides reach the top and bottom of the container.
@@ -15,7 +15,7 @@ enum RailContainerStyle {
 }
 
 class Rail extends StatelessWidget {
-  final BoxSide side;
+  final RectangleSide side;
 
   const Rail(
     this.side, {
@@ -24,11 +24,9 @@ class Rail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Box().border(
-      Border.forBoxSide(
-        side.opposite,
-        BorderSide.none,
-      ),
+    return const Box().borderForSide(
+      side.opposite,
+      BorderSide.none,
     );
   }
 }
@@ -49,11 +47,11 @@ class RailedContainer extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Rail(BoxSide.top),
+          const Rail(RectangleSide.top),
           Flexible(
             child: content,
           ),
-          const Rail(BoxSide.bottom),
+          const Rail(RectangleSide.bottom),
         ],
       );
     }
@@ -62,11 +60,11 @@ class RailedContainer extends StatelessWidget {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Rail(BoxSide.left),
+          const Rail(RectangleSide.left),
           Flexible(
             child: content,
           ),
-          const Rail(BoxSide.right),
+          const Rail(RectangleSide.right),
         ],
       );
     }

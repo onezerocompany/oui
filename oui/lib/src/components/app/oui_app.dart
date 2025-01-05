@@ -39,7 +39,7 @@ class OuiApp extends StatelessWidget {
     super.key,
     required Screen root,
     required this.config,
-  }) : _registry = ScreenRegistry(root, config.supportedLocales) {
+  }) : _registry = ScreenRegistry(root, config.locales) {
     _colorPalette = ColorPaletteGenerator(config.colors).generate();
     _routerInformationParser = RouteInformationParser(_registry);
     _router = Router();

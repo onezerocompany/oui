@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/rendering.dart'
     show
         BorderRadius,
@@ -5,7 +7,6 @@ import 'package:flutter/rendering.dart'
         BoxDecoration,
         Matrix4,
         Path,
-        Radius,
         Rect,
         TextDirection;
 
@@ -15,113 +16,61 @@ import 'processed_corner_radius.dart';
 
 /// A class that defines the border radius with custom corner radii and smoothing.
 class CornerBorderRadius extends BorderRadius {
-  /// Creates a border radius with the same radius and smoothing for all corners.
-  CornerBorderRadius({
-    required double radius,
-    double smoothing = 0,
-  }) : this.only(
-          topLeft: CornerRadius(
-            radius: radius,
-            smoothing: smoothing,
-          ),
-          topRight: CornerRadius(
-            radius: radius,
-            smoothing: smoothing,
-          ),
-          bottomLeft: CornerRadius(
-            radius: radius,
-            smoothing: smoothing,
-          ),
-          bottomRight: CornerRadius(
-            radius: radius,
-            smoothing: smoothing,
-          ),
-        );
-
-  /// Creates a border radius with the same [CornerRadius] for all corners.
-  const CornerBorderRadius.all(CornerRadius radius)
-      : this.only(
-          topLeft: radius,
-          topRight: radius,
-          bottomLeft: radius,
-          bottomRight: radius,
-        );
-
-  /// Creates a border radius with different [CornerRadius] for vertical corners.
-  const CornerBorderRadius.vertical({
-    CornerRadius top = CornerRadius.zero,
-    CornerRadius bottom = CornerRadius.zero,
-  }) : this.only(
-          topLeft: top,
-          topRight: top,
-          bottomLeft: bottom,
-          bottomRight: bottom,
-        );
-
-  /// Creates a border radius with different [CornerRadius] for horizontal corners.
-  const CornerBorderRadius.horizontal({
-    CornerRadius left = CornerRadius.zero,
-    CornerRadius right = CornerRadius.zero,
-  }) : this.only(
-          topLeft: left,
-          topRight: right,
-          bottomLeft: left,
-          bottomRight: right,
-        );
-
-  /// Creates a border radius with different [CornerRadius] for each corner.
   const CornerBorderRadius.only({
-    CornerRadius super.topLeft = CornerRadius.zero,
-    CornerRadius super.topRight = CornerRadius.zero,
-    CornerRadius super.bottomLeft = CornerRadius.zero,
+    CornerRadius topLeft = CornerRadius.zero,
+    CornerRadius topRight = CornerRadius.zero,
+    CornerRadius bottomLeft = CornerRadius.zero,
     CornerRadius bottomRight = CornerRadius.zero,
   })  : _topLeft = topLeft,
         _topRight = topRight,
         _bottomLeft = bottomLeft,
         _bottomRight = bottomRight,
-        super.only(
-          bottomRight: topRight,
-        );
+        super.only();
 
-  /// Creates a copy of this border radius with the given corner radii replaced.
+  const CornerBorderRadius.all(CornerRadius super.radius)
+      : _topLeft = radius,
+        _topRight = radius,
+        _bottomLeft = radius,
+        _bottomRight = radius,
+        super.all();
+
+  const CornerBorderRadius.vertical(
+    CornerRadius top,
+    CornerRadius bottom,
+  )   : _topLeft = top,
+        _topRight = top,
+        _bottomLeft = bottom,
+        _bottomRight = bottom,
+        super.vertical();
+
+  const CornerBorderRadius.horizontal(
+    CornerRadius left,
+    CornerRadius right,
+  )   : _topLeft = left,
+        _topRight = right,
+        _bottomLeft = left,
+        _bottomRight = right,
+        super.horizontal();
+
   @override
-  CornerBorderRadius copyWith({
-    Radius? topLeft,
-    Radius? topRight,
-    Radius? bottomLeft,
-    Radius? bottomRight,
-  }) {
-    return CornerBorderRadius.only(
-      topLeft: topLeft is CornerRadius ? topLeft : this.topLeft,
-      topRight: topRight is CornerRadius ? topRight : this.topRight,
-      bottomLeft: bottomLeft is CornerRadius ? bottomLeft : this.bottomLeft,
-      bottomRight: bottomRight is CornerRadius ? bottomRight : this.bottomRight,
-    );
-  }
+  Radius get topLeft => _topLeft;
+  final CornerRadius _topLeft;
+
+  @override
+  Radius get topRight => _topRight;
+  final CornerRadius _topRight;
+
+  @override
+  Radius get bottomLeft => _bottomLeft;
+  final CornerRadius _bottomLeft;
+
+  @override
+  Radius get bottomRight => _bottomRight;
+  final CornerRadius _bottomRight;
 
   /// A border radius with all corners set to zero.
   static const CornerBorderRadius zero =
       CornerBorderRadius.all(CornerRadius.zero);
-
-  /// The top-left corner radius.
-  @override
-  CornerRadius get topLeft => _topLeft;
-  final CornerRadius _topLeft;
-
-  /// The top-right corner radius.
-  @override
-  CornerRadius get topRight => _topRight;
-  final CornerRadius _topRight;
-
-  /// The bottom-left corner radius.
-  @override
-  CornerRadius get bottomLeft => _bottomLeft;
-  final CornerRadius _bottomLeft;
-
-  /// The bottom-right corner radius.
-  @override
-  CornerRadius get bottomRight => _bottomRight;
-  final CornerRadius _bottomRight;
 
   /// Converts the border radius to a [Path] for the given [Rect].
   Path toPath(Rect rect) {
@@ -131,28 +80,28 @@ class CornerBorderRadius extends BorderRadius {
     final result = Path();
 
     final processedTopLeft = ProcessedCornerRadius(
-      topLeft,
+      _topLeft,
       width: width,
       height: height,
     );
-    final processedBottomLeft = topLeft == bottomLeft
+    final processedBottomLeft = _topLeft == _bottomLeft
         ? processedTopLeft
         : ProcessedCornerRadius(
-            bottomLeft,
+            _bottomLeft,
             width: width,
             height: height,
           );
-    final processedBottomRight = bottomLeft == bottomRight
+    final processedBottomRight = _bottomLeft == _bottomRight
         ? processedBottomLeft
         : ProcessedCornerRadius(
-            bottomRight,
+            _bottomRight,
             width: width,
             height: height,
           );
-    final processedTopRight = topRight == bottomRight
+    final processedTopRight = _topRight == _bottomRight
         ? processedBottomRight
         : ProcessedCornerRadius(
-            topRight,
+            _topRight,
             width: width,
             height: height,
           );
@@ -191,10 +140,10 @@ class CornerBorderRadius extends BorderRadius {
   CornerBorderRadius operator -(BorderRadius other) {
     if (other is CornerBorderRadius) {
       return CornerBorderRadius.only(
-        topLeft: (topLeft - other.topLeft),
-        topRight: (topRight - other.topRight),
-        bottomLeft: (bottomLeft - other.bottomLeft),
-        bottomRight: (bottomRight - other.bottomRight),
+        topLeft: (_topLeft - other._topLeft),
+        topRight: (_topRight - other._topRight),
+        bottomLeft: (_bottomLeft - other._bottomLeft),
+        bottomRight: (_bottomRight - other._bottomRight),
       );
     }
 
@@ -206,10 +155,10 @@ class CornerBorderRadius extends BorderRadius {
   CornerBorderRadius operator +(BorderRadius other) {
     if (other is CornerBorderRadius) {
       return CornerBorderRadius.only(
-        topLeft: (topLeft + other.topLeft),
-        topRight: (topRight + other.topRight),
-        bottomLeft: (bottomLeft + other.bottomLeft),
-        bottomRight: (bottomRight + other.bottomRight),
+        topLeft: (_topLeft + other._topLeft),
+        topRight: (_topRight + other._topRight),
+        bottomLeft: (_bottomLeft + other._bottomLeft),
+        bottomRight: (_bottomRight + other._bottomRight),
       );
     }
     return this;
@@ -219,10 +168,10 @@ class CornerBorderRadius extends BorderRadius {
   @override
   CornerBorderRadius operator -() {
     return CornerBorderRadius.only(
-      topLeft: (-topLeft),
-      topRight: (-topRight),
-      bottomLeft: (-bottomLeft),
-      bottomRight: (-bottomRight),
+      topLeft: (-_topLeft),
+      topRight: (-_topRight),
+      bottomLeft: (-_bottomLeft),
+      bottomRight: (-_bottomRight),
     );
   }
 
@@ -230,10 +179,10 @@ class CornerBorderRadius extends BorderRadius {
   @override
   CornerBorderRadius operator *(double other) {
     return CornerBorderRadius.only(
-      topLeft: topLeft * other,
-      topRight: topRight * other,
-      bottomLeft: bottomLeft * other,
-      bottomRight: bottomRight * other,
+      topLeft: _topLeft * other,
+      topRight: _topRight * other,
+      bottomLeft: _bottomLeft * other,
+      bottomRight: _bottomRight * other,
     );
   }
 
@@ -241,10 +190,10 @@ class CornerBorderRadius extends BorderRadius {
   @override
   CornerBorderRadius operator /(double other) {
     return CornerBorderRadius.only(
-      topLeft: topLeft / other,
-      topRight: topRight / other,
-      bottomLeft: bottomLeft / other,
-      bottomRight: bottomRight / other,
+      topLeft: _topLeft / other,
+      topRight: _topRight / other,
+      bottomLeft: _bottomLeft / other,
+      bottomRight: _bottomRight / other,
     );
   }
 
@@ -252,10 +201,10 @@ class CornerBorderRadius extends BorderRadius {
   @override
   CornerBorderRadius operator ~/(double other) {
     return CornerBorderRadius.only(
-      topLeft: topLeft ~/ other,
-      topRight: topRight ~/ other,
-      bottomLeft: bottomLeft ~/ other,
-      bottomRight: bottomRight ~/ other,
+      topLeft: _topLeft ~/ other,
+      topRight: _topRight ~/ other,
+      bottomLeft: _bottomLeft ~/ other,
+      bottomRight: _bottomRight ~/ other,
     );
   }
 
@@ -263,53 +212,60 @@ class CornerBorderRadius extends BorderRadius {
   @override
   CornerBorderRadius operator %(double other) {
     return CornerBorderRadius.only(
-      topLeft: topLeft % other,
-      topRight: topRight % other,
-      bottomLeft: bottomLeft % other,
-      bottomRight: bottomRight % other,
+      topLeft: _topLeft % other,
+      topRight: _topRight % other,
+      bottomLeft: _bottomLeft % other,
+      bottomRight: _bottomRight % other,
     );
   }
 
   /// Linearly interpolates between two [CornerBorderRadius] objects.
-  static CornerBorderRadius? lerp(
-    CornerBorderRadius? a,
-    CornerBorderRadius? b,
+  static CornerBorderRadius _lerp(
+    CornerBorderRadius a,
+    CornerBorderRadius b,
     double t,
   ) {
-    if (a == null && b == null) {
-      return null;
-    }
-    if (a == null) {
-      return b! * t;
-    }
-    if (b == null) {
-      return a * (1.0 - t);
-    }
     final clampedT = t.clamp(0.0, 1.0);
     return CornerBorderRadius.only(
-      topLeft: CornerRadius.lerp(a.topLeft, b.topLeft, clampedT)!,
-      topRight: CornerRadius.lerp(a.topRight, b.topRight, clampedT)!,
-      bottomLeft: CornerRadius.lerp(a.bottomLeft, b.bottomLeft, clampedT)!,
-      bottomRight: CornerRadius.lerp(a.bottomRight, b.bottomRight, clampedT)!,
+      topLeft: CornerRadius.lerp(a._topLeft, b._topLeft, clampedT)!,
+      topRight: CornerRadius.lerp(a._topRight, b._topRight, clampedT)!,
+      bottomLeft: CornerRadius.lerp(a._bottomLeft, b._bottomLeft, clampedT)!,
+      bottomRight: CornerRadius.lerp(a._bottomRight, b._bottomRight, clampedT)!,
     );
+  }
+
+  /// Linearly interpolates to another [BorderRadiusGeometry] from this one.
+  CornerBorderRadius lerpTo(BorderRadiusGeometry b, double t) {
+    if (b is CornerBorderRadius) {
+      return CornerBorderRadius._lerp(this, b, t);
+    }
+    return BorderRadiusGeometry.lerp(this, b, t) as CornerBorderRadius;
+  }
+
+  /// Linearly interpolates from another [BorderRadiusGeometry] to this one.
+  CornerBorderRadius lerpFrom(BorderRadiusGeometry a, double t) {
+    if (a is CornerBorderRadius) {
+      return CornerBorderRadius._lerp(a, this, t);
+    }
+    return BorderRadiusGeometry.lerp(a, this, t) as CornerBorderRadius;
   }
 
   /// Checks if the smoothing is default (0.0) for all corners.
   bool get isDefaultSmoothing {
     return [
-      bottomLeft,
-      bottomRight,
-      topLeft,
-      topRight,
+      _bottomLeft,
+      _bottomRight,
+      _topLeft,
+      _topRight,
     ].every((x) => x.smoothing == 0.0);
   }
 
   bool get hasNoRadius {
     return [
-      bottomLeft,
-      bottomRight,
-      topLeft,
-      topRight,
+      _bottomLeft,
+      _bottomRight,
+      _topLeft,
+      _topRight,
     ].every((x) => x.cornerRadius == 0.0);
   }
 
@@ -318,27 +274,27 @@ class CornerBorderRadius extends BorderRadius {
   /// Resolves the border radius for the given text direction.
   @override
   BorderRadius resolve(TextDirection? direction) => BorderRadius.only(
-        topLeft: topLeft,
-        topRight: topRight,
-        bottomLeft: bottomLeft,
-        bottomRight: bottomRight,
+        topLeft: _topLeft,
+        topRight: _topRight,
+        bottomLeft: _bottomLeft,
+        bottomRight: _bottomRight,
       );
 
   /// Returns a string representation of the border radius.
   @override
   String toString() {
-    if (topLeft == topRight &&
-        topLeft == bottomRight &&
-        topLeft == bottomLeft) {
-      final radius = topLeft.toString();
+    if (_topLeft == _topRight &&
+        _topLeft == _bottomRight &&
+        _topLeft == _bottomLeft) {
+      final radius = _topLeft.toString();
       return 'CornerBorderRadius(topLeft: $radius, topRight: $radius, bottomLeft: $radius, bottomRight: $radius)';
     }
 
     return 'CornerBorderRadius('
-        'topLeft: $topLeft,'
-        'topRight: $topRight,'
-        'bottomLeft: $bottomLeft,'
-        'bottomRight: $bottomRight,'
+        'topLeft: $_topLeft,'
+        'topRight: $_topRight,'
+        'bottomLeft: $_bottomLeft,'
+        'bottomRight: $_bottomRight,'
         ')';
   }
 

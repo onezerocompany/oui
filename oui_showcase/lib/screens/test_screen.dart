@@ -8,7 +8,7 @@ final testScreen = Screen(
   metadata: Localized(
     ScreenMetadata(
       path: [PathSegment.static('test')],
-      name: 'Test Screen',
+      name: LocalizedString.always("Test Screen"),
     ),
   ),
   content: Center(
@@ -17,13 +17,4 @@ final testScreen = Screen(
   children: [
     subScreen,
   ],
-).background(
-  Background.gradient(
-    Gradient.linear(
-      stops: [
-        GradientStop(0, Color.fromRGB(1, 0, 0)),
-        GradientStop(1, Color.fromRGB(0, 0, 1)),
-      ],
-    ),
-  ),
-);
+).fixedSize(width: 500).backgroundColor(Color.black).allCorners(18);

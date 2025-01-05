@@ -1,6 +1,5 @@
-import '../../core/localization/localized.dart';
-import '../../core/metadata/screen_metadata.dart';
-import '../box/box.dart';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:oui/oui.dart';
 
 ///
 /// This enum is used to specify how a screen should be displayed within the
@@ -37,7 +36,15 @@ enum ScreenType {
 }
 
 /// Represents a screen in the OUI framework.
-class Screen extends Box {
+class Screen extends Modifiable<Screen>
+    with
+        ModifiableSize<Screen>,
+        ModifiableAlignment<Screen>,
+        ModifiableCorner<Screen>,
+        ModifiableBackground<Screen>,
+        ModifiableInset<Screen>,
+        ModifiableBorder<Screen>,
+        ModifiableShadow<Screen> {
   /// The unique identifier of the screen.
   final String id;
 
@@ -49,6 +56,9 @@ class Screen extends Box {
 
   /// The child screens of the screen.
   final List<Screen> children;
+
+  /// The content of the screen.
+  final Widget content;
 
   /// A screen widget for the Oui framework.
   ///
@@ -78,12 +88,31 @@ class Screen extends Box {
   /// ```
   const Screen({
     super.key,
+    super.modifiers,
     required this.id,
     required this.metadata,
-    required super.content,
+    required this.content,
     this.type = ScreenType.panel,
     this.children = const [],
   });
+
+  @override
+  Screen copyWith({Modifiers? modifiers}) {
+    return Screen(
+      key: key,
+      id: id,
+      metadata: metadata,
+      content: content,
+      type: type,
+      modifiers: modifiers ?? this.modifiers,
+      children: children,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return buildWithModifiers(content, context);
+  }
 }
 
 /// A list of [Screen] instances.

@@ -1,21 +1,21 @@
 import 'package:oui/src/core/config/color_config.dart';
+import 'package:oui/src/core/metadata/app_details.dart';
 
 import '../localization/locale.dart';
-import '../metadata/metadata.dart';
 import 'scaffold_config.dart';
 
 class Config {
-  final LocalizedMetadata appDetails;
+  final AppDetails details;
   final ScaffoldConfig scaffold;
   final ColorConfig colors;
-  final String version;
-  final Locales supportedLocales;
+  final Locales locales;
 
   const Config({
-    required this.appDetails,
-    required this.version,
-    this.supportedLocales = const [Locale.english],
-    this.scaffold = const ScaffoldConfig(),
+    required this.details,
     this.colors = const ColorConfig(),
+    this.scaffold = const ScaffoldConfig(),
+    this.locales = const [
+      Locale.english,
+    ],
   });
 }

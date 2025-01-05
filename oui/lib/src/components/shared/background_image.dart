@@ -1,8 +1,8 @@
 import 'package:flutter/painting.dart'
     show DecorationImage, ImageProvider, ImageRepeat;
 
-import 'modifiers/alignment.dart';
-import 'box_fit.dart';
+import '../../core/geometry/alignment.dart';
+import '../box/box_fit.dart';
 
 /// Enum representing the different background repeat options for an image.
 ///

@@ -45,11 +45,10 @@ class ScaffoldLayoutBuilder extends StatelessWidget {
       final totalMinWidth = panels.fold<double>(
         0,
         (previousValue, screen) =>
-            previousValue + (screen.currentSize?.width.start ?? minPanelWidth),
+            previousValue + (screen.width?.start ?? minPanelWidth),
       );
 
-      return totalMinWidth +
-              (screen.currentSize?.width.start ?? minPanelWidth) <=
+      return totalMinWidth + (screen.width?.start ?? minPanelWidth) <=
           size.width.start;
     }
 

@@ -8,11 +8,11 @@ final subScreen = Screen(
   metadata: Localized(
     ScreenMetadata(
       path: [PathSegment.static('sub')],
-      name: 'Sub Screen',
+      name: LocalizedString.always("Sub Screen"),
     ),
   ),
   content: Center(
     child: Text("Sub Screen"),
   ),
   children: [anotherSubScreen],
-);
+).backgroundColor(Color.black).allCorners(40, smoothing: 0);

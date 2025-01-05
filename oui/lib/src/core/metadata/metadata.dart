@@ -12,9 +12,9 @@ import 'package:oui/src/core/localization/localized.dart';
 /// The [attributes] parameter is optional and represents a map of additional localized
 /// attributes for the component.
 class Metadata {
-  final String name;
-  final IconData? icon;
-  final Map<String, dynamic> attributes;
+  final Localized<String> name;
+  final Localized<IconData?> icon;
+  final LocalizedMap<String, dynamic> attributes;
 
   /// Creates an instance of [Metadata].
   ///
@@ -23,18 +23,18 @@ class Metadata {
   /// The [attributes] parameter defaults to an empty localized map if not provided.
   const Metadata({
     required this.name,
-    this.icon,
-    this.attributes = const {},
-  }) : assert(name != "");
+    this.icon = const Localized<IconData?>(null),
+    this.attributes = const LocalizedMap<String, dynamic>({}),
+  });
 
   Metadata copyWith({
-    String? name,
-    IconData? icon = const IconData(0),
-    Map<String, dynamic>? attributes,
+    Localized<String>? name,
+    Localized<IconData?>? icon,
+    LocalizedMap<String, dynamic>? attributes,
   }) {
     return Metadata(
       name: name ?? this.name,
-      icon: icon == const IconData(0) ? this.icon : icon,
+      icon: icon ?? this.icon,
       attributes: attributes ?? this.attributes,
     );
   }

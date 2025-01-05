@@ -1,7 +1,8 @@
 import 'dart:ui' show Canvas, Rect, TextDirection;
+
+import 'package:flutter/painting.dart' as painting show BorderSide;
 import 'package:flutter/rendering.dart'
     show
-        BorderSide,
         BorderStyle,
         EdgeInsets,
         EdgeInsetsGeometry,
@@ -9,20 +10,10 @@ import 'package:flutter/rendering.dart'
         Path,
         ShapeBorder;
 
+import '../borders/border_align.dart';
+import '../borders/border_side.dart';
 import 'corner_border_radius.dart';
 import 'corner_radius.dart';
-
-/// An enumeration that defines the alignment of the border.
-///
-/// The [BorderAlign] enum provides three possible values:
-/// - [inside]: The border is aligned inside the boundary.
-/// - [center]: The border is centered on the boundary.
-/// - [outside]: The border is aligned outside the boundary.
-enum BorderAlign {
-  inside,
-  center,
-  outside,
-}
 
 /// A custom border with configurable corner radius and alignment.
 ///
@@ -49,10 +40,14 @@ class CornerBorder extends OutlinedBorder {
   /// The [borderRadius] parameter specifies the radius of the corners. Defaults to [CornerBorderRadius.zero].
   /// The [borderAlign] parameter specifies the alignment of the border. Defaults to [BorderAlign.inside].
   const CornerBorder({
-    super.side,
+    BorderSide side = BorderSide.none,
     this.borderRadius = CornerBorderRadius.zero,
     this.borderAlign = BorderAlign.inside,
-  });
+  }) : _side = side;
+
+  final BorderSide _side;
+  @override
+  painting.BorderSide get side => _side.uiBorderSide;
 
   final CornerBorderRadius borderRadius;
   final BorderAlign borderAlign;
@@ -71,6 +66,8 @@ class CornerBorder extends OutlinedBorder {
 
   @override
   EdgeInsetsGeometry get dimensions => _dimensions;
+
+  bool get shouldRender => borderRadius.shouldRender;
 
   /// Adjusts the rectangle based on the border alignment and width.
   ///
@@ -142,37 +139,38 @@ class CornerBorder extends OutlinedBorder {
   @override
   ShapeBorder scale(double t) {
     return CornerBorder(
-      side: side.scale(t),
+      side: _side.scale(t),
       borderRadius: borderRadius * t,
     );
   }
 
-  /// Linearly interpolates between two [CornerBorder] shapes.
-  ///
-  /// The [other] parameter specifies the other shape to interpolate with.
-  /// The [t] parameter specifies the interpolation factor.
-  ShapeBorder? lerp(ShapeBorder? other, double t) {
-    if (other is! CornerBorder) {
-      return super.lerpFrom(
-        other,
-        t,
-      );
-    }
+  static CornerBorder _lerpCornerBorders(
+    CornerBorder a,
+    CornerBorder b,
+    double t,
+  ) {
     return CornerBorder(
-      side: BorderSide.lerp(side, other.side, t),
-      borderRadius: CornerBorderRadius.lerp(
-        borderRadius,
-        other.borderRadius,
-        t,
-      )!,
+      side: a._side.lerpTo(b._side, t),
+      borderRadius: a.borderRadius.lerpTo(b.borderRadius, t),
+      borderAlign: t < 0.5 ? a.borderAlign : b.borderAlign,
     );
   }
 
   @override
-  ShapeBorder? lerpFrom(ShapeBorder? a, double t) => lerp(a, t);
+  ShapeBorder? lerpFrom(ShapeBorder? a, double t) {
+    if (a is CornerBorder) {
+      return _lerpCornerBorders(a, this, t);
+    }
+    return super.lerpFrom(a, t);
+  }
 
   @override
-  ShapeBorder? lerpTo(ShapeBorder? b, double t) => lerp(b, t);
+  ShapeBorder? lerpTo(ShapeBorder? b, double t) {
+    if (b is CornerBorder) {
+      return _lerpCornerBorders(this, b, t);
+    }
+    return super.lerpTo(b, t);
+  }
 
   /// Returns the inner path of the border based on the rectangle and text direction.
   ///
@@ -221,24 +219,6 @@ class CornerBorder extends OutlinedBorder {
     }
   }
 
-  /// Creates a copy of this border with the given parameters.
-  ///
-  /// The [side] parameter specifies the border side configuration.
-  /// The [borderRadius] parameter specifies the corner radius.
-  /// The [borderAlign] parameter specifies the alignment of the border.
-  @override
-  CornerBorder copyWith({
-    BorderSide? side,
-    CornerBorderRadius? borderRadius,
-    BorderAlign? borderAlign,
-  }) {
-    return CornerBorder(
-      side: side ?? this.side,
-      borderRadius: borderRadius ?? this.borderRadius,
-      borderAlign: borderAlign ?? this.borderAlign,
-    );
-  }
-
   @override
   bool operator ==(Object other) {
     if (other.runtimeType != runtimeType) {
@@ -248,6 +228,19 @@ class CornerBorder extends OutlinedBorder {
         other.side == side &&
         other.borderRadius == borderRadius &&
         other.borderAlign == borderAlign;
+  }
+
+  @override
+  OutlinedBorder copyWith({
+    painting.BorderSide? side,
+    BorderAlign? align,
+    CornerBorderRadius? radius,
+  }) {
+    return CornerBorder(
+      side: side?.ouiBorderSide ?? _side,
+      borderRadius: radius ?? borderRadius,
+      borderAlign: align ?? borderAlign,
+    );
   }
 
   @override

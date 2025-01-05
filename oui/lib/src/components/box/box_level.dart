@@ -3,10 +3,12 @@ import 'package:flutter/widgets.dart'
 
 class BoxLevel extends InheritedWidget {
   final int level;
+  final bool hasBackground;
 
   const BoxLevel({
     super.key,
     required this.level,
+    required this.hasBackground,
     required super.child,
   });
 

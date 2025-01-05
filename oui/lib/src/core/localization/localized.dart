@@ -90,3 +90,7 @@ class Localized<T> {
     return _defaultValue;
   }
 }
+
+typedef LocalizedString = Localized<String>;
+typedef LocalizedMap<K, V> = Localized<Map<K, V>>;
+typedef LocalizedSet<T> = Localized<Set<T>>;

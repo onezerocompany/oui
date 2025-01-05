@@ -6,7 +6,7 @@ final anotherSubScreen = Screen(
   metadata: Localized(
     ScreenMetadata(
       path: [PathSegment.static('another')],
-      name: 'Another Sub Screen',
+      name: LocalizedString.always("Another Sub Screen"),
     ),
   ),
   content: Center(

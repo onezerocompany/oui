@@ -50,7 +50,7 @@ class Scaffold extends Box {
         .expand(
           (screen) => [
             Flexible(
-              flex: screen.currentSize?.width.weight ?? 1,
+              flex: screen.width?.weight ?? 1,
               fit: FlexFit.loose,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -69,45 +69,47 @@ class Scaffold extends Box {
 
   @override
   Widget? get content {
-    return ScaffoldLayoutBuilder(
-      currentPath: currentPath,
-      builder: (context, layout) {
-        final main = RailedContainer(
-          child: Row(
-            children: buildPanels(context, layout.panels),
-          ),
-        );
-
-        return Stack(
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 600),
-              switchInCurve: Curves.easeInOut,
-              switchOutCurve: Curves.easeInOut,
-              child: layout.sheets.isNotEmpty
-                  ? ImageFiltered(
-                      imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                      child: Transform.scale(
-                        scale: 0.9,
-                        child: main,
-                      ),
-                    )
-                  : main,
+    return Box(
+      content: ScaffoldLayoutBuilder(
+        currentPath: currentPath,
+        builder: (context, layout) {
+          final main = RailedContainer(
+            child: Row(
+              children: buildPanels(context, layout.panels),
             ),
-            if (layout.sheets.length > 1)
-              Positioned.fill(
-                child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: layout.sheets[layout.sheets.length - 2],
+          );
+
+          return Stack(
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 600),
+                switchInCurve: Curves.easeInOut,
+                switchOutCurve: Curves.easeInOut,
+                child: layout.sheets.isNotEmpty
+                    ? ImageFiltered(
+                        imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                        child: Transform.scale(
+                          scale: 0.9,
+                          child: main,
+                        ),
+                      )
+                    : main,
+              ),
+              if (layout.sheets.length > 1)
+                Positioned.fill(
+                  child: ImageFiltered(
+                    imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: layout.sheets[layout.sheets.length - 2],
+                  ),
                 ),
-              ),
-            if (layout.sheets.isNotEmpty)
-              Positioned.fill(
-                child: layout.sheets.last,
-              ),
-          ],
-        );
-      },
+              if (layout.sheets.isNotEmpty)
+                Positioned.fill(
+                  child: layout.sheets.last,
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -118,10 +120,12 @@ class ScaffoldDivider extends Box {
   });
 
   @override
-  List<BoxModifier> get modifiers {
+  Modifiers get modifiers {
     return [
-      BoxSize.fixed(width: 1),
-      const Background.color(Color.black),
+      SizeModifier.fixed(width: 1),
+      const BackgroundModifier(
+        Background.color(Color.black),
+      ),
     ];
   }
 }

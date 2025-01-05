@@ -192,6 +192,18 @@ class Color {
     );
   }
 
+  /// Linearly interpolates between two [Color] objects.
+  static Color lerp(Color a, Color b, double t) {
+    t = t.clamp(0.0, 1.0); // Clip t between 0.0 and 1.0
+    return Color.fromRGB(
+      a.red + (b.red - a.red) * t,
+      a.green + (b.green - a.green) * t,
+      a.blue + (b.blue - a.blue) * t,
+      a.alpha + (b.alpha - a.alpha) * t,
+      t < 0.5 ? a.colorSpace : b.colorSpace,
+    );
+  }
+
   @override
   int get hashCode => Object.hash(red, green, blue, alpha, colorSpace);
 

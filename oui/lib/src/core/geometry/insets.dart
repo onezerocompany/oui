@@ -1,12 +1,7 @@
-import 'package:flutter/widgets.dart' show EdgeInsets, Padding;
-
-import '../box_modifier.dart';
+import 'package:flutter/widgets.dart' show EdgeInsets;
 
 /// A class representing insets (padding or margins) for a box.
-///
-/// This class provides various constructors to create insets with different
-/// configurations and supports arithmetic operations for combining insets.
-class Insets extends BoxModifier {
+class Insets {
   /// The top inset value.
   final double top;
 
@@ -142,18 +137,6 @@ class Insets extends BoxModifier {
         bottom: bottom,
         left: left,
       );
-
-  @override
-  void modify(BoxModifierContext context) {
-    if (!shouldRender) return;
-
-    context.modifyContent(
-      Padding(
-        padding: edgeInsets,
-        child: context.content,
-      ),
-    );
-  }
 
   /// Returns a string representation of this [Insets] object.
   @override
