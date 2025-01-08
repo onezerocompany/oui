@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart' show Decoration, Widget;
+import 'package:oui/src/components/app/static_app_context.dart';
 
 import '../../../core/colors/color.dart';
 import '../../../core/colors/gradient.dart';
@@ -18,6 +19,14 @@ class BackgroundModifier extends Modifier
     Decoration decoration,
     ModifierContext context,
   ) {
+    if (background == null) {
+      final color = context.buildContext.boxColors.normal.surface.normal;
+      return Background.color(color).decorate(
+        decoration,
+        context.buildContext,
+      );
+    }
+
     return background?.decorate(
       decoration,
       context.buildContext,
@@ -35,7 +44,7 @@ class BackgroundModifier extends Modifier
 
 mixin ModifiableBackground<Component extends Modifiable>
     on Modifiable<Component> {
-  Component background(Background background) {
+  Component background([Background? background]) {
     return withModifier(
       BackgroundModifier(background),
     );

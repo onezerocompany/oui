@@ -1,3 +1,4 @@
+import '../localization/localized.dart';
 import '../router/path.dart';
 import 'metadata.dart';
 
@@ -12,7 +13,7 @@ import 'metadata.dart';
 /// The [attributes] parameter is optional and represents a map of additional localized
 /// attributes for the screen.
 class ScreenMetadata extends Metadata {
-  final PathSegments path;
+  final Localized<PathSegments> path;
 
   ScreenMetadata({
     required this.path,
@@ -20,4 +21,12 @@ class ScreenMetadata extends Metadata {
     super.icon,
     super.attributes,
   });
+
+  ScreenMetadata.always({
+    required PathSegments path,
+    required super.name,
+    super.icon,
+    super.attributes,
+  })  : path = Localized.always(path),
+        super.always();
 }

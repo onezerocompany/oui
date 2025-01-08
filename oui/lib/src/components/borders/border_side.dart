@@ -1,10 +1,11 @@
 import 'package:flutter/painting.dart' as painting show BorderSide;
-import 'package:oui/src/core/colors/color.dart';
 
+import '../../core/colors/color.dart';
+import '../../core/shared/interpolation.dart';
 import '../../core/utils/lerp_double.dart';
 
 /// A class that represents a side of a border with a specific thickness and color.
-class BorderSide {
+class BorderSide implements Interpolable<BorderSide> {
   /// The thickness of the border side.
   final double thickness;
 
@@ -35,7 +36,7 @@ class BorderSide {
   }
 
   /// Determines if the border side should be rendered.
-  bool get shouldRender => thickness > 0 && color.isVisible;
+  bool get shouldRender => thickness > 0;
 
   /// Creates a copy of this border side with the given properties replaced.
   BorderSide copyWith({
@@ -62,16 +63,18 @@ class BorderSide {
   static BorderSide _lerp(BorderSide a, BorderSide b, double t) {
     return BorderSide(
       thickness: lerpDouble(a.thickness, b.thickness, t),
-      color: Color.lerp(a.color, b.color, t),
+      color: a.color.lerpTo(b.color, t),
     );
   }
 
   /// Linearly interpolate from this border side to another border side.
+  @override
   BorderSide lerpTo(BorderSide other, double t) {
     return _lerp(this, other, t);
   }
 
   /// Linearly interpolate from another border side to this border side.
+  @override
   BorderSide lerpFrom(BorderSide other, double t) {
     return _lerp(other, this, t);
   }

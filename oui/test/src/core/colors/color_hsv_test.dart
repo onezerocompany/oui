@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oui/src/core/colors/color.dart';
+import 'package:oui/src/core/colors/hsl_color.dart';
 import 'package:oui/src/core/colors/hsv_color.dart';
 
 void main() {
@@ -43,13 +44,13 @@ void main() {
 
     test('should lighten correctly', () {
       final color = HsvColor.fromHSV(120, 0.5, 0.5);
-      final lightenedColor = color.lighten(0.3);
+      final lightenedColor = color.lighten(0.3, mode: LightnessMode.value);
       expect(lightenedColor.value, 0.8);
     });
 
     test('should darken correctly', () {
       final color = HsvColor.fromHSV(120, 0.5, 0.5);
-      final darkenedColor = color.darken(0.3);
+      final darkenedColor = color.darken(0.3, mode: LightnessMode.value);
       expect(darkenedColor.value, 0.2);
     });
 
@@ -60,6 +61,58 @@ void main() {
       expect(interpolatedColor.hue, 60);
       expect(interpolatedColor.saturation, 0.75);
       expect(interpolatedColor.value, 0.75);
+    });
+
+    test('should throw assertion error for invalid saturation', () {
+      expect(() => HsvColor.fromHSV(120, -0.1, 0.5), throwsAssertionError);
+      expect(() => HsvColor.fromHSV(120, 1.1, 0.5), throwsAssertionError);
+    });
+
+    test('should throw assertion error for invalid value', () {
+      expect(() => HsvColor.fromHSV(120, 0.5, -0.1), throwsAssertionError);
+      expect(() => HsvColor.fromHSV(120, 0.5, 1.1), throwsAssertionError);
+    });
+
+    test('should clamp hue correctly', () {
+      final color = HsvColor.fromHSV(359, 0.5, 0.5);
+      final clampedColor = color.clampingHue(0, 300);
+      expect(clampedColor.hue, 300);
+    });
+
+    test('should clamp saturation correctly', () {
+      final color = HsvColor.fromHSV(120, 1, 0.5);
+      final clampedColor = color.clampingSaturation(0, 0.5);
+      expect(clampedColor.saturation, 0.5);
+    });
+
+    test('should clamp value correctly', () {
+      final color = HsvColor.fromHSV(120, 0.5, 1);
+      final clampedColor = color.clampingLightness(0, 0.8);
+      expect(clampedColor.value, 0.8);
+    });
+
+    test('should create HSV color from HSL color correctly', () {
+      final hslColor = HslColor.fromHSL(120, 0.5, 0.5);
+      final hsvColor = HsvColor.fromHSL(hslColor);
+      expect(hsvColor.hue, 120);
+      expect(hsvColor.saturation, closeTo(0.666666, 0.001));
+      expect(hsvColor.value, 0.75);
+    });
+
+    test('should convert HSV to RGB correctly', () {
+      final hsvColor = HsvColor.fromHSV(120, 0.5, 0.5);
+      final rgbColor = hsvColor.color;
+      expect(rgbColor.red, 0.25);
+      expect(rgbColor.green, 0.5);
+      expect(rgbColor.blue, 0.25);
+    });
+
+    test('should convert HSV to HSL correctly', () {
+      final hsvColor = HsvColor.fromHSV(120, 0.5, 0.5);
+      final hslColor = hsvColor.hsl;
+      expect(hslColor.hue, 120);
+      expect(hslColor.saturation, closeTo(0.33333333, 0.00001));
+      expect(hslColor.lightness, 0.375);
     });
   });
 }

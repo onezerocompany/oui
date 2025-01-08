@@ -1,6 +1,8 @@
-import 'package:oui/oui.dart';
-import 'package:oui/src/core/colors/generator/leveled_color_generator.dart';
-import 'package:oui/src/core/colors/palette/accentable_color.dart';
+import '../../shared/generator.dart';
+import '../color.dart';
+import '../hsl_color.dart';
+import '../palette/accentable_color.dart';
+import 'leveled_color_generator.dart';
 
 class AccentableColorGenerator extends Generator<AccentableColor> {
   final int depth;

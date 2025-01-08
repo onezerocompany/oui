@@ -1,9 +1,8 @@
-import 'package:oui/src/core/colors/generator/accentable_color_generator.dart';
-import 'package:oui/src/core/colors/hsl_color.dart';
-
 import '../../shared/generator.dart';
+import '../hsl_color.dart';
 import '../palette/accentable_color.dart';
 import '../palette/box_colors.dart';
+import 'accentable_color_generator.dart';
 
 class BoxColorsGenerator extends Generator<BoxColors> {
   final HslColor baseColor;

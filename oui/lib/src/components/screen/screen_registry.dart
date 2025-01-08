@@ -63,7 +63,7 @@ class ScreenRegistry {
       if (entries.any((entry) => entry.screen.id == screen.id)) {
         throw Exception('Duplicate screen ID: ${screen.id}');
       }
-      final segments = screen.metadata.forLocale(locale).path;
+      final segments = screen.metadata.path.forLocale(locale);
       final path = parentPath?.add(segments) ?? Path(segments);
       entries.add(ScreenRegistryEntry(screen, path, parents ?? []));
       for (final child in screen.children) {

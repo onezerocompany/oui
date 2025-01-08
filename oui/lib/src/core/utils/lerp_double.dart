@@ -12,5 +12,10 @@
 ///
 /// - Returns: The interpolated value between `a` and `b` at position `t`.
 double lerpDouble(double a, double b, double t) {
-  return a + (b - a) * t;
+  // Handle edge cases to avoid NaN
+  if (a.isNaN || b.isNaN || t.isNaN) {
+    return a;
+  }
+
+  return a + (b - a) * t.clamp(0, 1);
 }

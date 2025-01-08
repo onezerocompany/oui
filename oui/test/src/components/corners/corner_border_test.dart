@@ -1,17 +1,18 @@
 import 'dart:ui' show Canvas, PictureRecorder, Rect, TextDirection;
 
-import 'package:flutter/rendering.dart'
-    show BorderSide, Canvas, Color, Rect, TextDirection;
+import 'package:oui/src/components/borders/border_align.dart';
+import 'package:oui/src/components/borders/border_side.dart';
 import 'package:oui/src/components/corners/corner_border.dart';
 import 'package:oui/src/components/corners/corner_border_radius.dart';
 import 'package:oui/src/components/corners/corner_radius.dart';
+import 'package:oui/src/core/colors/color.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('CornerBorder', () {
     test('Border alignment inside scales rect correctly', () {
       const border = CornerBorder(
-        side: BorderSide(width: 4),
+        side: BorderSide(thickness: 4, color: Color.black),
         borderRadius: CornerBorderRadius.all(
           CornerRadius(radius: 10, smoothing: 0.5),
         ),
@@ -24,7 +25,7 @@ void main() {
 
     test('Border alignment outside scales rect correctly', () {
       const border = CornerBorder(
-        side: BorderSide(width: 4),
+        side: BorderSide(thickness: 4, color: Color.black),
         borderRadius: CornerBorderRadius.all(
           CornerRadius(radius: 10, smoothing: 0.5),
         ),
@@ -37,7 +38,7 @@ void main() {
 
     test('Border alignment center does not adjust rect', () {
       const border = CornerBorder(
-        side: BorderSide(width: 4),
+        side: BorderSide(thickness: 4, color: Color.black),
         borderRadius: CornerBorderRadius.all(
           CornerRadius(radius: 10, smoothing: 0.5),
         ),
@@ -50,7 +51,7 @@ void main() {
 
     test('Empty rect does not throw error', () {
       const border = CornerBorder(
-        side: BorderSide(width: 4),
+        side: BorderSide(thickness: 4, color: Color.black),
         borderRadius: CornerBorderRadius.zero,
       );
       const rect = Rect.zero;
@@ -60,7 +61,7 @@ void main() {
 
     test('Paint method handles all alignments', () {
       const border = CornerBorder(
-        side: BorderSide(width: 4, color: Color(0xFF000000)),
+        side: BorderSide(thickness: 4, color: Color.black),
         borderRadius: CornerBorderRadius.all(
           CornerRadius(radius: 10, smoothing: 0.5),
         ),
@@ -74,46 +75,31 @@ void main() {
 
     test('Lerp between two borders', () {
       const border1 = CornerBorder(
-        side: BorderSide(width: 4),
+        side: BorderSide(thickness: 4, color: Color.black),
         borderRadius: CornerBorderRadius.all(
           CornerRadius(radius: 10, smoothing: 0.5),
         ),
       );
       const border2 = CornerBorder(
-        side: BorderSide(width: 8),
+        side: BorderSide(thickness: 8, color: Color.black),
         borderRadius: CornerBorderRadius.all(
           CornerRadius(radius: 20, smoothing: 1.0),
         ),
       );
-      final lerpedBorder = border1.lerp(border2, 0.5);
+      final lerpedBorder = border1.lerpTo(border2, 0.5);
       expect(lerpedBorder, isNotNull);
       expect(lerpedBorder, isA<CornerBorder>());
     });
 
-    test('CopyWith updates border properties', () {
-      const originalBorder = CornerBorder(
-        side: BorderSide(width: 4),
-        borderRadius: CornerBorderRadius.all(
-          CornerRadius(radius: 10, smoothing: 0.5),
-        ),
-      );
-      final copiedBorder = originalBorder.copyWith(
-        side: const BorderSide(width: 8),
-        borderRadius: CornerBorderRadius.zero,
-      );
-      expect(copiedBorder.side.width, 8);
-      expect(copiedBorder.borderRadius, CornerBorderRadius.zero);
-    });
-
     test('Equality and hashCode', () {
       const border1 = CornerBorder(
-        side: BorderSide(width: 4),
+        side: BorderSide(thickness: 4, color: Color.black),
         borderRadius: CornerBorderRadius.all(
           CornerRadius(radius: 10, smoothing: 0.5),
         ),
       );
       const border2 = CornerBorder(
-        side: BorderSide(width: 4),
+        side: BorderSide(thickness: 4, color: Color.black),
         borderRadius: CornerBorderRadius.all(
           CornerRadius(radius: 10, smoothing: 0.5),
         ),

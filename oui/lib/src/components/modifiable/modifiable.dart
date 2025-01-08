@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart'
         SizedBox,
         StatelessWidget,
         Widget;
+import 'package:oui/src/components/app/static_app_context.dart';
 
 import 'modifier.dart';
 
@@ -42,9 +43,8 @@ abstract class Modifiable<Component extends Widget> extends StatelessWidget {
 
   Widget buildWithModifiers(
     Widget? child,
-    BuildContext buildContext,
+    ModifierContext context,
   ) {
-    final context = ModifierContext(runtimeType, buildContext);
     var modified = child ?? const SizedBox.shrink();
 
     for (final modifier in modifiers.whereType<ChildModifier>().where(
@@ -69,11 +69,25 @@ abstract class Modifiable<Component extends Widget> extends StatelessWidget {
       );
     }
 
+    for (final modifier in modifiers.whereType<ChildModifier>().where(
+          (element) => element.postDecoration,
+        )) {
+      modified = modifier.modify(modified, context) ?? modified;
+    }
+
     return modified;
   }
 
   @override
   Widget build(BuildContext context) {
-    return buildWithModifiers(null, context);
+    final modifierContext = ModifierContext(
+      runtimeType,
+      context,
+      context.boxColors.normal,
+    );
+    return buildWithModifiers(
+      null,
+      modifierContext,
+    );
   }
 }

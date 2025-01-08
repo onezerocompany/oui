@@ -6,6 +6,9 @@ class SizeModifier extends Modifier with ChildModifier {
 
   const SizeModifier(this.size);
 
+  @override
+  bool get postDecoration => true;
+
   /// Creates a `BoxSize` with a fixed size.
   ///
   /// [width] - The fixed width value. Defaults to 0.

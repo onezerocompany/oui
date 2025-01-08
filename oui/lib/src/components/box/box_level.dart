@@ -1,14 +1,11 @@
-import 'package:flutter/widgets.dart'
-    show BuildContext, FlutterError, InheritedWidget;
+import 'package:flutter/widgets.dart' show BuildContext, InheritedWidget;
 
 class BoxLevel extends InheritedWidget {
   final int level;
-  final bool hasBackground;
 
   const BoxLevel({
     super.key,
     required this.level,
-    required this.hasBackground,
     required super.child,
   });
 
@@ -24,12 +21,6 @@ class BoxLevel extends InheritedWidget {
 
 extension BoxLevelExtension on BuildContext {
   int get boxLevel {
-    final boxLevel = BoxLevel.of(this);
-    if (boxLevel == null) {
-      throw FlutterError(
-        'BoxLevel not found in context.\nThe context used to retrieve the value must be a descendant of BoxLevel.',
-      );
-    }
-    return boxLevel.level;
+    return BoxLevel.of(this)?.level ?? 0;
   }
 }

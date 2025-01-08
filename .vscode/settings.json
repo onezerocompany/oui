@@ -5,6 +5,7 @@
     "APCA",
     "cmyk",
     "desaturated",
+    "Interpolable",
     "lerped",
     "Pressable",
     "RRGGBB",
@@ -15,6 +16,9 @@
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,
   "github.copilot.chat.edits.suggestRelatedFilesForTests": true,
   "github.copilot.chat.edits.suggestRelatedFilesFromGitHistory": true,
+  "github.copilot.chat.fixTestFailure.enabled": true,
+  "github.copilot.chat.generateTests.codeLens": true,
+  "github.copilot.chat.search.semanticTextResults": true,
   "[dart]": {
     "editor.defaultFormatter": "Dart-Code.dart-code",
     "editor.formatOnPaste": true,

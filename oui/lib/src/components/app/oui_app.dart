@@ -4,9 +4,7 @@ import 'package:flutter/widgets.dart'
     show BuildContext, StatelessWidget, Widget, WidgetsApp;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:oui/oui.dart';
-import 'package:oui/src/core/colors/generator/color_palette_generator.dart';
-
-import 'static_app_context.dart';
+import 'package:oui/src/components/app/dynamic_app_context.dart';
 
 /// A widget that serves as the root of the OUI application.
 ///
@@ -23,9 +21,6 @@ class OuiApp extends StatelessWidget {
   /// Parser responsible for converting URLs into state objects.
   late final RouteInformationParser _routerInformationParser;
 
-  /// Color palette generator.
-  late final ColorPalette _colorPalette;
-
   /// Delegate that handles routing decisions.
   late final Router _router;
 
@@ -40,20 +35,18 @@ class OuiApp extends StatelessWidget {
     required Screen root,
     required this.config,
   }) : _registry = ScreenRegistry(root, config.locales) {
-    _colorPalette = ColorPaletteGenerator(config.colors).generate();
     _routerInformationParser = RouteInformationParser(_registry);
     _router = Router();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StaticAppContext(
-      router: _router,
-      config: config,
-      colorPalette: _colorPalette,
-      child: ProviderScope(
-        child: BoxLevel(
-          level: 0,
+    return ProviderScope(
+      child: StaticAppContext(
+        router: _router,
+        config: config,
+        colorPalette: ColorPaletteGenerator(config.colors).generate(),
+        child: DynamicAppContextProvider(
           child: WidgetsApp.router(
             color: const ui.Color.fromARGB(255, 0, 0, 0),
             routerDelegate: _router,

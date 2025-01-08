@@ -38,7 +38,7 @@ class BorderModifier extends Modifier with DecorationModifier {
 
     if (decoration is BoxDecoration) {
       return decoration.copyWith(
-        border: border.uiBorder,
+        border: border.uiBorder(context),
       );
     }
 
@@ -86,14 +86,14 @@ mixin ModifiableBorder<Component extends Modifiable> on Modifiable<Component> {
 
   Component border({
     double thickness = 1,
-    Color color = Color.black,
+    Color? color,
   }) {
     return withModifier(
       BorderModifier(
         Border.all(
           BorderSide(
             thickness: thickness,
-            color: color,
+            color: color ?? Color.black,
           ),
         ),
       ),

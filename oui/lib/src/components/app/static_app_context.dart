@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart'
     show BuildContext, FlutterError, InheritedWidget;
 import 'package:oui/oui.dart';
 
+import 'dynamic_app_context.dart';
+
 class StaticAppContext extends InheritedWidget {
   final Config config;
   final Router router;
@@ -58,5 +60,9 @@ extension AppContextExtension on BuildContext {
 
   ColorPalette get colorPalette {
     return _getFromContext((context) => context.colorPalette);
+  }
+
+  StatefulBoxColors get boxColors {
+    return colorPalette.levels.get(theme).get(boxLevel);
   }
 }

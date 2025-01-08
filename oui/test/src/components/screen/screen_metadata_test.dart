@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' show Icons;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oui/src/core/localization/localized.dart';
 import 'package:oui/src/core/metadata/screen_metadata.dart';
 import 'package:oui/src/core/router/path.dart';
 
@@ -11,14 +12,14 @@ void main() {
         PathSegment.static('dashboard'),
       ];
       final metadata = ScreenMetadata(
-        path: pathSegments,
-        name: 'Dashboard',
+        path: Localized.always(pathSegments),
+        name: Localized.always('Dashboard'),
       );
 
-      expect(metadata.path, pathSegments);
-      expect(metadata.name, 'Dashboard');
-      expect(metadata.icon, isNull);
-      expect(metadata.attributes, {});
+      expect(metadata.path.base, pathSegments);
+      expect(metadata.name.base, 'Dashboard');
+      expect(metadata.icon.base, isNull);
+      expect(metadata.attributes.base, {});
     });
 
     test('should create an instance with all parameters', () {
@@ -28,16 +29,16 @@ void main() {
       ];
       final attributes = {'key': 'value'};
       final metadata = ScreenMetadata(
-        path: pathSegments,
-        name: 'Settings',
-        icon: Icons.abc,
-        attributes: attributes,
+        path: Localized.always(pathSegments),
+        name: Localized.always('Settings'),
+        icon: Localized.always(Icons.abc),
+        attributes: Localized.always(attributes),
       );
 
-      expect(metadata.path, pathSegments);
-      expect(metadata.name, 'Settings');
-      expect(metadata.icon, Icons.abc);
-      expect(metadata.attributes, attributes);
+      expect(metadata.path.base, pathSegments);
+      expect(metadata.name.base, 'Settings');
+      expect(metadata.icon.base, Icons.abc);
+      expect(metadata.attributes.base, attributes);
     });
 
     test('should create an instance with empty attributes', () {
@@ -46,14 +47,14 @@ void main() {
         PathSegment.static('profile'),
       ];
       final metadata = ScreenMetadata(
-        path: pathSegments,
-        name: 'Profile',
+        path: Localized.always(pathSegments),
+        name: Localized.always('Profile'),
       );
 
-      expect(metadata.path, pathSegments);
-      expect(metadata.name, 'Profile');
-      expect(metadata.icon, isNull);
-      expect(metadata.attributes, {});
+      expect(metadata.path.base, pathSegments);
+      expect(metadata.name.base, 'Profile');
+      expect(metadata.icon.base, isNull);
+      expect(metadata.attributes.base, {});
     });
 
     test('should create an instance with null icon', () {
@@ -63,15 +64,16 @@ void main() {
       ];
       final attributes = {'key': 'value'};
       final metadata = ScreenMetadata(
-        path: pathSegments,
-        name: 'Notifications',
-        attributes: attributes,
+        path: Localized.always(pathSegments),
+        name: Localized.always('Notifications'),
+        icon: Localized.always(null),
+        attributes: Localized.always(attributes),
       );
 
-      expect(metadata.path, pathSegments);
-      expect(metadata.name, 'Notifications');
-      expect(metadata.icon, isNull);
-      expect(metadata.attributes, attributes);
+      expect(metadata.path.base, pathSegments);
+      expect(metadata.name.base, 'Notifications');
+      expect(metadata.icon.base, isNull);
+      expect(metadata.attributes.base, attributes);
     });
   });
 }

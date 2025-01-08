@@ -1,7 +1,12 @@
+import 'package:oui/src/core/colors/manipulatable_color.dart';
+import 'package:oui/src/core/shared/interpolation.dart';
+
+import '../utils/lerp_double.dart';
 import 'color.dart';
+import 'hsl_color.dart';
 
 /// A class representing a color in the HSV (Hue, Saturation, Value) color space.
-class HsvColor {
+class HsvColor implements ManipulatableColor<HsvColor>, Interpolable<HsvColor> {
   /// The hue of the color, in degrees [0, 360).
   ///
   /// Hue represents the color type and is measured in degrees on the color wheel.
@@ -42,6 +47,21 @@ class HsvColor {
     );
     assert(value >= 0 && value <= 1, 'Value must be in the range [0, 1]');
     return HsvColor._(hue, saturation, value);
+  }
+
+  /// Creates an HSV color from an HSL color.
+  ///
+  /// Converts the given [HslColor] from the HSL color space to the HSV color space.
+  factory HsvColor.fromHSL(HslColor hsl) {
+    final double hue = hsl.hue;
+    final double lightness = hsl.lightness;
+    final double saturation = hsl.saturation;
+
+    final double value =
+        lightness + saturation * (1 - (2 * lightness - 1).abs()) / 2;
+    final double newSaturation = value == 0 ? 0 : 2 * (1 - lightness / value);
+
+    return HsvColor._(hue, newSaturation, value);
   }
 
   /// Creates an HSV color from an RGB color.
@@ -102,10 +122,14 @@ class HsvColor {
     }
   }
 
+  /// Converts the HSV color to an HSL color and returns it as an [HslColor].
+  HslColor get hsl => HslColor.fromHSV(this);
+
   /// Rotates the hue by the given amount.
   ///
   /// [amount] is in degrees and can be positive or negative.
   /// The resulting hue is wrapped around to stay within the range [0, 360).
+  @override
   HsvColor rotateHue(double amount) {
     return HsvColor._(
       (hue + amount) % 360,
@@ -118,6 +142,7 @@ class HsvColor {
   ///
   /// [amount] must be in the range [0, 1].
   /// The resulting saturation is clamped to stay within the range [0, 1].
+  @override
   HsvColor saturate(double amount) {
     return HsvColor._(
       hue,
@@ -130,6 +155,7 @@ class HsvColor {
   ///
   /// [amount] must be in the range [0, 1].
   /// The resulting saturation is clamped to stay within the range [0, 1].
+  @override
   HsvColor desaturate(double amount) {
     return HsvColor._(
       hue,
@@ -142,7 +168,14 @@ class HsvColor {
   ///
   /// [amount] must be in the range [0, 1].
   /// The resulting value is clamped to stay within the range [0, 1].
-  HsvColor lighten(double amount) {
+  @override
+  HsvColor lighten(
+    double amount, {
+    LightnessMode mode = LightnessMode.value,
+  }) {
+    if (mode == LightnessMode.lightness) {
+      return hsl.lighten(amount).hsv;
+    }
     return HsvColor._(
       hue,
       saturation,
@@ -154,28 +187,18 @@ class HsvColor {
   ///
   /// [amount] must be in the range [0, 1].
   /// The resulting value is clamped to stay within the range [0, 1].
-  HsvColor darken(double amount) {
+  @override
+  HsvColor darken(
+    double amount, {
+    LightnessMode mode = LightnessMode.value,
+  }) {
+    if (mode == LightnessMode.lightness) {
+      return hsl.darken(amount).hsv;
+    }
     return HsvColor._(
       hue,
       saturation,
       (value - amount).clamp(0.0, 1.0),
-    );
-  }
-
-  /// Linearly interpolates between this color and another HSV color.
-  ///
-  /// [t] is the interpolation factor and must be in the range [0, 1].
-  /// The interpolation is done separately for hue, saturation, and value.
-  HsvColor lerpWith(HsvColor other, double t) {
-    double lerpHue(double a, double b, double t) {
-      final double delta = ((b - a + 180) % 360) - 180;
-      return a + delta * t;
-    }
-
-    return HsvColor._(
-      lerpHue(hue, other.hue, t),
-      saturation + (other.saturation - saturation) * t,
-      value + (other.value - value) * t,
     );
   }
 
@@ -189,5 +212,81 @@ class HsvColor {
     return hue == other.hue &&
         saturation == other.saturation &&
         value == other.value;
+  }
+
+  @override
+  HsvColor clampingHue(double start, double end) {
+    return HsvColor._(
+      hue.clamp(start, end),
+      saturation,
+      value,
+    );
+  }
+
+  @override
+  HsvColor clampingLightness(
+    double start,
+    double end, {
+    LightnessMode mode = LightnessMode.value,
+  }) {
+    if (mode == LightnessMode.lightness) {
+      return hsl.clampingLightness(start, end).hsv;
+    }
+    return HsvColor._(
+      hue,
+      saturation,
+      value.clamp(start, end),
+    );
+  }
+
+  @override
+  HsvColor clampingSaturation(double start, double end) {
+    return HsvColor._(
+      hue,
+      saturation.clamp(start, end),
+      value,
+    );
+  }
+
+  @override
+  HsvColor withHue(double hue) {
+    return HsvColor._(hue, saturation, value);
+  }
+
+  @override
+  HsvColor withLightness(
+    double lightness, {
+    LightnessMode mode = LightnessMode.value,
+  }) {
+    if (mode == LightnessMode.lightness) {
+      return hsl.withLightness(lightness).hsv;
+    }
+    return HsvColor._(
+      hue,
+      saturation,
+      lightness,
+    );
+  }
+
+  @override
+  HsvColor withSaturation(double saturation) {
+    return HsvColor._(hue, saturation, value);
+  }
+
+  static HsvColor lerp(HsvColor a, HsvColor b, double t) {
+    final double hue = lerpDouble(a.hue, b.hue, t);
+    final double saturation = lerpDouble(a.saturation, b.saturation, t);
+    final double value = lerpDouble(a.value, b.value, t);
+    return HsvColor._(hue, saturation, value);
+  }
+
+  @override
+  HsvColor lerpFrom(HsvColor other, double t) {
+    return HsvColor.lerp(other, this, t);
+  }
+
+  @override
+  HsvColor lerpTo(HsvColor other, double t) {
+    return HsvColor.lerp(this, other, t);
   }
 }

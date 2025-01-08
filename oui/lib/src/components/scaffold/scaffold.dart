@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart'
         FlexFit,
         Flexible,
         ImageFiltered,
+        MainAxisAlignment,
         Padding,
         Positioned,
         Row,
@@ -75,6 +76,7 @@ class Scaffold extends Box {
         builder: (context, layout) {
           final main = RailedContainer(
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: buildPanels(context, layout.panels),
             ),
           );
@@ -110,7 +112,7 @@ class Scaffold extends Box {
           );
         },
       ),
-    );
+    ).background().inset(const Insets.all(8));
   }
 }
 

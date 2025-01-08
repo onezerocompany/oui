@@ -40,4 +40,9 @@ class ColorPalette {
     if (other is! ColorPalette) return false;
     return levels == other.levels && barrier == other.barrier;
   }
+
+  @override
+  String toString() {
+    return 'ColorPalette(\n  levels: $levels,\n  barrier: $barrier\n)';
+  }
 }

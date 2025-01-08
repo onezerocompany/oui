@@ -1,6 +1,9 @@
 import 'dart:math';
 import 'dart:ui' as ui show Color;
 
+import 'package:oui/src/core/colors/manipulatable_color.dart';
+import 'package:oui/src/core/shared/interpolation.dart';
+
 import '../shared/dynamic_container.dart';
 import '../shared/leveled_container.dart';
 import 'hsl_color.dart';
@@ -14,7 +17,7 @@ enum RgbColorSpace {
 }
 
 /// A class representing a color with red, green, blue, and alpha components.
-class Color {
+class Color implements Interpolable<Color>, ManipulatableColor<Color> {
   // The red component of the color. A value between 0.0 and 1.0.
   final double red;
 
@@ -37,7 +40,22 @@ class Color {
     this.blue, [
     this.alpha = 1.0,
     this.colorSpace = RgbColorSpace.sRGB,
-  ]);
+  ])  : assert(
+          red >= 0.0 && red <= 1.0,
+          'Red value must be between 0.0 and 1.0, but was $red',
+        ),
+        assert(
+          green >= 0.0 && green <= 1.0,
+          'Green value must be between 0.0 and 1.0, but was $green',
+        ),
+        assert(
+          blue >= 0.0 && blue <= 1.0,
+          'Blue value must be between 0.0 and 1.0, but was $blue',
+        ),
+        assert(
+          alpha >= 0.0 && alpha <= 1.0,
+          'Alpha value must be between 0.0 and 1.0, but was $alpha',
+        );
 
   static const Color clear = Color(0, 0, 0, 0, RgbColorSpace.sRGB);
   static const Color black = Color(0, 0, 0, 1, RgbColorSpace.sRGB);
@@ -193,16 +211,13 @@ class Color {
   }
 
   /// Linearly interpolates between two [Color] objects.
-  static Color lerp(Color a, Color b, double t) {
-    t = t.clamp(0.0, 1.0); // Clip t between 0.0 and 1.0
-    return Color.fromRGB(
-      a.red + (b.red - a.red) * t,
-      a.green + (b.green - a.green) * t,
-      a.blue + (b.blue - a.blue) * t,
-      a.alpha + (b.alpha - a.alpha) * t,
-      t < 0.5 ? a.colorSpace : b.colorSpace,
-    );
-  }
+  static Color lerp(Color a, Color b, double t) => a.hsl.lerpTo(b.hsl, t).color;
+
+  @override
+  Color lerpFrom(Color other, double t) => lerp(other, this, t);
+
+  @override
+  Color lerpTo(Color other, double t) => lerp(this, other, t);
 
   @override
   int get hashCode => Object.hash(red, green, blue, alpha, colorSpace);
@@ -216,6 +231,76 @@ class Color {
         blue == other.blue &&
         alpha == other.alpha &&
         colorSpace == other.colorSpace;
+  }
+
+  @override
+  String toString() {
+    return 'Color($red, $green, $blue, $alpha)';
+  }
+
+  @override
+  Color clampingHue(double start, double end) {
+    return hsl.clampingHue(start, end).color;
+  }
+
+  @override
+  Color clampingLightness(
+    double start,
+    double end, {
+    LightnessMode mode = LightnessMode.lightness,
+  }) {
+    return hsl.clampingLightness(start, end, mode: mode).color;
+  }
+
+  @override
+  Color clampingSaturation(double start, double end) {
+    return hsl.clampingSaturation(start, end).color;
+  }
+
+  @override
+  Color darken(double amount, {LightnessMode mode = LightnessMode.lightness}) {
+    return hsl.darken(amount, mode: mode).color;
+  }
+
+  @override
+  Color desaturate(double amount) {
+    return hsl.desaturate(amount).color;
+  }
+
+  @override
+  Color lighten(double amount, {LightnessMode mode = LightnessMode.lightness}) {
+    return hsl.lighten(amount, mode: mode).color;
+  }
+
+  @override
+  Color rotateHue(double amount) {
+    return hsl.rotateHue(amount).color;
+  }
+
+  @override
+  Color saturate(double amount) {
+    return hsl.saturate(amount).color;
+  }
+
+  @override
+  Color withHue(double hue) {
+    return hsl.withHue(hue).color;
+  }
+
+  @override
+  Color withLightness(
+    double lightness, {
+    LightnessMode mode = LightnessMode.lightness,
+  }) {
+    if (mode == LightnessMode.value) {
+      return hsv.withLightness(lightness, mode: mode).color;
+    }
+    return copyWith(red: red, green: green, blue: blue, alpha: alpha);
+  }
+
+  @override
+  Color withSaturation(double saturation) {
+    return hsl.withSaturation(saturation).color;
   }
 }
 
@@ -234,3 +319,8 @@ extension ColorExtension on ui.Color {
 
 typedef DynamicColor = DynamicContainer<Color>;
 typedef TieredColor = LeveledContainer<Color>;
+
+enum LightnessMode {
+  lightness,
+  value,
+}

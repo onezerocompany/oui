@@ -9,10 +9,10 @@ class InterpolatedColorGenerator {
     this.first,
     this.second, [
     this.steps = 5,
-  ]);
+  ]) : assert(steps > 0, 'Steps must be greater than zero');
 
   HslColor generate(int step) {
-    final double ratio = step / steps;
-    return first.lerpWith(second, ratio);
+    final double ratio = (step / steps);
+    return first.lerpTo(second, ratio);
   }
 }

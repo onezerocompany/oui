@@ -13,6 +13,10 @@ class LeveledContainer<T> {
         _levelStep = levelStep,
         assert(levelStep != 0);
 
+  bool get isEmpty {
+    return _items.isEmpty;
+  }
+
   T get(int level) {
     final index = (level - _firstLevel) ~/ _levelStep;
     if (index < 0) {
@@ -20,7 +24,10 @@ class LeveledContainer<T> {
     } else if (index >= _items.length) {
       return _items.last;
     }
-    return _items[index];
+    if (isEmpty) {
+      throw StateError('LeveledContainer is empty');
+    }
+    return _items.elementAtOrNull(index) ?? _items.first;
   }
 
   T operator [](int level) {
@@ -55,6 +62,15 @@ class LeveledContainer<T> {
     return _firstLevel == other._firstLevel &&
         _levelStep == other._levelStep &&
         _items == other._items;
+  }
+
+  @override
+  String toString([int indent = 0]) {
+    return 'LeveledContainer(\n'
+        '  firstLevel: $_firstLevel,\n'
+        '  levelStep: $_levelStep,\n'
+        '  items: $_items\n'
+        ')';
   }
 }
 

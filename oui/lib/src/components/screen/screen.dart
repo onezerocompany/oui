@@ -1,5 +1,7 @@
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:oui/oui.dart';
+import 'package:oui/src/components/box/box_like.dart';
+
+import '../../core/metadata/screen_metadata.dart';
+import '../modifiable/modifier.dart';
 
 ///
 /// This enum is used to specify how a screen should be displayed within the
@@ -36,15 +38,7 @@ enum ScreenType {
 }
 
 /// Represents a screen in the OUI framework.
-class Screen extends Modifiable<Screen>
-    with
-        ModifiableSize<Screen>,
-        ModifiableAlignment<Screen>,
-        ModifiableCorner<Screen>,
-        ModifiableBackground<Screen>,
-        ModifiableInset<Screen>,
-        ModifiableBorder<Screen>,
-        ModifiableShadow<Screen> {
+class Screen extends BoxLike<Screen> {
   /// The unique identifier of the screen.
   final String id;
 
@@ -52,52 +46,25 @@ class Screen extends Modifiable<Screen>
   final ScreenType type;
 
   /// The localized metadata for the screen.
-  final Localized<ScreenMetadata> metadata;
+  final ScreenMetadata metadata;
 
   /// The child screens of the screen.
   final List<Screen> children;
 
-  /// The content of the screen.
-  final Widget content;
-
-  /// A screen widget for the Oui framework.
-  ///
-  /// The `Screen` widget is used to display a screen with specific properties
-  /// such as an identifier, metadata, a builder function, size, type, and children.
-  ///
-  /// Parameters:
-  /// - `id`: A unique identifier for the screen.
-  /// - `metadata`: Metadata associated with the screen.
-  /// - `builder`: A function that builds the content of the screen.
-  /// - `size`: The size of the screen. Defaults to an instance of `Size`.
-  /// - `type`: The type of the screen. Defaults to `ScreenType.panel`.
-  /// - `children`: A list of child widgets to be displayed within the screen. Defaults to an empty list.
-  /// - `background`: An optional background for the screen.
-  ///
-  /// Example usage:
-  /// ```dart
-  /// Screen(
-  ///   id: 'screen1',
-  ///   metadata: someMetadata,
-  ///   builder: (context) => SomeWidget(),
-  ///   size: ScreenSize(width: 100, height: 200),
-  ///   type: ScreenType.panel,
-  ///   children: [ChildWidget1(), ChildWidget2()],
-  ///   background: someBackground,
-  /// );
-  /// ```
   const Screen({
     super.key,
     super.modifiers,
+    super.content,
     required this.id,
     required this.metadata,
-    required this.content,
     this.type = ScreenType.panel,
     this.children = const [],
   });
 
   @override
-  Screen copyWith({Modifiers? modifiers}) {
+  Screen copyWith({
+    Modifiers? modifiers,
+  }) {
     return Screen(
       key: key,
       id: id,
@@ -107,11 +74,6 @@ class Screen extends Modifiable<Screen>
       modifiers: modifiers ?? this.modifiers,
       children: children,
     );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return buildWithModifiers(content, context);
   }
 }
 

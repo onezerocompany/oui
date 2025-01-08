@@ -1,12 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart' show BuildContext, Decoration, Widget;
+
+import '../../core/colors/palette/box_colors.dart';
 
 class ModifierContext {
   final Type componentType;
   final BuildContext buildContext;
+  final BoxColors boxColors;
 
   ModifierContext(
     this.componentType,
     this.buildContext,
+    this.boxColors,
   );
 }
 

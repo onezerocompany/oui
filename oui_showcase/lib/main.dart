@@ -21,6 +21,11 @@ class MyApp extends StatelessWidget {
           name: LocalizedString.always("Oui Showcase"),
           version: Version(0, 0, 0),
         ),
+        colors: ColorConfig(
+          seed: Color.fromHSL(
+            HslColor.fromHSL(0.0, 0.2, 0.95),
+          ),
+        ),
       ),
     );
   }

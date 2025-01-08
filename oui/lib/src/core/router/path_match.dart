@@ -119,7 +119,7 @@ class PathMatch {
 
     final screensToPop = screens.skip(screens.length - count);
     final segmentsToPop = screensToPop.map(
-      (screen) => screen.metadata.base.path.length,
+      (screen) => screen.metadata.path.base.length,
     );
 
     return PathMatch(

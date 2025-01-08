@@ -1,25 +1,53 @@
-import 'package:flutter/widgets.dart';
-import 'package:oui/src/core/colors/palette/color_palette.dart';
+import 'package:flutter/widgets.dart'
+    show BuildContext, InheritedWidget, State, StatefulWidget, Widget;
+import 'package:oui/src/core/shared/dynamic_container.dart';
 
 class DynamicAppContext extends InheritedWidget {
-  final ColorPalette colorPalette;
+  final DynamicTheme theme;
 
   const DynamicAppContext({
     super.key,
-    required this.colorPalette,
+    required this.theme,
     required super.child,
   });
+
+  @override
+  bool updateShouldNotify(covariant InheritedWidget oldWidget) {
+    return theme != (oldWidget as DynamicAppContext).theme;
+  }
 
   static DynamicAppContext? of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<DynamicAppContext>();
   }
+}
 
-  static ColorPalette? colorPaletteOf(BuildContext context) {
-    return of(context)?.colorPalette;
-  }
+class DynamicAppContextProvider extends StatefulWidget {
+  final Widget child;
+
+  const DynamicAppContextProvider({
+    super.key,
+    required this.child,
+  });
 
   @override
-  bool updateShouldNotify(DynamicAppContext oldWidget) {
-    return colorPalette != oldWidget.colorPalette;
+  State<DynamicAppContextProvider> createState() =>
+      _DynamicAppContextProviderState();
+}
+
+class _DynamicAppContextProviderState extends State<DynamicAppContextProvider> {
+  DynamicTheme get theme => DynamicTheme.light;
+
+  @override
+  Widget build(BuildContext context) {
+    return DynamicAppContext(
+      theme: theme,
+      child: widget.child,
+    );
+  }
+}
+
+extension DynamicAppContextExtension on BuildContext {
+  DynamicTheme get theme {
+    return DynamicAppContext.of(this)?.theme ?? DynamicTheme.light;
   }
 }

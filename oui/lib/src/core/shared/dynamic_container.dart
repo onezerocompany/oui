@@ -59,6 +59,11 @@ class DynamicContainer<T> {
         dimmed == other.dimmed &&
         dark == other.dark;
   }
+
+  @override
+  String toString() {
+    return 'DynamicContainer(\n  light: $light,\n  muted: $muted,\n  dimmed: $dimmed,\n  dark: $dark\n)';
+  }
 }
 
 class DynamicContainerGenerator<T> extends Generator<DynamicContainer<T>> {

@@ -5,16 +5,23 @@ import 'sub_screen.dart';
 
 final testScreen = Screen(
   id: "test",
-  metadata: Localized(
-    ScreenMetadata(
-      path: [PathSegment.static('test')],
-      name: LocalizedString.always("Test Screen"),
-    ),
+  metadata: ScreenMetadata.always(
+    path: [PathSegment.static('test')],
+    name: "Test Screen",
   ),
   content: Center(
-    child: Text("Test Screen"),
+    child: Box(
+      content: Text("Test Screen"),
+    )
+        .background()
+        .inset(Insets.all(18))
+        .allCorners(12)
+        .fixedSize(width: 300, height: 300)
+        .alignment(Alignment.center)
+        .border(thickness: 2)
+        .shadow(),
   ),
   children: [
     subScreen,
   ],
-).fixedSize(width: 500).backgroundColor(Color.black).allCorners(18);
+).dynamicSize(maxWidth: 800).background().allCorners(18);

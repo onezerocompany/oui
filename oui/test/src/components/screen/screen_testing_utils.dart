@@ -11,11 +11,11 @@ Screen testScreen(
 }) {
   return Screen(
     id: id,
-    metadata: Localized(
-      ScreenMetadata(
-        path: segments.isEmpty ? [PathSegment.static(id)] : segments,
-        name: id,
+    metadata: ScreenMetadata(
+      path: Localized.always(
+        segments.isEmpty ? [PathSegment.static(id)] : segments,
       ),
+      name: Localized.always(id),
     ),
     content: const SizedBox.shrink(),
     children: children,

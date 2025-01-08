@@ -1,9 +1,6 @@
 import 'package:flutter/painting.dart' as painting show Border, BorderSide;
 import 'package:flutter/painting.dart' show BoxBorder;
-
-import '../../core/geometry/rectangle_side.dart';
-import 'border_align.dart';
-import 'border_side.dart';
+import 'package:oui/oui.dart';
 
 /// A class that represents a border with four sides.
 class Border {
@@ -76,7 +73,7 @@ class Border {
   }
 
   /// Converts this border to a Flutter [BoxBorder].
-  BoxBorder get uiBorder {
+  BoxBorder uiBorder(ModifierContext context) {
     return painting.Border(
       top: top?.uiBorderSide ?? painting.BorderSide.none,
       right: right?.uiBorderSide ?? painting.BorderSide.none,

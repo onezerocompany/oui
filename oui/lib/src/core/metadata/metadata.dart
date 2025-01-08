@@ -27,6 +27,14 @@ class Metadata {
     this.attributes = const LocalizedMap<String, dynamic>({}),
   });
 
+  Metadata.always({
+    required String name,
+    IconData? icon,
+    Map<String, dynamic> attributes = const {},
+  })  : name = Localized.always(name),
+        icon = Localized.always(icon),
+        attributes = Localized.always(attributes);
+
   Metadata copyWith({
     Localized<String>? name,
     Localized<IconData?>? icon,

@@ -1,5 +1,6 @@
-import 'package:oui/oui.dart';
-
+import '../../shared/generator.dart';
+import '../../shared/leveled_container.dart';
+import '../hsl_color.dart';
 import 'interpolated_color_generator.dart';
 
 class LeveledColorGenerator extends Generator<LeveledContainer<HslColor>> {
@@ -42,7 +43,9 @@ class LeveledColorGenerator extends Generator<LeveledContainer<HslColor>> {
   LeveledContainer<T> generateFor<T>(T Function(HslColor) generator) {
     final colors = List.generate(
       depth,
-      (index) => generator(_generator.generate(index)),
+      (index) => generator(
+        _generator.generate(index),
+      ),
       growable: false,
     );
     return LeveledContainer(colors);

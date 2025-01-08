@@ -35,25 +35,34 @@ class StatefulColorGenerator extends GeneratorWithInput<HslColor, State> {
       case State.normal:
         return baseColor;
       case State.highlighted:
-        return baseColor.saturate(0.04).lighten(0.1);
+        // return baseColor.saturate(0.04).lighten(0.1);
+        return baseColor;
       case State.disabled:
-        return baseColor.withSaturation(0).withLightness(0.1);
+        // return baseColor.withSaturation(0).withLightness(0.1);
+        return baseColor;
       case State.loading:
-        return baseColor.desaturate(0.4);
+        // return baseColor.desaturate(0.4);
+        return baseColor;
       case State.errored:
-        return _errorColor.lerpWith(baseColor, 0.1);
+        // return _errorColor.lerpTo(baseColor, 0.1);
+        return baseColor;
       case State.succeeded:
-        return _successColor.lerpWith(baseColor, 0.1);
+        // return _successColor.lerpTo(baseColor, 0.1);
+        return baseColor;
       case State.warned:
-        return _warningColor.lerpWith(baseColor, 0.1);
+        // return _warningColor.lerpTo(baseColor, 0.1);
+        return baseColor;
       case State.inactive:
-        return baseColor.desaturate(0.4);
+        // return baseColor.desaturate(0.4);
+        return baseColor;
     }
   }
 
   StatefulContainer<T> generateFor<T>(T Function(HslColor color) generator) {
     return StatefulContainerGenerator<T>(
-      (state) => generator(generate(state)),
+      (state) => generator(
+        generate(state),
+      ),
     ).generate();
   }
 }

@@ -1,7 +1,9 @@
 import 'package:oui/oui.dart';
 
+import '../shared/interpolation.dart';
+
 /// A class representing a color in the HSL (Hue, Saturation, Lightness) color space.
-class HslColor {
+class HslColor implements ManipulatableColor<HslColor>, Interpolable<HslColor> {
   /// The hue of the color, in degrees [0, 360).
   ///
   /// Hue represents the color type and is measured in degrees on the color wheel.
@@ -28,6 +30,19 @@ class HslColor {
 
   /// Creates an HSL color from the given hue, saturation, and lightness.
   ///
+  /// The [hue] parameter must be in the range [0, 360) and represents the color's hue.
+  /// It determines the type of color (e.g., red, green, blue) and is measured in degrees.
+  ///
+  /// The [saturation] parameter must be in the range [0, 1] and represents the intensity of the color.
+  /// A saturation of 0 means the color is a shade of gray, and 1 means the color is fully saturated.
+  ///
+  /// The [lightness] parameter must be in the range [0, 1] and represents the brightness of the color.
+  /// A lightness of 0 means the color is black, 0.5 means it is neither dark nor light, and 1 means it is white.
+  ///
+  /// Example:
+  /// ```dart
+  /// var color = HSLColor.fromAHSL(1.0, 120.0, 0.5, 0.5);
+  /// ```
   /// [hue] must be in the range [0, 360).
   /// [saturation] and [lightness] must be in the range [0, 1].
   factory HslColor.fromHSL(
@@ -73,7 +88,7 @@ class HslColor {
 
     final double lightness = (max + min) / 2;
     final double saturation =
-        max == 0 ? 0 : (max - min) / (1 - (2 * lightness - 1).abs());
+        max == min ? 0 : (max - min) / (1 - (2 * lightness - 1).abs());
 
     return HslColor._(hue, saturation, lightness);
   }
@@ -142,6 +157,7 @@ class HslColor {
   ///
   /// [amount] is in degrees and can be positive or negative.
   /// The resulting hue is wrapped around to stay within the range [0, 360).
+  @override
   HslColor rotateHue(double amount) {
     return HslColor._(
       (hue + amount) % 360,
@@ -154,6 +170,7 @@ class HslColor {
   ///
   /// [amount] must be in the range [0, 1].
   /// The resulting saturation is clamped to stay within the range [0, 1].
+  @override
   HslColor saturate(double amount) {
     return HslColor._(
       hue,
@@ -166,6 +183,7 @@ class HslColor {
   ///
   /// [amount] must be in the range [0, 1].
   /// The resulting saturation is clamped to stay within the range [0, 1].
+  @override
   HslColor desaturate(double amount) {
     return HslColor._(
       hue,
@@ -178,7 +196,15 @@ class HslColor {
   ///
   /// [amount] must be in the range [0, 1].
   /// The resulting lightness is clamped to stay within the range [0, 1].
-  HslColor lighten(double amount) {
+  @override
+  HslColor lighten(
+    double amount, {
+    LightnessMode mode = LightnessMode.lightness,
+  }) {
+    if (mode == LightnessMode.value) {
+      return hsv.lighten(amount).hsl;
+    }
+
     return HslColor._(
       hue,
       saturation,
@@ -190,7 +216,14 @@ class HslColor {
   ///
   /// [amount] must be in the range [0, 1].
   /// The resulting lightness is clamped to stay within the range [0, 1].
-  HslColor darken(double amount) {
+  @override
+  HslColor darken(
+    double amount, {
+    LightnessMode mode = LightnessMode.lightness,
+  }) {
+    if (mode == LightnessMode.value) {
+      return hsv.darken(amount).hsl;
+    }
     return HslColor._(
       hue,
       saturation,
@@ -198,20 +231,21 @@ class HslColor {
     );
   }
 
-  /// Linearly interpolates between this color and another HSL color.
+  /// Linearly interpolates between two HSL colors.
   ///
+  /// [a] and [b] are the colors to interpolate between.
   /// [t] is the interpolation factor and must be in the range [0, 1].
   /// The interpolation is done separately for hue, saturation, and lightness.
-  HslColor lerpWith(HslColor other, double t) {
+  static HslColor lerp(HslColor a, HslColor b, double t) {
     double lerpHue(double a, double b, double t) {
       final double delta = ((b - a + 180) % 360) - 180;
       return a + delta * t;
     }
 
     return HslColor._(
-      lerpHue(hue, other.hue, t),
-      saturation + (other.saturation - saturation) * t,
-      lightness + (other.lightness - lightness) * t,
+      lerpHue(a.hue, b.hue, t),
+      lerpDouble(a.saturation, b.saturation, t),
+      lerpDouble(a.lightness, b.lightness, t),
     );
   }
 
@@ -229,45 +263,27 @@ class HslColor {
   }
 
   /// Creates a copy of this color but with the lightness replaced with the given value.
-  HslColor withLightness(double lightness) {
+  @override
+  HslColor withLightness(
+    double lightness, {
+    LightnessMode mode = LightnessMode.lightness,
+  }) {
+    if (mode == LightnessMode.value) {
+      return hsv.withLightness(lightness, mode: mode).hsl;
+    }
     return copyWith(lightness: lightness);
   }
 
-  /// Creates a copy of this color but with the lightness clamped within the given range.
-  ///
-  /// [range] specifies the minimum and maximum values for the lightness.
-  HslColor clampedLightness(double start, double end) {
-    assert(start >= 0 && end <= 1, 'Lightness range must be within [0, 1]');
-    final range = Range(start, end);
-    return copyWith(lightness: range.clamp(lightness));
-  }
-
   /// Creates a copy of this color but with the hue replaced with the given value.
+  @override
   HslColor withHue(double hue) {
     return copyWith(hue: hue);
   }
 
-  /// Creates a copy of this color but with the hue clamped within the given range.
-  ///
-  /// [range] specifies the minimum and maximum values for the hue.
-  HslColor clampedHue(double start, double end) {
-    assert(start >= 0 && end <= 360, 'Hue range must be within [0, 360]');
-    final range = Range(start, end);
-    return copyWith(hue: range.clamp(hue));
-  }
-
   /// Creates a copy of this color but with the saturation replaced with the given value.
+  @override
   HslColor withSaturation(double saturation) {
     return copyWith(saturation: saturation);
-  }
-
-  /// Creates a copy of this color but with the saturation clamped within the given range.
-  ///
-  /// [range] specifies the minimum and maximum values for the saturation.
-  HslColor clampedSaturation(double start, double end) {
-    assert(start >= 0 && end <= 1, 'Saturation range must be within [0, 1]');
-    final range = Range(start, end);
-    return copyWith(saturation: range.clamp(saturation));
   }
 
   @override
@@ -280,5 +296,54 @@ class HslColor {
     return hue == other.hue &&
         saturation == other.saturation &&
         lightness == other.lightness;
+  }
+
+  @override
+  HslColor clampingHue(double start, double end) {
+    return HslColor._(
+      hue.clamp(start, end),
+      saturation,
+      lightness,
+    );
+  }
+
+  @override
+  HslColor clampingLightness(
+    double start,
+    double end, {
+    LightnessMode mode = LightnessMode.lightness,
+  }) {
+    if (mode == LightnessMode.value) {
+      return hsv.clampingLightness(start, end).hsl;
+    }
+    return HslColor._(
+      hue,
+      saturation,
+      lightness.clamp(start, end),
+    );
+  }
+
+  @override
+  HslColor clampingSaturation(double start, double end) {
+    return HslColor._(
+      hue,
+      saturation.clamp(start, end),
+      lightness,
+    );
+  }
+
+  @override
+  HslColor lerpFrom(HslColor other, double t) {
+    return HslColor.lerp(other, this, t);
+  }
+
+  @override
+  HslColor lerpTo(HslColor other, double t) {
+    return HslColor.lerp(this, other, t);
+  }
+
+  @override
+  String toString() {
+    return 'HslColor($hue, $saturation, $lightness)';
   }
 }
