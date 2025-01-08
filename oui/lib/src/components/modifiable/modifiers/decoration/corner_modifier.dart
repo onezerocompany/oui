@@ -1,13 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/painting.dart'
     show BoxDecoration, Decoration, ShapeDecoration;
 import 'package:flutter/widgets.dart' show BoxDecoration, Widget;
-
-import '../../corners/corner_border.dart';
-import '../../corners/corner_border_radius.dart';
-import '../../corners/corner_radius.dart';
-import '../../shared/shape_decoration.dart';
-import '../modifiable.dart';
-import '../modifier.dart';
+import 'package:oui/oui.dart';
 
 class CornerModifier extends Modifier with DecorationModifier, ChildModifier {
   final CornerBorder corner;
@@ -52,7 +48,13 @@ class CornerModifier extends Modifier with DecorationModifier, ChildModifier {
 
   @override
   Widget? modify(Widget child, ModifierContext context) {
-    return child;
+    if (!corner.shouldRender || !clip) return null;
+
+    return ClipCornerRect(
+      radius: corner.borderRadius,
+      clipBehavior: Clip.antiAlias,
+      child: child,
+    );
   }
 }
 

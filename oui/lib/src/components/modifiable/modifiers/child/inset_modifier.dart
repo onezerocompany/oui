@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart' show Padding, Widget;
 import 'package:oui/src/components/modifiable/modifier.dart';
 import 'package:oui/src/core/geometry/insets.dart';
 
-import '../modifiable.dart';
+import '../../modifiable.dart';
 
 /// A class representing insets (padding or margins) for a box and modifying a widget.
 class InsetModifier extends Modifier with ChildModifier {

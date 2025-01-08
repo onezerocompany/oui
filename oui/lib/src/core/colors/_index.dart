@@ -1,6 +1,6 @@
 export 'color.dart';
 export 'color_context.dart';
-export 'generator/_index.dart';
+export 'generators/_index.dart';
 export 'gradient.dart';
 export 'hsl_color.dart';
 export 'hsv_color.dart';

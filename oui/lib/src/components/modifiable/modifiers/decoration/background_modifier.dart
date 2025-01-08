@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart' show Decoration, Widget;
 import 'package:oui/src/components/app/static_app_context.dart';
 
-import '../../../core/colors/color.dart';
-import '../../../core/colors/gradient.dart';
-import '../../shared/background.dart';
-import '../../shared/background_image.dart';
-import '../modifiable.dart';
-import '../modifier.dart';
+import '../../../../core/colors/color.dart';
+import '../../../../core/colors/gradient.dart';
+import '../../../shared/background.dart';
+import '../../../shared/background_image.dart';
+import '../../modifiable.dart';
+import '../../modifier.dart';
 
 class BackgroundModifier extends Modifier
     with ChildModifier, DecorationModifier {

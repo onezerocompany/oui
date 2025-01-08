@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart' show Align, Widget;
 
-import '../../../core/geometry/alignment.dart';
-import '../modifiable.dart';
-import '../modifier.dart';
+import '../../../../core/geometry/alignment.dart';
+import '../../modifiable.dart';
+import '../../modifier.dart';
 
 class AlignmentModifier extends Modifier with ChildModifier {
   final Alignment alignment;

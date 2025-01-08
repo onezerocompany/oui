@@ -2,8 +2,8 @@ import 'package:flutter/painting.dart';
 import 'package:oui/src/components/modifiable/modifiable.dart';
 import 'package:oui/src/components/modifiable/modifier.dart';
 
-import '../../../core/colors/color.dart';
-import '../../../core/geometry/offset.dart';
+import '../../../../core/colors/color.dart';
+import '../../../../core/geometry/offset.dart';
 
 /// A class representing a shadow effect that can be applied to a widget.
 class ShadowModifier extends Modifier with DecorationModifier {
