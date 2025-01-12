@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/src/core/colors/color.dart';
-import 'package:oui/src/core/colors/palette/accentable_color.dart';
-import 'package:oui/src/core/colors/palette/box_colors.dart';
-import 'package:oui/src/core/shared/leveled_container.dart';
+import 'package:oui/src/core/colors.dart';
+import 'package:oui/src/core/utils.dart';
 
 void main() {
   group('BoxColors', () {

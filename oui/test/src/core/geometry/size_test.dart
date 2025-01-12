@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/src/core/geometry/size.dart';
+import 'package:oui/src/core/geometry.dart';
 
 void main() {
   group('Size', () {

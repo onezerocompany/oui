@@ -1,7 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/src/core/colors/color.dart';
-import 'package:oui/src/core/colors/hsl_color.dart';
-import 'package:oui/src/core/colors/hsv_color.dart';
+import 'package:oui/src/core/colors.dart';
 
 void main() {
   group('HsvColor', () {
@@ -57,7 +55,7 @@ void main() {
     test('should interpolate correctly', () {
       final color1 = HsvColor.fromHSV(0, 1, 1);
       final color2 = HsvColor.fromHSV(120, 0.5, 0.5);
-      final interpolatedColor = color1.lerpWith(color2, 0.5);
+      final interpolatedColor = color1.lerpTo(color2, 0.5);
       expect(interpolatedColor.hue, 60);
       expect(interpolatedColor.saturation, 0.75);
       expect(interpolatedColor.value, 0.75);

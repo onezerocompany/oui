@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/src/core/router/path.dart';
+import 'package:oui/src/core/routing.dart';
 
-import '../../components/screen/screen_testing_utils.dart';
+import '../screen/screen_testing_utils.dart';
 
 void main() {
   group('PathSegment', () {

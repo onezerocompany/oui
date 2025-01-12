@@ -2,9 +2,8 @@ import 'package:flutter/rendering.dart' as rendering show Alignment;
 import 'package:flutter/widgets.dart'
     show LinearGradient, RadialGradient, SweepGradient;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/src/components/shared/flow_direction.dart';
-import 'package:oui/src/core/colors/color.dart';
-import 'package:oui/src/core/colors/gradient.dart';
+import 'package:oui/src/core/colors.dart';
+import 'package:oui/src/core/geometry.dart';
 
 const customRed = Color.fromRGB(1, 0, 0);
 const customBlue = Color.fromRGB(0, 0, 1);

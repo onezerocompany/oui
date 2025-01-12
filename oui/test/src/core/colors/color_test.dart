@@ -1,9 +1,7 @@
 import 'dart:ui' as ui show Color;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/src/core/colors/color.dart';
-import 'package:oui/src/core/colors/hsl_color.dart';
-import 'package:oui/src/core/colors/hsv_color.dart';
+import 'package:oui/src/core/colors.dart';
 
 void main() {
   group('Color', () {

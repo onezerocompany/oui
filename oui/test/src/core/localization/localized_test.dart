@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/src/core/localization/locale.dart';
-import 'package:oui/src/core/localization/localized.dart';
+import 'package:oui/src/core/localization.dart';
 
 void main() {
   group('Locale', () {

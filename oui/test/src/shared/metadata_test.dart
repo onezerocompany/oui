@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oui/src/core/localization/localized.dart';
-import 'package:oui/src/core/metadata/metadata.dart';
+import 'package:oui/src/core/localization.dart';
+import 'package:oui/src/core/metadata.dart';
 
 void main() {
   group('Metadata', () {
