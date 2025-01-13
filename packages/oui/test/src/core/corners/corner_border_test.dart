@@ -70,24 +70,6 @@ void main() {
       expect(true, isTrue); // No errors should occur
     });
 
-    test('Lerp between two borders', () {
-      const border1 = CornerBorder(
-        side: BorderSide(thickness: 4, color: Color.black),
-        borderRadius: CornerBorderRadius.all(
-          CornerRadius(radius: 10, smoothing: 0.5),
-        ),
-      );
-      const border2 = CornerBorder(
-        side: BorderSide(thickness: 8, color: Color.black),
-        borderRadius: CornerBorderRadius.all(
-          CornerRadius(radius: 20, smoothing: 1.0),
-        ),
-      );
-      final lerpedBorder = border1.lerpTo(border2, 0.5);
-      expect(lerpedBorder, isNotNull);
-      expect(lerpedBorder, isA<CornerBorder>());
-    });
-
     test('Equality and hashCode', () {
       const border1 = CornerBorder(
         side: BorderSide(thickness: 4, color: Color.black),

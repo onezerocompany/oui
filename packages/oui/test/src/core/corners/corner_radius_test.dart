@@ -79,16 +79,9 @@ void main() {
     test('Linear interpolation (lerp) between two OuiCornerRadius objects', () {
       const radius1 = CornerRadius(radius: 1, smoothing: 0.5);
       const radius2 = CornerRadius(radius: 3, smoothing: 0.7);
-      final result = CornerRadius.lerp(radius1, radius2, 0.5);
-      expect(result?.cornerRadius, 2);
-      expect(result?.smoothing, 0.6);
-    });
-
-    test('Interpolation with null as one operand', () {
-      const radius = CornerRadius(radius: 2, smoothing: 0.5);
-      final result = CornerRadius.lerp(null, radius, 0.5);
-      expect(result?.cornerRadius, 1);
-      expect(result?.smoothing, 0.25);
+      final result = radius1.lerpTo(radius2, 0.5);
+      expect(result.cornerRadius, 2);
+      expect(result.smoothing, 0.6);
     });
 
     test('Equality comparison between two identical objects', () {

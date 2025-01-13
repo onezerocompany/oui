@@ -102,7 +102,7 @@ class Screen extends BoxLike<Screen> {
   final ScreenMetadata metadata;
 
   /// The child screens of the screen.
-  final List<Screen> children;
+  final List<Screen> _children;
 
   const Screen._({
     super.key,
@@ -114,8 +114,9 @@ class Screen extends BoxLike<Screen> {
     required this.id,
     required this.metadata,
     required this.type,
-    required this.children,
-  }) : super();
+    List<Screen> children = const [],
+  })  : _children = children,
+        super();
 
   Screen(
     String id, {
@@ -151,7 +152,7 @@ class Screen extends BoxLike<Screen> {
       metadata: metadata ?? this.metadata,
       type: type ?? this.type,
       modifiers: modifiers ?? this.modifiers,
-      children: children ?? this.children,
+      children: children ?? _children,
     );
   }
 
@@ -214,7 +215,11 @@ class Screen extends BoxLike<Screen> {
   }
 
   Screen child(Screen child) {
-    return copyWith(children: [...children, child]);
+    return copyWith(children: [..._children, child]);
+  }
+
+  Screen children(List<Screen> children) {
+    return copyWith(children: [..._children, ...children]);
   }
 }
 
@@ -282,7 +287,7 @@ class ScreenRegistry {
       final segments = screen.metadata.path.forLocale(locale).segments;
       final path = parentPath?.add(segments) ?? Path(segments);
       entries.add(ScreenRegistryEntry(screen, path, parents ?? []));
-      for (final child in screen.children) {
+      for (final child in screen._children) {
         addScreen(child, path, [...?parents, screen]);
       }
     }

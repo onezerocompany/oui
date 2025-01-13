@@ -7,9 +7,9 @@ final testScreen = Screen("test")
     .child(subScreen)
     .content(
       Box()
-          .backgrounded
-          .bordered
-          .centered
+          .background()
+          .border()
+          .alignment(Alignment.center)
           .shadow(spread: -5, blur: 15)
           .allCorners(12)
           .content(Label("Testing"))

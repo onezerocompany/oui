@@ -251,8 +251,6 @@ class AlignmentModifier extends ComponentModifier with ChildModifier {
 }
 
 mixin ModifiableAlignment<Type extends Component> on Component<Type> {
-  Type get centerContent => alignment(Alignment.center);
-
   Type get centered => alignment(Alignment.center);
 
   Type alignment(Alignment alignment) {

@@ -1225,38 +1225,77 @@ class BoxColors {
   });
 
   static BoxColors generate(Color base, [BoxColors? previous]) {
-    return BoxColors(
-      content: AccentableColor.generate(
-        base,
-        base,
-        base,
-      ),
-      surface: AccentableColor.generate(
-        base,
-        base,
-        base,
-      ),
-      decoration: AccentableColor.generate(
-        base,
-        base,
-        base,
-      ),
-      shadow: AccentableColor.generate(
-        (previous?.content.normal ?? base).darken(0.1),
-        (previous?.content.normal ?? base).darken(0.15),
-        (previous?.content.normal ?? base).darken(0.15),
-      ),
-      edge: AccentableColor.generate(
-        (base).darken(0.1),
-        base.darken(0.1),
-        base.darken(0.1),
-      ),
-      placeholder: AccentableColor.generate(
-        base,
-        base,
-        base,
-      ),
-    );
+    if (base.isLight) {
+      final surface =
+          base.clampingSaturation(0, 0.01).clampingLightness(0, 0.1);
+      return BoxColors(
+        content: AccentableColor.generate(
+          base,
+          base,
+          base,
+        ),
+        surface: AccentableColor.generate(
+          surface,
+          surface,
+          surface,
+        ),
+        decoration: AccentableColor.generate(
+          base,
+          base,
+          base,
+        ),
+        shadow: AccentableColor.generate(
+          (previous?.content.normal ?? base).darken(0.1),
+          (previous?.content.normal ?? base).darken(0.15),
+          (previous?.content.normal ?? base).darken(0.15),
+        ),
+        edge: AccentableColor.generate(
+          (base).darken(0.1),
+          base.darken(0.1),
+          base.darken(0.1),
+        ),
+        placeholder: AccentableColor.generate(
+          base,
+          base,
+          base,
+        ),
+      );
+    } else {
+      final surface =
+          base.clampingSaturation(0, 0.01).clampingLightness(0, 0.1);
+      return BoxColors(
+        content: AccentableColor.generate(
+          base,
+          base,
+          base,
+        ),
+        surface: AccentableColor.generate(
+          surface,
+          surface,
+          surface,
+        ),
+        decoration: AccentableColor.generate(
+          base,
+          base,
+          base,
+        ),
+        shadow: AccentableColor.generate(
+          (previous?.content.normal ?? base).darken(0.1),
+          (previous?.content.normal ?? base).darken(0.15),
+          (previous?.content.normal ?? base).darken(0.15),
+        ),
+        edge: AccentableColor.generate(
+          (base).darken(0.1),
+          base.darken(0.1),
+          base.darken(0.1),
+        ),
+        placeholder: AccentableColor.generate(
+          base,
+          base,
+          base,
+        ),
+      );
+    }
   }
 
   @override
