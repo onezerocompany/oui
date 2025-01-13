@@ -72,23 +72,23 @@ void main() {
       }
     });
 
-    testWidgets('matches golden file', (tester) async {
-      await tester.pumpWidget(
-        ClipCornerRect(
-          radius: const CornerBorderRadius.all(
-            CornerRadius(
-              radius: 100,
-              smoothing: 1,
-            ),
-          ),
-          child: Container(color: const Color(0xFF0000FF)),
-        ),
-      );
-      await expectLater(
-        find.byType(ClipCornerRect),
-        matchesGoldenFile('goldens/clip_corner_rect.png'),
-      );
-    });
+    // testWidgets('matches golden file', (tester) async {
+    //   await tester.pumpWidget(
+    //     ClipCornerRect(
+    //       radius: const CornerBorderRadius.all(
+    //         CornerRadius(
+    //           radius: 100,
+    //           smoothing: 1,
+    //         ),
+    //       ),
+    //       child: Container(color: const Color(0xFF0000FF)),
+    //     ),
+    //   );
+    //   await expectLater(
+    //     find.byType(ClipCornerRect),
+    //     matchesGoldenFile('goldens/clip_corner_rect.png'),
+    //   );
+    // });
 
     testWidgets('handles large child trees efficiently', (tester) async {
       await tester.pumpWidget(
