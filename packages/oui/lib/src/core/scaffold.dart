@@ -20,7 +20,7 @@ import 'package:flutter/widgets.dart'
         StatelessWidget,
         Transform,
         Widget;
-import 'package:oui/src/core/context.dart';
+import 'package:oui/src/core/state.dart';
 
 import '../components/box.dart';
 import 'app.dart';

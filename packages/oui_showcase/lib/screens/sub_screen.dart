@@ -11,5 +11,4 @@ final subScreen = Screen(
       ),
     )
     .child(anotherSubScreen)
-    .backgroundColor(Color.black)
     .allCorners(40, smoothing: 0);

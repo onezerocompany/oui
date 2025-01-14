@@ -105,6 +105,12 @@ class CornerBorder extends OutlinedBorder {
   @override
   painting.BorderSide get side => _side.uiBorderSide;
 
+  static const zero = CornerBorder(
+    side: BorderSide.none,
+    borderRadius: CornerBorderRadius.zero,
+    borderAlign: BorderAlign.inside,
+  );
+
   final CornerBorderRadius borderRadius;
   final BorderAlign borderAlign;
 
@@ -1008,21 +1014,48 @@ class CornerBorderRadius extends BorderRadius
 
 class CornerModifier extends ComponentModifier
     with DecorationModifier, ChildModifier {
-  final CornerBorder corner;
+  final SizeLevel? roundness;
+  final CornerBorder? corner;
   final bool clip;
 
   const CornerModifier({
-    required this.corner,
+    this.corner,
+    this.roundness,
     this.clip = false,
   });
+
+  CornerBorderRadius borderRadius(ComponentContext context) {
+    if (corner != null) return corner!.borderRadius;
+
+    if (roundness != null) {
+      final configRoundness = context.config.screens.roundness;
+      const interpolator = DoubleInterpolator();
+
+      final radius = interpolator.resolve(
+        configRoundness.start,
+        configRoundness.end,
+        roundness!.t,
+      );
+      return CornerBorderRadius.all(
+        CornerRadius(
+          radius: radius,
+          smoothing: 0.7,
+        ),
+      );
+    }
+    return CornerBorderRadius.zero;
+  }
 
   @override
   Decoration? decorate(
     Decoration decoration,
     ComponentContext context,
   ) {
-    final shape = corner.copyWith(
-      radius: corner.borderRadius,
+    final borderRadius = this.borderRadius(context);
+    if (!borderRadius.shouldRender) return null;
+
+    final shape = (corner ?? CornerBorder.zero).copyWith(
+      radius: borderRadius,
     );
 
     if (decoration is ShapeDecoration) {
@@ -1046,10 +1079,11 @@ class CornerModifier extends ComponentModifier
 
   @override
   Widget? modify(Widget? child, ComponentContext context) {
-    if (!corner.shouldRender || !clip || child == null) return null;
+    final borderRadius = this.borderRadius(context);
+    if (!borderRadius.shouldRender || !clip || child == null) return null;
 
     return ClipCornerRect(
-      radius: corner.borderRadius,
+      radius: borderRadius,
       clipBehavior: Clip.antiAlias,
       child: child,
     );
@@ -1079,6 +1113,16 @@ mixin ModifiableCorner<Type extends Component> on Component<Type> {
         ),
       ),
       unique: true,
+    );
+  }
+
+  Type rounded([
+    SizeLevel? roundness,
+  ]) {
+    return withModifier(
+      CornerModifier(
+        roundness: roundness,
+      ),
     );
   }
 }

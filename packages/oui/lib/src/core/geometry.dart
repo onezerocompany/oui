@@ -10,6 +10,8 @@ import 'package:flutter/widgets.dart'
         Padding,
         SizedBox,
         Widget;
+import 'package:oui/src/core/app.dart';
+import 'package:oui/src/core/screen.dart';
 
 import 'component.dart';
 import 'utils.dart';
@@ -654,7 +656,7 @@ class Size {
 }
 
 class SizeModifier extends ComponentModifier with ChildModifier {
-  final Size size;
+  final Size? size;
 
   const SizeModifier(this.size);
 
@@ -687,7 +689,17 @@ class SizeModifier extends ComponentModifier with ChildModifier {
 
   @override
   Widget modify(Widget? child, ComponentContext context) {
-    return size.apply(child);
+    if (child == null) return const SizedBox.shrink();
+    if (size == null && context.componentType == Screen) {
+      final config = context.buildContext.config.screens;
+      if (config.defaultPanelWidth != null) {
+        return Size(
+          config.defaultPanelWidth!,
+          RangedDimension.zeroToInfinity,
+        ).apply(child);
+      }
+    }
+    return size?.apply(child) ?? child;
   }
 }
 

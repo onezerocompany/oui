@@ -1,7 +1,10 @@
+import 'package:oui/src/core/typography.dart';
+
 import 'colors.dart';
 import 'geometry.dart';
 import 'localization.dart';
 import 'metadata.dart';
+import 'utils.dart';
 
 class Version {
   final int major;
@@ -57,10 +60,6 @@ class ColorConfig {
     this.seed = Color.white,
     this.levels = 6,
   });
-
-  ColorPalette get palette {
-    return ColorPalette.generate(this);
-  }
 }
 
 class ScaffoldConfig {
@@ -74,16 +73,33 @@ class ScaffoldConfig {
   });
 }
 
+class ScreenConfig {
+  final Range<double> roundness;
+  final RangedDimension? defaultPanelWidth;
+
+  const ScreenConfig({
+    this.roundness = const Range(4, 32),
+    this.defaultPanelWidth = const RangedDimension.dynamic(
+      minimum: 300,
+      maximum: 800,
+    ),
+  });
+}
+
 class Config {
   final AppDetails details;
   final ScaffoldConfig scaffold;
+  final ScreenConfig screens;
   final ColorConfig colors;
   final Locales locales;
+  final TypographyConfig typography;
 
   const Config({
     required this.details,
     this.colors = const ColorConfig(),
     this.scaffold = const ScaffoldConfig(),
+    this.screens = const ScreenConfig(),
+    this.typography = const TypographyConfig(),
     this.locales = const [
       Locale.english,
     ],

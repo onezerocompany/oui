@@ -119,7 +119,9 @@ abstract class EnumContainer<E extends Enum, V> {
   final Map<E, V> _values;
 
   EnumContainer(this._values) {
-    if (_values.keys.toSet() != keys.toSet()) {
+    if (!_values.keys.every(
+      (key) => keys.contains(key),
+    )) {
       throw ArgumentError('Values must be unique');
     }
   }
@@ -268,13 +270,15 @@ class LeveledContainer<T> {
 }
 
 enum SizeLevel {
-  extraTiny,
-  tiny,
-  small,
-  medium,
-  large,
-  huge,
-  extraHuge,
+  tiny(0),
+  small(0.25),
+  medium(0.5),
+  large(0.75),
+  huge(1);
+
+  final double t;
+
+  const SizeLevel(this.t);
 }
 
 class SizedContainer<T> extends EnumContainer<SizeLevel, T> {
@@ -286,4 +290,5 @@ class SizedContainer<T> extends EnumContainer<SizeLevel, T> {
 
   @override
   List<SizeLevel> get keys => SizeLevel.values;
+  Map<SizeLevel, T> get values => _values;
 }

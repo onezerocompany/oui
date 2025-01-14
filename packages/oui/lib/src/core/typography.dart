@@ -3,17 +3,13 @@ import 'utils.dart';
 
 class TypographyConfigGroup {
   final Curve curve;
-  final double minimumSize;
-  final double maximumSize;
-  final double minimumWeight;
-  final double maximumWeight;
+  final Range<double> size;
+  final Range<double> weight;
 
   const TypographyConfigGroup({
     this.curve = Curve.linear,
-    this.minimumSize = 12.0,
-    this.maximumSize = 24.0,
-    this.minimumWeight = 300.0,
-    this.maximumWeight = 500.0,
+    this.size = const Range(14.0, 28.0),
+    this.weight = const Range(300.0, 500.0),
   });
 }
 
@@ -26,34 +22,24 @@ class TypographyConfig {
 
   const TypographyConfig({
     this.headings = const TypographyConfigGroup(
-      minimumSize: 24.0,
-      maximumSize: 48.0,
-      minimumWeight: 400.0,
-      maximumWeight: 700.0,
+      size: Range(18.0, 36.0),
+      weight: Range(400.0, 600.0),
     ),
     this.subheadings = const TypographyConfigGroup(
-      minimumSize: 18.0,
-      maximumSize: 36.0,
-      minimumWeight: 400.0,
-      maximumWeight: 600.0,
+      size: Range(18.0, 36.0),
+      weight: Range(400.0, 600.0),
     ),
     this.body = const TypographyConfigGroup(
-      minimumSize: 14.0,
-      maximumSize: 28.0,
-      minimumWeight: 300.0,
-      maximumWeight: 500.0,
+      size: Range(14.0, 28.0),
+      weight: Range(300.0, 500.0),
     ),
     this.caption = const TypographyConfigGroup(
-      minimumSize: 12.0,
-      maximumSize: 24.0,
-      minimumWeight: 300.0,
-      maximumWeight: 400.0,
+      size: Range(12.0, 24.0),
+      weight: Range(300.0, 400.0),
     ),
     this.footnotes = const TypographyConfigGroup(
-      minimumSize: 10.0,
-      maximumSize: 20.0,
-      minimumWeight: 300.0,
-      maximumWeight: 400.0,
+      size: Range(10.0, 20.0),
+      weight: Range(300.0, 400.0),
     ),
   });
 }
@@ -72,6 +58,16 @@ class Typography {
     required this.caption,
     required this.footnotes,
   });
+
+  factory Typography.fromConfig(TypographyConfig config) {
+    return Typography(
+      headings: TypographyGroup.fromConfig(config.headings),
+      subheadings: TypographyGroup.fromConfig(config.subheadings),
+      body: TypographyGroup.fromConfig(config.body),
+      caption: TypographyGroup.fromConfig(config.caption),
+      footnotes: TypographyGroup.fromConfig(config.footnotes),
+    );
+  }
 }
 
 class TypographyWeight {
@@ -81,19 +77,39 @@ class TypographyWeight {
 }
 
 class TypographyGroup extends SizedContainer<TypographyStyle> {
-  TypographyGroup(
-    super.values,
-  );
+  TypographyGroup(super.values);
+
+  factory TypographyGroup.fromConfig(TypographyConfigGroup config) {
+    final interpolator = DoubleInterpolator(curve: config.curve);
+    return TypographyGroup(
+      SizedContainer<TypographyStyle>.generate((size) {
+        return TypographyStyle(
+          size: interpolator.resolve(
+            config.size.start,
+            config.size.end,
+            size.t,
+          ),
+          weight: TypographyWeight(
+            interpolator.resolve(
+              config.weight.start,
+              config.weight.end,
+              size.t,
+            ),
+          ),
+        );
+      }).values,
+    );
+  }
 }
 
 class TypographyStyle {
   final double size;
   final TypographyWeight weight;
-  final bool italic;
+  final double italic;
 
   const TypographyStyle({
     this.size = 14,
     this.weight = const TypographyWeight(400),
-    this.italic = false,
+    this.italic = 0,
   });
 }

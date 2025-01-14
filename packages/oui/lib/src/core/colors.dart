@@ -1226,8 +1226,7 @@ class BoxColors {
 
   static BoxColors generate(Color base, [BoxColors? previous]) {
     if (base.isLight) {
-      final surface =
-          base.clampingSaturation(0, 0.01).clampingLightness(0, 0.1);
+      final surface = base.clampingSaturation(0, 0.01);
       return BoxColors(
         content: AccentableColor.generate(
           base,
@@ -1261,8 +1260,7 @@ class BoxColors {
         ),
       );
     } else {
-      final surface =
-          base.clampingSaturation(0, 0.01).clampingLightness(0, 0.1);
+      final surface = base.clampingSaturation(0, 0.01);
       return BoxColors(
         content: AccentableColor.generate(
           base,
@@ -1363,7 +1361,7 @@ class ColorPalette {
     required this.barrier,
   });
 
-  static ColorPalette generate(ColorConfig config) {
+  factory ColorPalette.fromConfig(ColorConfig config) {
     final generator = ColorGenerator(config);
     return ColorPalette(
       levels: generator.levels,

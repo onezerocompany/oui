@@ -12,23 +12,26 @@ import 'package:flutter/widgets.dart'
 import 'package:flutter/widgets.dart' as widgets show State;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:oui/src/components/box.dart';
-import 'package:oui/src/core/context.dart';
 
 import 'colors.dart';
 import 'config.dart';
 import 'routing.dart';
 import 'screen.dart';
+import 'state.dart';
+import 'typography.dart';
 
 class StaticAppContext extends InheritedWidget {
   final Config config;
   final Router router;
   final ColorPalette colorPalette;
+  final Typography typography;
 
   const StaticAppContext({
     super.key,
     required this.config,
     required this.router,
     required this.colorPalette,
+    required this.typography,
     required super.child,
   });
 
@@ -172,7 +175,8 @@ class OuiApp extends StatelessWidget {
       child: StaticAppContext(
         router: _router,
         config: config,
-        colorPalette: config.colors.palette,
+        colorPalette: ColorPalette.fromConfig(config.colors),
+        typography: Typography.fromConfig(config.typography),
         child: DynamicAppContextProvider(
           child: WidgetsApp.router(
             color: const ui.Color.fromARGB(255, 0, 0, 0),

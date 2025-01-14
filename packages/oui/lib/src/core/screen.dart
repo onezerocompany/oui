@@ -110,6 +110,7 @@ class Screen extends BoxLike<Screen> {
       BackgroundModifier(null, auto: true),
       BorderModifier(Border.all(BorderSide(thickness: 1))),
       AlignmentModifier(Alignment.center),
+      SizeModifier(null),
     ],
     required this.id,
     required this.metadata,

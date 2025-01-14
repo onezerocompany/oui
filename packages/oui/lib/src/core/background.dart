@@ -220,8 +220,6 @@ class BackgroundModifier extends ComponentModifier
 }
 
 mixin ModifiableBackground<Type extends Component> on Component<Type> {
-  Type get backgrounded => background();
-
   Type background([Background? background]) {
     return withModifier(
       BackgroundModifier(background),

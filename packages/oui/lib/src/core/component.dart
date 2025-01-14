@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart'
 import 'package:oui/src/core/app.dart';
 
 import 'colors.dart';
+import 'config.dart';
 import 'geometry.dart';
 
 /// Context for modifiers, providing necessary information for modification.
@@ -19,6 +20,7 @@ class ComponentContext {
   final BoxColors boxColors;
 
   BoxColors get colors => buildContext.colors;
+  Config get config => buildContext.config;
 
   ComponentContext(
     this.componentType,

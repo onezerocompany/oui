@@ -17,5 +17,4 @@ final testScreen = Screen("test")
           .fixedSize(width: 300, height: 600),
     )
     .shadow(blur: 10)
-    .dynamicSize(maxWidth: 800)
     .allCorners(18);
