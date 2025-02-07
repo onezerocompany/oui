@@ -39,10 +39,10 @@ void main() {
     test('flutterColor getter', () {
       const color = Color.fromRGB(0.5, 0.4, 0.3, 0.8);
       final flutterColor = color.uiColor;
-      expect(flutterColor.alpha, (0.8 * 255).round());
-      expect(flutterColor.red, (0.5 * 255).round());
-      expect(flutterColor.green, (0.4 * 255).round());
-      expect(flutterColor.blue, (0.3 * 255).round());
+      expect(flutterColor.a, closeTo(0.8, 0.01));
+      expect(flutterColor.r, closeTo(0.5, 0.01));
+      expect(flutterColor.g, closeTo(0.4, 0.01));
+      expect(flutterColor.b, closeTo(0.3, 0.01));
     });
 
     test('OuiColorExtension', () {

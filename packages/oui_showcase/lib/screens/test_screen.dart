@@ -10,11 +10,12 @@ final testScreen = Screen("test")
           .background()
           .border()
           .alignment(Alignment.center)
-          .shadow(spread: -5, blur: 15)
+          .shadow(blur: 5)
           .allCorners(12)
-          .content(Label("Testing"))
+          .content(Label("Testing").size(30).weight(TextWeight.semiBold))
           .inset(Insets.all(18))
-          .fixedSize(width: 300, height: 600),
+          .fixedSize(width: 300, height: 600)
+          .state(State.errored),
     )
     .shadow(blur: 10)
     .allCorners(18);

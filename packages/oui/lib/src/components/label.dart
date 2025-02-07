@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart' as ui;
 import 'package:flutter/widgets.dart' show Text, Widget;
 import 'package:oui/src/core/text.dart';
 
@@ -12,7 +13,9 @@ class Label extends Component<Label>
         ModifiableTextScaler<Label>,
         ModifiableTextWidthMode<Label>,
         ModifiableTextHeightBehavior<Label>,
-        ModifiableSemanticsLabel<Label> {
+        ModifiableSemanticsLabel<Label>,
+        ModifiableTextSize<Label>,
+        ModifiableTextWeight<Label> {
   final String text;
 
   const Label(
@@ -36,12 +39,18 @@ class Label extends Component<Label>
     Widget? child,
   ]) {
     Text label = Text(text);
+    ui.TextStyle style = const ui.TextStyle();
 
     for (final modifier in modifiers) {
       if (modifier is LabelModifier) {
         label = modifier.modify(label, context);
       }
+      if (modifier is TextStyleModifier) {
+        style = modifier.modify(style, context);
+      }
     }
+
+    label = label.copyWith(style: style);
 
     return label;
   }

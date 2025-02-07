@@ -13,4 +13,5 @@ export 'scaffold.dart';
 export 'screen.dart';
 export 'shadow.dart';
 export 'state.dart';
+export 'typography.dart';
 export 'utils.dart';

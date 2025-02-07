@@ -7,14 +7,17 @@ import 'package:flutter/widgets.dart' as ui
         TextOverflow,
         TextWidthBasis,
         TextHeightBehavior,
-        Color;
+        Color,
+        FontWeight,
+        FontVariation;
+import 'package:oui/src/core/typography.dart';
 
 import 'colors.dart';
 import 'component.dart';
 
 mixin TextStyleModifier on ComponentModifier {
-  ui.TextStyle? modify(
-    ui.TextStyle? style,
+  ui.TextStyle modify(
+    ui.TextStyle style,
     ComponentContext context,
   );
 }
@@ -307,12 +310,63 @@ class TextColorModifier extends ComponentModifier with TextStyleModifier {
   const TextColorModifier(this.color);
 
   @override
-  ui.TextStyle? modify(
-    ui.TextStyle? style,
+  ui.TextStyle modify(
+    ui.TextStyle style,
     ComponentContext context,
   ) {
-    return style?.copyWith(
+    return style.copyWith(
       color: color.uiColor,
+    );
+  }
+}
+
+class TextSizeModifier extends ComponentModifier with TextStyleModifier {
+  final double size;
+
+  const TextSizeModifier(this.size);
+
+  @override
+  ui.TextStyle modify(
+    ui.TextStyle style,
+    ComponentContext context,
+  ) {
+    return style.copyWith(
+      fontSize: size,
+    );
+  }
+}
+
+mixin ModifiableTextSize<Type extends Component> on Component<Type> {
+  Type size(double size) {
+    return withModifier(
+      TextSizeModifier(size),
+    );
+  }
+}
+
+class TextWeightModifier extends ComponentModifier with TextStyleModifier {
+  final TextWeight weight;
+
+  const TextWeightModifier(this.weight);
+
+  @override
+  ui.TextStyle modify(
+    ui.TextStyle style,
+    ComponentContext context,
+  ) {
+    return style.copyWith(
+      fontWeight: weight.uiWeight,
+      fontVariations: [
+        ui.FontVariation.weight(weight.value),
+      ],
+    );
+  }
+}
+
+mixin ModifiableTextWeight<Type extends Component> on Component<Type> {
+  Type weight(TextWeight weight) {
+    return withModifier(
+      TextWeightModifier(weight),
     );
   }
 }

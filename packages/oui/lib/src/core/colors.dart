@@ -71,7 +71,13 @@ class Color with Interpolable<Color> implements ManipulatableColor<Color> {
     double blue, [
     double alpha = 1.0,
     RgbColorSpace colorSpace = RgbColorSpace.sRGB,
-  ]) : this(red, green, blue, alpha, colorSpace);
+  ]) : this(
+          red < 0.0 ? 0.0 : (red > 1.0 ? 1.0 : red),
+          green < 0.0 ? 0.0 : (green > 1.0 ? 1.0 : green),
+          blue < 0.0 ? 0.0 : (blue > 1.0 ? 1.0 : blue),
+          alpha < 0.0 ? 0.0 : (alpha > 1.0 ? 1.0 : alpha),
+          colorSpace,
+        );
 
   /// Factory constructor for creating a color from an HSV color.
   factory Color.fromHSV(HsvColor hsv) {
@@ -393,7 +399,13 @@ class HslColor
       lightness >= 0 && lightness <= 1,
       'Lightness must be in the range [0, 1]',
     );
-    return HslColor._(hue, saturation, lightness);
+    // Ensure hue stays within [0,360) and saturation/lightness within [0,1]
+    final safeHue = hue % 360;
+    final safeSaturation =
+        saturation < 0.0 ? 0.0 : (saturation > 1.0 ? 1.0 : saturation);
+    final safeLightness =
+        lightness < 0.0 ? 0.0 : (lightness > 1.0 ? 1.0 : lightness);
+    return HslColor._(safeHue, safeSaturation, safeLightness);
   }
 
   /// Creates an HSL color from an RGB color.
@@ -589,11 +601,14 @@ class HslColor
     double? saturation,
     double? lightness,
   }) {
-    return HslColor._(
-      hue ?? this.hue,
-      saturation ?? this.saturation,
-      lightness ?? this.lightness,
-    );
+    final safeHue = (hue ?? this.hue) % 360;
+    final safeSaturation = saturation != null
+        ? (saturation < 0.0 ? 0.0 : (saturation > 1.0 ? 1.0 : saturation))
+        : this.saturation;
+    final safeLightness = lightness != null
+        ? (lightness < 0.0 ? 0.0 : (lightness > 1.0 ? 1.0 : lightness))
+        : this.lightness;
+    return HslColor._(safeHue, safeSaturation, safeLightness);
   }
 
   /// Creates a copy of this color but with the lightness replaced with the given value.
@@ -605,7 +620,9 @@ class HslColor
     if (mode == LightnessMode.value) {
       return hsv.withLightness(lightness, mode: mode).hsl;
     }
-    return copyWith(lightness: lightness);
+    return copyWith(
+      lightness: lightness < 0.0 ? 0.0 : (lightness > 1.0 ? 1.0 : lightness),
+    );
   }
 
   /// Creates a copy of this color but with the hue replaced with the given value.
@@ -723,13 +740,11 @@ class HsvColor
     double saturation = 1.0,
     double value = 1.0,
   ]) {
-    assert(hue >= 0 && hue < 360, 'Hue must be in the range [0, 360)');
-    assert(
-      saturation >= 0 && saturation <= 1,
-      'Saturation must be in the range [0, 1]',
-    );
-    assert(value >= 0 && value <= 1, 'Value must be in the range [0, 1]');
-    return HsvColor._(hue, saturation, value);
+    final safeHue = hue % 360;
+    final safeSaturation =
+        saturation < 0.0 ? 0.0 : (saturation > 1.0 ? 1.0 : saturation);
+    final safeValue = value < 0.0 ? 0.0 : (value > 1.0 ? 1.0 : value);
+    return HsvColor._(safeHue, safeSaturation, safeValue);
   }
 
   /// Creates an HSV color from an HSL color.
@@ -947,7 +962,7 @@ class HsvColor
     return HsvColor._(
       hue,
       saturation,
-      lightness,
+      lightness < 0.0 ? 0.0 : (lightness > 1.0 ? 1.0 : lightness),
     );
   }
 
@@ -1037,47 +1052,53 @@ typedef StatefulBoxColors = StatefulContainer<BoxColors>;
 typedef LeveledStatefulBoxColors = LeveledContainer<StatefulBoxColors>;
 typedef ColorPaletteLevels = DynamicContainer<LeveledStatefulBoxColors>;
 
-class ColorGenerator {
+abstract class ColorGenerator {
+  DynamicColor get base;
+  DynamicColor get barrier;
+  ColorPaletteLevels get levels;
+
+  const ColorGenerator();
+}
+
+class MonochromaticColorGenerator extends ColorGenerator {
   final ColorConfig config;
 
-  const ColorGenerator(this.config);
+  const MonochromaticColorGenerator(this.config);
 
-  static HslColor get _errorColor => HslColor.fromHSL(0, 1, 0.5);
-  static HslColor get _successColor => HslColor.fromHSL(120, 1, 0.5);
-  static HslColor get _warningColor => HslColor.fromHSL(60, 1, 0.5);
-
+  @override
   DynamicColor get base {
     final seed = config.seed.hsl;
 
-    final light = seed.isLight
-        ? seed.clampingLightness(0.6, 1)
-        : seed.lighten(0.4).clampingLightness(0.6, 0.9);
-
-    final dark = seed.isLight
-        ? seed.darken(0.4).clampingLightness(0.1, 0.4)
-        : seed.clampingLightness(0.1, 0.4);
+    final t = (seed.lightness / 10).clamp(0, 0.1);
+    final light = seed.withLightness(0.45 + t).color;
+    final dark = seed.withLightness(0.2 + t).color;
 
     return DynamicContainer<Color>.generate((theme) {
       switch (theme) {
         case DynamicTheme.light:
-          return light.color;
+          return light;
         case DynamicTheme.muted:
-          return light.lerpTo(dark, 0.2).color;
+          return light.lerpTo(dark, 0.25);
         case DynamicTheme.dimmed:
-          return dark.lerpTo(light, 0.2).color;
+          return dark.lerpTo(light, 0.25);
         case DynamicTheme.dark:
-          return dark.color;
+          return dark;
       }
     });
   }
 
+  @override
   DynamicColor get barrier {
     return base.map(
-      (color) => color.withAlpha(0.5),
+      (color, theme) => color.withAlpha(0.5),
     );
   }
 
-  Color _colorForState(State input, Color color) {
+  static final _warned = HslColor.fromHSL(39, 0.95, 0.54);
+  static final _error = HslColor.fromHSL(354, 0.86, 0.54);
+  static final _success = HslColor.fromHSL(136, 0.88, 0.54);
+
+  Color colorForState(State input, Color color) {
     final hsl = color.hsl;
     switch (input) {
       case State.normal:
@@ -1088,57 +1109,162 @@ class ColorGenerator {
         return hsl.withSaturation(0).withLightness(0.1).color;
       case State.loading:
         return hsl.desaturate(0.4).color;
-      case State.errored:
-        return _errorColor.lerpTo(hsl, 0.3).color;
       case State.succeeded:
-        return _successColor.lerpTo(hsl, 0.3).color;
+        return _success.color;
       case State.warned:
-        return _warningColor.lerpTo(hsl, 0.3).color;
-      case State.inactive:
-        return hsl.desaturate(0.4).color;
+        return _warned.color;
+      case State.errored:
+        return _error.color;
     }
   }
 
-  Color _colorForLevel(int level, Color color) {
+  Color colorForLevel(
+    int level,
+    Color color,
+    DynamicTheme theme,
+  ) {
     final t = level / config.levels;
     const interpolator = Interpolator<HslColor>();
     final hsl = color.hsl;
+
     return interpolator
         .resolve(
           hsl,
-          hsl.isLight ? hsl.darken(0.3) : hsl.lighten(0.3),
+          theme.isLight ? hsl.darken(0.1) : hsl.lighten(0.1),
           t,
         )
         .color;
   }
 
+  static BoxColors boxColors(
+    Color base,
+    DynamicTheme theme,
+    State state, [
+    BoxColors? previous,
+  ]) {
+    final isVeryStateful = [
+      State.succeeded,
+      State.warned,
+      State.errored,
+    ].contains(state);
+    if (theme.isLight) {
+      final content = isVeryStateful ? base : base.lerpTo(Color.black, 0.95);
+      final surface = isVeryStateful
+          ? base.lerpTo(Color.white, 0.8)
+          : base.lerpTo(Color.white, 0.92);
+      final decoration = surface.lerpTo(base, 0.1).darken(0.05);
+      final edge = isVeryStateful
+          ? content.lerpTo(surface, 0.3)
+          : surface.lerpTo(Color.black, 0.1);
+      final placeholder = surface.lerpTo(content, 0.3);
+      final shadow =
+          (previous?.surface.normal ?? surface).lerpTo(Color.black, 0.05);
+      return BoxColors(
+        content: AccentableColor.generate(
+          content,
+          content,
+          content.lerpTo(base, 0.5),
+        ),
+        surface: AccentableColor.generate(
+          surface,
+          surface,
+          base,
+        ),
+        decoration: AccentableColor.generate(
+          decoration,
+          decoration,
+          decoration.lerpTo(base, 0.4),
+        ),
+        shadow: AccentableColor.generate(
+          shadow,
+          shadow,
+          shadow.lerpTo(base, 0.5),
+        ),
+        edge: AccentableColor.generate(
+          edge,
+          edge,
+          edge.lerpTo(base, 0.3),
+        ),
+        placeholder: AccentableColor.generate(
+          placeholder,
+          placeholder,
+          placeholder.lerpTo(base, 0.5),
+        ),
+      );
+    } else {
+      final content = base.lerpTo(Color.white, 0.95);
+      final surface = base.lerpTo(Color.black, 0.92);
+      final decoration = surface.lerpTo(base, 0.1).lighten(0.05);
+      final edge = surface.lerpTo(Color.white, 0.1);
+      final placeholder = surface.lerpTo(content, 0.3);
+      final shadow =
+          (previous?.surface.normal ?? surface).lerpTo(Color.white, 0.05);
+      return BoxColors(
+        content: AccentableColor.generate(
+          content,
+          content,
+          content.lerpTo(base, 0.5),
+        ),
+        surface: AccentableColor.generate(
+          surface,
+          surface,
+          surface.lerpTo(base, 0.5),
+        ),
+        decoration: AccentableColor.generate(
+          decoration,
+          decoration,
+          decoration.lerpTo(base, 0e4),
+        ),
+        shadow: AccentableColor.generate(
+          shadow,
+          shadow,
+          shadow.lerpTo(base, 0.5),
+        ),
+        edge: AccentableColor.generate(
+          edge,
+          edge,
+          edge.lerpTo(base, 0.3),
+        ),
+        placeholder: AccentableColor.generate(
+          placeholder,
+          placeholder,
+          placeholder.lerpTo(base, 0.5),
+        ),
+      );
+    }
+  }
+
   StatefulBoxColors statefulBoxColors(
-    Color color, [
+    Color color,
+    DynamicTheme theme, [
     StatefulBoxColors? previous,
   ]) {
     return StatefulContainer<BoxColors>.generate((state) {
-      return BoxColors.generate(
-        _colorForState(state, color),
+      return boxColors(
+        colorForState(state, color),
+        theme,
+        state,
         previous?.get(state),
       );
     });
   }
 
-  LeveledContainer<Color> leveledColors(Color base) {
+  LeveledContainer<Color> leveledColors(Color base, DynamicTheme theme) {
     return LeveledContainer.generate(
       (level) {
-        return _colorForLevel(level, base);
+        return colorForLevel(level, base, theme);
       },
       config.levels,
     );
   }
 
+  @override
   ColorPaletteLevels get levels {
     StatefulBoxColors? previousLevel;
     return base.map<LeveledStatefulBoxColors>(
-      (base) => leveledColors(base).map<StatefulBoxColors>(
+      (base, theme) => leveledColors(base, theme).map<StatefulBoxColors>(
         (color) {
-          previousLevel = statefulBoxColors(color, previousLevel);
+          previousLevel = statefulBoxColors(color, theme, previousLevel);
           return previousLevel!;
         },
       ),
@@ -1163,7 +1289,7 @@ class AccentableColor {
     Color normal,
     Color start,
     Color end, [
-    int depth = 3,
+    int depth = 4,
   ]) {
     const interpolator = Interpolator<HslColor>();
     return AccentableColor(
@@ -1188,6 +1314,7 @@ class AccentableColor {
   ///
   /// If the levels container is empty, returns the normal color.
   Color accented(int level) {
+    if (level == 0) return normal;
     if (_levels.isEmpty) {
       return normal;
     }
@@ -1223,78 +1350,6 @@ class BoxColors {
     required this.edge,
     required this.placeholder,
   });
-
-  static BoxColors generate(Color base, [BoxColors? previous]) {
-    if (base.isLight) {
-      final surface = base.clampingSaturation(0, 0.01);
-      return BoxColors(
-        content: AccentableColor.generate(
-          base,
-          base,
-          base,
-        ),
-        surface: AccentableColor.generate(
-          surface,
-          surface,
-          surface,
-        ),
-        decoration: AccentableColor.generate(
-          base,
-          base,
-          base,
-        ),
-        shadow: AccentableColor.generate(
-          (previous?.content.normal ?? base).darken(0.1),
-          (previous?.content.normal ?? base).darken(0.15),
-          (previous?.content.normal ?? base).darken(0.15),
-        ),
-        edge: AccentableColor.generate(
-          (base).darken(0.1),
-          base.darken(0.1),
-          base.darken(0.1),
-        ),
-        placeholder: AccentableColor.generate(
-          base,
-          base,
-          base,
-        ),
-      );
-    } else {
-      final surface = base.clampingSaturation(0, 0.01);
-      return BoxColors(
-        content: AccentableColor.generate(
-          base,
-          base,
-          base,
-        ),
-        surface: AccentableColor.generate(
-          surface,
-          surface,
-          surface,
-        ),
-        decoration: AccentableColor.generate(
-          base,
-          base,
-          base,
-        ),
-        shadow: AccentableColor.generate(
-          (previous?.content.normal ?? base).darken(0.1),
-          (previous?.content.normal ?? base).darken(0.15),
-          (previous?.content.normal ?? base).darken(0.15),
-        ),
-        edge: AccentableColor.generate(
-          (base).darken(0.1),
-          base.darken(0.1),
-          base.darken(0.1),
-        ),
-        placeholder: AccentableColor.generate(
-          base,
-          base,
-          base,
-        ),
-      );
-    }
-  }
 
   @override
   int get hashCode {
@@ -1362,7 +1417,7 @@ class ColorPalette {
   });
 
   factory ColorPalette.fromConfig(ColorConfig config) {
-    final generator = ColorGenerator(config);
+    final generator = MonochromaticColorGenerator(config);
     return ColorPalette(
       levels: generator.levels,
       barrier: generator.barrier,
@@ -1513,6 +1568,14 @@ enum DynamicTheme {
   dimmed,
   dark;
 
+  bool get isDark {
+    return this == DynamicTheme.dark || this == DynamicTheme.dimmed;
+  }
+
+  bool get isLight {
+    return this == DynamicTheme.light || this == DynamicTheme.muted;
+  }
+
   static DynamicTheme forContext(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
 
@@ -1534,14 +1597,16 @@ class DynamicContainer<T> extends EnumContainer<DynamicTheme, T> {
           DynamicTheme.values,
         );
 
-  DynamicContainer<R> map<R>(R Function(T value) mapper) {
+  DynamicContainer<R> map<R>(R Function(T value, DynamicTheme theme) mapper) {
     return DynamicContainer<R>.generate(
-      (theme) => mapper(get(theme)),
+      (theme) => mapper(get(theme), theme),
     );
   }
 
   @override
   List<DynamicTheme> get keys => DynamicTheme.values;
+
+  List<T> get all => DynamicTheme.values.map(get).toList();
 
   @override
   @override

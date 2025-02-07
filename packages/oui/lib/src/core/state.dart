@@ -20,10 +20,6 @@ enum State {
   /// In this state, the component may display a loading spinner or progress bar, and user interactions may be temporarily disabled.
   loading,
 
-  /// Indicates that the object has encountered an error.
-  /// In this state, the component may display an error message or icon, and may change color to indicate an issue (e.g., red).
-  errored,
-
   /// Indicates that the object has successfully completed an operation.
   /// In this state, the component may display a success message or icon, and may change color to indicate success (e.g., green).
   succeeded,
@@ -32,9 +28,9 @@ enum State {
   /// In this state, the component may display a warning message or icon, and may change color to indicate caution (e.g., yellow).
   warned,
 
-  /// Indicates that the object is inactive, such as a placeholder.
-  /// In this state, the component may have a subdued visual styling to indicate it is not active.
-  inactive,
+  /// Indicates that the object has encountered an error.
+  /// In this state, the component may display an error message or icon, and may change color to indicate an issue (e.g., red).
+  errored,
 }
 
 class StatefulContainer<T> extends EnumContainer<State, T> {
@@ -99,5 +95,4 @@ mixin ModifiableState<Type extends Component<Type>> on Component<Type> {
 
   Type get normal => state(State.normal);
   Type get disabled => state(State.disabled);
-  Type get inactive => state(State.inactive);
 }

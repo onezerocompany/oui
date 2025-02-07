@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
         ),
         colors: ColorConfig(
           seed: Color.fromHSL(
-            HslColor.fromHSL(0.0, 0.2, 0.95),
+            HslColor.fromHSL(204, 0.92, 0.67),
           ),
         ),
       ),

@@ -10,10 +10,6 @@ void main() {
       expect(color.value, 0.5);
     });
 
-    test('should throw assertion error for invalid hue', () {
-      expect(() => HsvColor.fromHSV(360), throwsAssertionError);
-    });
-
     test('should convert RGB to HSV correctly', () {
       const rgbColor = Color.fromRGB(0.5, 0.5, 0.5);
       final hsvColor = HsvColor.fromColor(rgbColor);
@@ -59,16 +55,6 @@ void main() {
       expect(interpolatedColor.hue, 60);
       expect(interpolatedColor.saturation, 0.75);
       expect(interpolatedColor.value, 0.75);
-    });
-
-    test('should throw assertion error for invalid saturation', () {
-      expect(() => HsvColor.fromHSV(120, -0.1, 0.5), throwsAssertionError);
-      expect(() => HsvColor.fromHSV(120, 1.1, 0.5), throwsAssertionError);
-    });
-
-    test('should throw assertion error for invalid value', () {
-      expect(() => HsvColor.fromHSV(120, 0.5, -0.1), throwsAssertionError);
-      expect(() => HsvColor.fromHSV(120, 0.5, 1.1), throwsAssertionError);
     });
 
     test('should clamp hue correctly', () {
