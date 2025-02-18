@@ -6,6 +6,7 @@ export 'component.dart';
 export 'config.dart';
 export 'corners.dart';
 export 'geometry.dart';
+export 'locales.dart';
 export 'localization.dart';
 export 'metadata.dart';
 export 'routing.dart';

@@ -221,6 +221,7 @@ class BorderModifier extends ComponentModifier with DecorationModifier {
   const BorderModifier(
     this.border, {
     this.auto = false,
+    super.condition,
   });
 
   @override
@@ -230,7 +231,7 @@ class BorderModifier extends ComponentModifier with DecorationModifier {
   ) {
     if (!border.shouldRender) return null;
     final normalizedBorder = border.withColor(
-      context.boxColors.edge.normal,
+      context.colors.edge,
     );
 
     if (decoration is ShapeDecoration) {

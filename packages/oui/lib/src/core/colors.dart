@@ -1048,7 +1048,7 @@ abstract class ManipulatableColor<T> {
 }
 
 typedef DynamicColor = DynamicContainer<Color>;
-typedef StatefulBoxColors = StatefulContainer<BoxColors>;
+typedef StatefulBoxColors = StatefulContainer<AccentableBoxColors>;
 typedef LeveledStatefulBoxColors = LeveledContainer<StatefulBoxColors>;
 typedef ColorPaletteLevels = DynamicContainer<LeveledStatefulBoxColors>;
 
@@ -1136,11 +1136,11 @@ class MonochromaticColorGenerator extends ColorGenerator {
         .color;
   }
 
-  static BoxColors boxColors(
+  static AccentableBoxColors boxColors(
     Color base,
     DynamicTheme theme,
     State state, [
-    BoxColors? previous,
+    AccentableBoxColors? previous,
   ]) {
     final isVeryStateful = [
       State.succeeded,
@@ -1159,7 +1159,7 @@ class MonochromaticColorGenerator extends ColorGenerator {
       final placeholder = surface.lerpTo(content, 0.3);
       final shadow =
           (previous?.surface.normal ?? surface).lerpTo(Color.black, 0.05);
-      return BoxColors(
+      return AccentableBoxColors(
         content: AccentableColor.generate(
           content,
           content,
@@ -1199,7 +1199,7 @@ class MonochromaticColorGenerator extends ColorGenerator {
       final placeholder = surface.lerpTo(content, 0.3);
       final shadow =
           (previous?.surface.normal ?? surface).lerpTo(Color.white, 0.05);
-      return BoxColors(
+      return AccentableBoxColors(
         content: AccentableColor.generate(
           content,
           content,
@@ -1239,7 +1239,7 @@ class MonochromaticColorGenerator extends ColorGenerator {
     DynamicTheme theme, [
     StatefulBoxColors? previous,
   ]) {
-    return StatefulContainer<BoxColors>.generate((state) {
+    return StatefulContainer<AccentableBoxColors>.generate((state) {
       return boxColors(
         colorForState(state, color),
         theme,
@@ -1334,13 +1334,66 @@ class AccentableColor {
   }
 }
 
-class BoxColors {
+class AccentableBoxColors {
   final AccentableColor surface;
   final AccentableColor content;
   final AccentableColor decoration;
   final AccentableColor shadow;
   final AccentableColor edge;
   final AccentableColor placeholder;
+
+  const AccentableBoxColors({
+    required this.content,
+    required this.surface,
+    required this.decoration,
+    required this.shadow,
+    required this.edge,
+    required this.placeholder,
+  });
+
+  BoxColors accented(int accent) {
+    return BoxColors(
+      content: content.accented(accent),
+      surface: surface.accented(accent),
+      decoration: decoration.accented(accent),
+      shadow: shadow.accented(accent),
+      edge: edge.accented(accent),
+      placeholder: placeholder.accented(accent),
+    );
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(
+      content,
+      surface,
+      decoration,
+      shadow,
+      edge,
+      placeholder,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AccentableBoxColors) return false;
+    return content == other.content &&
+        surface == other.surface &&
+        decoration == other.decoration &&
+        shadow == other.shadow &&
+        edge == other.edge &&
+        placeholder == other.placeholder;
+  }
+}
+
+class BoxColors {
+  final Color surface;
+  final Color content;
+  final Color decoration;
+  final Color shadow;
+  final Color edge;
+  final Color placeholder;
 
   const BoxColors({
     required this.content,

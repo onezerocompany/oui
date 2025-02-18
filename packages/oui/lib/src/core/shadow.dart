@@ -85,7 +85,7 @@ class ShadowModifier extends ComponentModifier with DecorationModifier {
 
     final normalizedShadow = auto
         ? shadow.withColor(
-            context.boxColors.shadow.normal,
+            context.colors.shadow,
           )
         : shadow;
 

@@ -6,40 +6,56 @@ import 'package:flutter/widgets.dart'
         Decoration,
         SizedBox,
         StatelessWidget,
+        Text,
+        TextStyle,
         Widget;
 import 'package:oui/src/core/app.dart';
+import 'package:oui/src/core/modifiers.dart';
+import 'package:oui/src/core/state.dart' show ComponentStateExtension, State;
 
 import 'colors.dart';
 import 'config.dart';
-import 'geometry.dart';
 
 /// Context for modifiers, providing necessary information for modification.
 class ComponentContext {
   final Type componentType;
   final BuildContext buildContext;
-  final BoxColors boxColors;
 
   BoxColors get colors => buildContext.colors;
   Config get config => buildContext.config;
 
+  int get accent => buildContext.accent;
+  State get state => buildContext.state;
+
   ComponentContext(
     this.componentType,
     this.buildContext,
-    this.boxColors,
   );
 }
 
+typedef ComponentModifierConditional = bool Function(ComponentContext context);
+
 /// Base class for all modifiers.
 abstract class ComponentModifier {
-  const ComponentModifier();
+  final ComponentModifierConditional? condition;
+  const ComponentModifier({this.condition});
 }
 
 typedef ComponentModifiers = List<ComponentModifier>;
+
+class ComponentTypeModifier extends ComponentModifier {}
 
 /// Mixin for modifiers that modify child widgets.
 mixin ChildModifier on ComponentModifier {
   Widget? modify(
     Widget? child,
+    ComponentContext context,
+  );
+}
+
+/// Mixin for modifiers that provide child widgets.
+mixin ChildProviderModifier on ComponentModifier {
+  Widget provide(
     ComponentContext context,
   );
 }
@@ -52,9 +68,18 @@ mixin DecorationModifier on ComponentModifier {
   );
 }
 
-/// Mixin for modifiers that provide child widgets.
-mixin ChildProviderModifier on ComponentModifier {
-  Widget provide(
+/// Mixin for modifiers that modify text styles.
+mixin TextStyleModifier on ComponentModifier {
+  TextStyle modify(
+    TextStyle style,
+    ComponentContext context,
+  );
+}
+
+/// Mixin for modifiers that modify labels.
+mixin TextModifier on ComponentModifier {
+  Text modify(
+    Text text,
     ComponentContext context,
   );
 }
@@ -72,27 +97,6 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
   ComponentType copyWith({
     ComponentModifiers? modifiers,
   });
-
-  static const _defaultModifierTypeOrder = [
-    ChildProviderModifier,
-    ChildModifier,
-    DecorationModifier,
-  ];
-
-  /// Sorts the modifiers based on their type.
-  List<ComponentModifier> sortModifiers(List<ComponentModifier> modifiers) {
-    modifiers.sort((a, b) {
-      final aIndex = _defaultModifierTypeOrder.indexOf(a.runtimeType);
-      final bIndex = _defaultModifierTypeOrder.indexOf(b.runtimeType);
-
-      // Ensure SizeModifier is always last
-      if (a is SizeModifier) return 1;
-      if (b is SizeModifier) return -1;
-
-      return (aIndex == -1 ? 1 : aIndex).compareTo(bIndex == -1 ? 1 : bIndex);
-    });
-    return modifiers;
-  }
 
   /// Adds a modifier to the component, optionally ensuring uniqueness.
   ComponentType withModifier(ComponentModifier modifier, {bool unique = true}) {
@@ -121,7 +125,7 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
     Decoration? decoration;
     Widget? widget = child;
 
-    final sortedModifiers = sortModifiers(modifiers);
+    final sortedModifiers = modifiers.sorted;
     final lastDecorationModifierIndex = sortedModifiers.lastIndexWhere(
       (m) => m is DecorationModifier,
     );
@@ -156,7 +160,6 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
     final componentCtx = ComponentContext(
       runtimeType,
       context,
-      context.colors,
     );
     return buildWithModifiers(
       componentCtx,

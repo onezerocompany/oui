@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       root: testScreen,
       config: Config(
         details: AppDetails(
-          name: LocalizedString.always("Oui Showcase"),
+          name: {Locale.any: "Oui Showcase"},
           version: Version(0, 0, 0),
         ),
         colors: ColorConfig(

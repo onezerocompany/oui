@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart' show IconData;
+import 'package:oui/src/core/locales.dart' show Locale;
 import 'package:oui/src/core/localization.dart';
 
 /// Provider class for resolving metadata about OUI components.
@@ -15,7 +16,7 @@ class Metadata {
   final Localized<String> name;
   final Localized<IconData?> icon;
   final Localized<List<String>> tags;
-  final LocalizedMap<String, dynamic> attributes;
+  final Localized<Map<String, dynamic>> attributes;
 
   /// Creates an instance of [Metadata].
   ///
@@ -24,26 +25,16 @@ class Metadata {
   /// The [attributes] parameter defaults to an empty localized map if not provided.
   const Metadata({
     required this.name,
-    this.icon = const Localized<IconData?>(null),
-    this.tags = const Localized<List<String>>([]),
-    this.attributes = const LocalizedMap<String, dynamic>({}),
+    this.icon = const {Locale.en: null},
+    this.tags = const {Locale.en: []},
+    this.attributes = const {Locale.en: {}},
   });
-
-  Metadata.always({
-    required String name,
-    IconData? icon,
-    List<String> tags = const [],
-    Map<String, dynamic> attributes = const {},
-  })  : name = Localized.always(name),
-        icon = Localized.always(icon),
-        tags = Localized.always(tags),
-        attributes = Localized.always(attributes);
 
   Metadata copyWith({
     Localized<String>? name,
     Localized<IconData?>? icon,
     Localized<List<String>>? tags,
-    LocalizedMap<String, dynamic>? attributes,
+    Localized<Map<String, dynamic>>? attributes,
   }) {
     return Metadata(
       name: name ?? this.name,

@@ -2,7 +2,6 @@ import 'package:flutter/rendering.dart' as rendering
     show Alignment, AlignmentGeometry, EdgeInsets, Offset, BoxFit;
 import 'package:flutter/widgets.dart'
     show
-        Align,
         AlignmentGeometry,
         BoxConstraints,
         ConstrainedBox,
@@ -10,6 +9,7 @@ import 'package:flutter/widgets.dart'
         Padding,
         SizedBox,
         Widget;
+import 'package:oui/src/components/aligner.dart';
 import 'package:oui/src/core/app.dart';
 import 'package:oui/src/core/screen.dart';
 
@@ -243,18 +243,14 @@ class AlignmentModifier extends ComponentModifier with ChildModifier {
   @override
   Widget? modify(Widget? child, ComponentContext context) {
     if (child == null) return null;
-
-    /// TODO: Use the new aligner component
-    return Align(
-      alignment: alignment.uiAlignment,
-      child: child,
+    return Aligner(
+      alignment: alignment,
+      children: [child],
     );
   }
 }
 
 mixin ModifiableAlignment<Type extends Component> on Component<Type> {
-  Type get centered => alignment(Alignment.center);
-
   Type alignment(Alignment alignment) {
     return withModifier(
       AlignmentModifier(alignment),

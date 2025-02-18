@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart' as ui;
-import 'package:flutter/widgets.dart' show Text, Widget;
-import 'package:oui/src/core/text.dart';
+import 'package:flutter/widgets.dart' show Key, Text, Widget;
+import 'package:oui/src/core/modifiers.dart';
 
 import '../core/_index.dart';
 
@@ -15,19 +15,48 @@ class Label extends Component<Label>
         ModifiableTextHeightBehavior<Label>,
         ModifiableSemanticsLabel<Label>,
         ModifiableTextSize<Label>,
-        ModifiableTextWeight<Label> {
-  final String text;
-
+        ModifiableTextWeight<Label>,
+        ModifiableTextSlant<Label>,
+        ModifiableTextColor<Label>,
+        ModifiableSelectionColor<Label>,
+        ModifiableLetterSpacing<Label>,
+        ModifiableWordSpacing<Label>,
+        ModifiableAccent<Label>,
+        ModifiableState<Label> {
   const Label(
     this.text, {
+    this.localized,
     super.key,
-    super.modifiers,
-  });
+    ComponentModifiers? modifiers,
+  }) : super(
+          modifiers: modifiers ??
+              const [
+                FontModifier(),
+                TextColorModifier(),
+              ],
+        );
+
+  final String? text;
+  final Localized<String>? localized;
+
+  factory Label.localized(
+    Localized<String> localized, {
+    Key? key,
+    ComponentModifiers? modifiers,
+  }) {
+    return Label(
+      null,
+      localized: localized,
+      key: key,
+      modifiers: modifiers,
+    );
+  }
 
   @override
   Label copyWith({ComponentModifiers? modifiers}) {
     return Label(
       text,
+      localized: localized,
       key: key,
       modifiers: modifiers ?? this.modifiers,
     );
@@ -38,11 +67,11 @@ class Label extends Component<Label>
     ComponentContext context, [
     Widget? child,
   ]) {
-    Text label = Text(text);
+    Text label = Text(text ?? '', maxLines: 1);
     ui.TextStyle style = const ui.TextStyle();
 
-    for (final modifier in modifiers) {
-      if (modifier is LabelModifier) {
+    for (final modifier in modifiers.sorted) {
+      if (modifier is TextModifier) {
         label = modifier.modify(label, context);
       }
       if (modifier is TextStyleModifier) {

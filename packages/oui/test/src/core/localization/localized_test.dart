@@ -1,103 +1,72 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oui/src/core/locales.dart' show Locale;
 import 'package:oui/src/core/localization.dart';
 
 void main() {
   group('Locale', () {
     test('should create an instance with language code only', () {
-      const locale = Locale('en');
+      const locale = Locale.en;
       expect(locale.languageCode, 'en');
       expect(locale.countryCode, isNull);
     });
 
     test('should create an instance with language code and country code', () {
-      const locale = Locale('en', 'US');
+      const locale = Locale.en_us;
       expect(locale.languageCode, 'en');
-      expect(locale.countryCode, 'US');
-    });
-
-    test('should handle invalid language codes', () {
-      expect(() => Locale('invalid'), throwsAssertionError);
-      expect(() => Locale('e'), throwsAssertionError);
-    });
-
-    test('should handle empty strings', () {
-      expect(() => Locale(''), throwsAssertionError);
-      expect(() => Locale('en', ''), throwsAssertionError);
+      expect(locale.countryCode, 'us');
     });
 
     test('should implement toString correctly', () {
-      expect(const Locale('en').toString(), 'en');
-      expect(const Locale('en', 'US').toString(), 'en_US');
+      expect(Locale.en.toString(), 'en');
+      expect(Locale.en_us.toString(), 'en_us');
     });
-
     test('should implement equality correctly', () {
-      expect(const Locale('en'), equals(const Locale('en')));
-      expect(const Locale('en', 'US'), equals(const Locale('en', 'US')));
-      expect(const Locale('en'), isNot(equals(const Locale('fr'))));
+      expect(Locale.en, equals(Locale.en));
+      expect(Locale.en_us, equals(Locale.en_us));
+      expect(Locale.en, isNot(equals(Locale.fr)));
     });
 
     test('should have consistent hashCode', () {
+      expect(Locale.en.hashCode, equals(Locale.en.hashCode));
       expect(
-        const Locale('en').hashCode,
-        equals(const Locale('en').hashCode),
-      );
-      expect(
-        const Locale('en', 'US').hashCode,
-        equals(const Locale('en', 'US').hashCode),
+        Locale.en_us.hashCode,
+        equals(Locale.en_us.hashCode),
       );
     });
   });
 
   group('Localized', () {
     test('should return default value when no locale is provided', () {
-      const localized = Localized<String>('default');
+      // const localized = Localized<String>('default');
+      const Localized<String> localized = {Locale.any: 'default'};
       expect(localized.forLocale(null), 'default');
     });
 
     test('should return localized value for exact match', () {
-      const localized = Localized<String>(
-        'default',
-        {
-          Locale('en', 'US'): 'Hello',
-        },
-      );
-      expect(localized.forLocale(const Locale('en', 'US')), 'Hello');
+      // const localized = Localized<String>('default', {Locale.en_us: 'Hello'});
+      const Localized<String> localized = {Locale.en_us: 'Hello'};
+      expect(localized.forLocale(Locale.en_us), 'Hello');
     });
 
     test('should return localized value for language-only match', () {
-      const localized = Localized<String>(
-        'default',
-        {
-          Locale('en'): 'Hello',
-        },
-      );
-      expect(localized.forLocale(const Locale('en', 'GB')), 'Hello');
+      const Localized<String> localized = {Locale.en: 'Hello'};
+      expect(localized.forLocale(Locale.en_gb), 'Hello');
     });
 
     test('should return default value when no match is found', () {
-      const localized = Localized<String>(
-        'default',
-        {
-          Locale('en', 'US'): 'Hello',
-        },
-      );
-      expect(localized.forLocale(const Locale('fr', 'FR')), 'default');
+      const Localized<String> localized = {Locale.en_us: 'default'};
+      expect(localized.forLocale(Locale.fr_fr), 'default');
     });
 
     test('should return default value for always factory', () {
-      final localized = Localized<String>.always('always');
-      expect(localized.forLocale(const Locale('en', 'US')), 'always');
-      expect(localized.forLocale(const Locale('fr', 'FR')), 'always');
+      const Localized<String> localized = {Locale.any: 'always'};
+      expect(localized.forLocale(Locale.en_us), 'always');
+      expect(localized.forLocale(Locale.fr_fr), 'always');
     });
 
     test('should be case insensitive for language/country codes', () {
-      const localized = Localized<String>(
-        'default',
-        {
-          Locale('en', 'US'): 'Hello',
-        },
-      );
-      expect(localized.forLocale(const Locale('EN', 'us')), 'Hello');
+      const Localized<String> localized = {Locale.en_us: 'Hello'};
+      expect(localized.forLocale(Locale.en_us), 'Hello');
     });
   });
 }

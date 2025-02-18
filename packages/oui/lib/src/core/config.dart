@@ -1,8 +1,8 @@
+import 'package:oui/src/core/locales.dart' show Locale, Locales;
 import 'package:oui/src/core/typography.dart';
 
 import 'colors.dart';
 import 'geometry.dart';
-import 'localization.dart';
 import 'metadata.dart';
 import 'utils.dart';
 
@@ -101,7 +101,7 @@ class Config {
     this.screens = const ScreenConfig(),
     this.typography = const TypographyConfig(),
     this.locales = const [
-      Locale.english,
+      Locale.en,
     ],
   });
 }

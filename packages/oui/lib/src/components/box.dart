@@ -1,7 +1,23 @@
 import 'package:flutter/widgets.dart'
     show BuildContext, InheritedWidget, SizedBox, Widget;
+import 'package:oui/src/core/background.dart'
+    show BackgroundModifier, ModifiableBackground;
+import 'package:oui/src/core/border.dart' show ModifiableBorder;
+import 'package:oui/src/core/colors.dart' show ModifiableAccent;
+import 'package:oui/src/core/component.dart'
+    show
+        ChildProviderModifier,
+        Component,
+        ComponentContext,
+        ComponentModifiers,
+        ComponentModifier;
+import 'package:oui/src/core/corners.dart' show ModifiableCorner;
+import 'package:oui/src/core/geometry.dart'
+    show FlowDirection, ModifiableAlignment, ModifiableInset, ModifiableSize;
+import 'package:oui/src/core/modifiers.dart';
+import 'package:oui/src/core/shadow.dart' show ModifiableShadow;
+import 'package:oui/src/core/state.dart' show ModifiableState;
 
-import '../core/_index.dart';
 import 'aligner.dart';
 
 class BoxLevel extends InheritedWidget {
@@ -38,7 +54,7 @@ abstract class BoxLike<T extends Component<T>> extends Component<T>
         ModifiableInset<T>,
         ModifiableBorder<T>,
         ModifiableShadow<T>,
-        ModifiableContent<T>,
+        ModifiableBoxContent<T>,
         ModifiableState<T>,
         ModifiableAccent<T> {
   const BoxLike({
@@ -46,46 +62,16 @@ abstract class BoxLike<T extends Component<T>> extends Component<T>
     super.modifiers,
   });
 
-  static const _modifierOrder = [
-    // content providers
-    ContentModifier,
-    // content modifiers
-    AlignmentModifier,
-    InsetModifier,
-    // decoration modifiers
-    BackgroundModifier,
-    CornerModifier,
-    BorderModifier,
-    ShadowModifier,
-    // widget modifiers
-    StateModifier,
-    AccentModifier,
-    SizeModifier,
-  ];
-
-  @override
-  List<ComponentModifier> sortModifiers(List<ComponentModifier> modifiers) {
-    modifiers.sort((a, b) {
-      final aIndex = _modifierOrder.indexOf(a.runtimeType);
-      final bIndex = _modifierOrder.indexOf(b.runtimeType);
-
-      return (aIndex == -1 ? 1 : aIndex).compareTo(bIndex == -1 ? 1 : bIndex);
-    });
-    return modifiers;
-  }
-
   @override
   Widget build(BuildContext context) {
     var widget = buildWithModifiers(
       ComponentContext(
         runtimeType,
         context,
-        context.colors,
       ),
     );
 
-    final hasBackground = modifiers.whereType<BackgroundModifier>().isNotEmpty;
-    if (hasBackground) {
+    if (modifiers.hasModifier<BackgroundModifier>()) {
       return BoxLevel(
         level: context.boxLevel + 1,
         child: widget,
@@ -112,12 +98,12 @@ class Box extends BoxLike<Box> {
   }
 }
 
-class ContentModifier extends ComponentModifier with ChildProviderModifier {
+class BoxContentModifier extends ComponentModifier with ChildProviderModifier {
   final List<Widget> content;
   final Widget Function(ComponentContext)? builder;
   final FlowDirection direction;
 
-  const ContentModifier({
+  const BoxContentModifier({
     this.content = const [],
     this.builder,
     this.direction = FlowDirection.topToBottom,
@@ -140,13 +126,13 @@ class ContentModifier extends ComponentModifier with ChildProviderModifier {
   }
 }
 
-mixin ModifiableContent<Type extends Component> on Component<Type> {
+mixin ModifiableBoxContent<Type extends Component> on Component<Type> {
   Type contents(
     List<Widget> content, {
     FlowDirection direction = FlowDirection.topToBottom,
   }) {
     return withModifier(
-      ContentModifier(
+      BoxContentModifier(
         content: content,
         direction: direction,
       ),
@@ -159,7 +145,7 @@ mixin ModifiableContent<Type extends Component> on Component<Type> {
     Widget Function(ComponentContext) builder,
   ) {
     return withModifier(
-      ContentModifier(
+      BoxContentModifier(
         builder: builder,
       ),
     );

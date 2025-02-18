@@ -5,7 +5,14 @@ import 'package:flutter/painting.dart'
         DecorationImage,
         Gradient,
         ShapeBorder,
-        ShapeDecoration;
+        ShapeDecoration,
+        TextAlign,
+        TextHeightBehavior,
+        TextOverflow,
+        TextScaler,
+        TextStyle,
+        TextWidthBasis;
+import 'package:flutter/widgets.dart' show Text;
 
 extension OuiShapeDecoration on ShapeDecoration {
   ShapeDecoration copyWith({
@@ -291,4 +298,61 @@ class SizedContainer<T> extends EnumContainer<SizeLevel, T> {
   @override
   List<SizeLevel> get keys => SizeLevel.values;
   Map<SizeLevel, T> get values => _values;
+}
+
+/// An extension on [Iterable] that provides a method to find the first element
+/// that matches a given condition, or returns `null` if no such element is found.
+extension FirstWhereOrNullExtension<E> on Iterable<E> {
+  /// Returns the first element that satisfies the given [test] function.
+  ///
+  /// Iterates through the elements of the iterable, and returns the first element
+  /// for which the [test] function returns `true`. If no such element is found,
+  /// returns `null`.
+  ///
+  /// Example:
+  /// ```dart
+  /// List<int> numbers = [1, 2, 3, 4, 5];
+  /// int? firstEven = numbers.firstWhereOrNull((number) => number.isEven);
+  /// print(firstEven); // Output: 2
+  /// ```
+  ///
+  /// - Parameter test: A function that tests each element.
+  /// - Returns: The first element that satisfies [test], or `null` if no such element is found.
+  E? firstWhereOrNull(bool Function(E element) test) {
+    for (E element in this) {
+      if (test(element)) {
+        return element;
+      }
+    }
+    return null;
+  }
+}
+
+extension TextExtension on Text {
+  Text copyWith({
+    TextAlign? textAlign,
+    TextStyle? style,
+    TextScaler? textScaler,
+    TextOverflow? overflow,
+    TextWidthBasis? textWidthBasis,
+    TextHeightBehavior? textHeightBehavior,
+    String? semanticsLabel,
+    int? maxLines,
+    bool? softWrap,
+    Color? selectionColor,
+  }) {
+    return Text(
+      data ?? "",
+      style: style ?? this.style,
+      textAlign: textAlign ?? this.textAlign,
+      softWrap: softWrap ?? this.softWrap,
+      overflow: overflow ?? this.overflow,
+      textScaler: textScaler ?? this.textScaler,
+      maxLines: maxLines ?? this.maxLines,
+      semanticsLabel: semanticsLabel ?? this.semanticsLabel,
+      textWidthBasis: textWidthBasis ?? this.textWidthBasis,
+      textHeightBehavior: textHeightBehavior ?? this.textHeightBehavior,
+      selectionColor: selectionColor ?? this.selectionColor,
+    );
+  }
 }

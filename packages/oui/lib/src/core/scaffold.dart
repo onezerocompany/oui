@@ -26,7 +26,6 @@ import '../components/box.dart';
 import 'app.dart';
 import 'background.dart';
 import 'border.dart';
-import 'colors.dart';
 import 'component.dart';
 import 'geometry.dart';
 import 'routing.dart';
@@ -156,17 +155,17 @@ class ScaffoldLayoutBuilder extends StatelessWidget {
 
     for (final screen in currentPath.screens) {
       switch (screen.type) {
-        case ScreenType.panel:
+        case ScreenDisplayType.panel:
           if (canAddPanel(screen)) {
             panels.add(screen);
           } else {
             sheets.add(screen);
           }
           break;
-        case ScreenType.sheet:
+        case ScreenDisplayType.sheet:
           sheets.add(screen);
           break;
-        case ScreenType.modal:
+        case ScreenDisplayType.modal:
           modals.add(screen);
           break;
       }
@@ -240,7 +239,6 @@ class Scaffold extends Box {
             if (screen != panels.last)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: ScaffoldDivider(),
               ),
           ],
         )
@@ -296,23 +294,7 @@ class Scaffold extends Box {
     return [
       const StateModifier(State.normal),
       const BackgroundModifier(null),
-      ContentModifier(content: [_buildScaffold()]),
-    ];
-  }
-}
-
-class ScaffoldDivider extends Box {
-  const ScaffoldDivider({
-    super.key,
-  });
-
-  @override
-  ComponentModifiers get modifiers {
-    return [
-      SizeModifier.fixed(width: 1),
-      const BackgroundModifier(
-        Background.color(Color.black),
-      ),
+      BoxContentModifier(content: [_buildScaffold()]),
     ];
   }
 }

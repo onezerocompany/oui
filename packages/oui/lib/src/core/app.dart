@@ -10,7 +10,6 @@ import 'package:flutter/widgets.dart'
         Widget,
         WidgetsApp;
 import 'package:flutter/widgets.dart' as widgets show State;
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:oui/src/components/box.dart';
 
 import 'colors.dart';
@@ -81,7 +80,7 @@ extension AppContextExtension on BuildContext {
   }
 
   BoxColors get colors {
-    return palette.levels.get(theme).get(boxLevel).get(state);
+    return palette.levels.get(theme).get(boxLevel).get(state).accented(accent);
   }
 }
 
@@ -171,19 +170,17 @@ class OuiApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ProviderScope(
-      child: StaticAppContext(
-        router: _router,
-        config: config,
-        colorPalette: ColorPalette.fromConfig(config.colors),
-        typography: Typography.fromConfig(config.typography),
-        child: DynamicAppContextProvider(
-          child: WidgetsApp.router(
-            color: const ui.Color.fromARGB(255, 0, 0, 0),
-            routerDelegate: _router,
-            routeInformationParser: _routerInformationParser,
-            debugShowCheckedModeBanner: false,
-          ),
+    return StaticAppContext(
+      router: _router,
+      config: config,
+      colorPalette: ColorPalette.fromConfig(config.colors),
+      typography: Typography.fromConfig(config.typography),
+      child: DynamicAppContextProvider(
+        child: WidgetsApp.router(
+          color: const ui.Color.fromARGB(255, 0, 0, 0),
+          routerDelegate: _router,
+          routeInformationParser: _routerInformationParser,
+          debugShowCheckedModeBanner: false,
         ),
       ),
     );

@@ -8,6 +8,7 @@
     "desaturated",
     "Interpolable",
     "lerped",
+    "Noto",
     "Pressable",
     "RRGGBB",
     "RRGGBBAA",
@@ -28,5 +29,6 @@
     "editor.codeActionsOnSave": {
       "source.organizeImports": "always"
     }
-  }
+  },
+  "deno.enable": true
 }

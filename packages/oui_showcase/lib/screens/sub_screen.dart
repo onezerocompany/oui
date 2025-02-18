@@ -5,6 +5,7 @@ import 'package:oui_showcase/screens/another_sub_screen.dart';
 final subScreen = Screen(
   "sub",
 )
+    .path({Locale.en: "sub"})
     .content(
       Center(
         child: Text("Sub Screen"),

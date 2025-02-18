@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show ChangeNotifier, SynchronousFuture;
 import 'package:flutter/widgets.dart'
     show BuildContext, RouteInformation, RouterDelegate, Widget;
 import 'package:flutter/widgets.dart' as widgets show RouteInformationParser;
+import 'package:oui/src/core/locales.dart';
 
 import 'localization.dart';
 import 'scaffold.dart';
@@ -344,7 +345,7 @@ class PathMatch {
 
     final screensToPop = screens.skip(screens.length - count);
     final segmentsToPop = screensToPop.map(
-      (screen) => screen.metadata.path.base.length,
+      (screen) => screen.metadata.path.forLocale(null)?.length ?? 0,
     );
 
     return PathMatch(

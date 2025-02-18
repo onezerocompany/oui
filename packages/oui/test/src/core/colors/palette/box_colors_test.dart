@@ -19,7 +19,7 @@ void main() {
         ]),
       );
 
-      final boxColors1 = BoxColors(
+      final boxColors1 = AccentableBoxColors(
         content: color1,
         surface: color2,
         decoration: color1,
@@ -28,7 +28,7 @@ void main() {
         placeholder: color2,
       );
 
-      final boxColors2 = BoxColors(
+      final boxColors2 = AccentableBoxColors(
         content: color1,
         surface: color2,
         decoration: color1,
@@ -62,7 +62,7 @@ void main() {
         ]),
       );
 
-      final boxColors1 = BoxColors(
+      final boxColors1 = AccentableBoxColors(
         content: color1,
         surface: color2,
         decoration: color1,
@@ -71,7 +71,7 @@ void main() {
         placeholder: color2,
       );
 
-      final boxColors2 = BoxColors(
+      final boxColors2 = AccentableBoxColors(
         content: color1,
         surface: color3,
         decoration: color1,
@@ -98,7 +98,7 @@ void main() {
         ]),
       );
 
-      final boxColors = BoxColors(
+      final boxColors = AccentableBoxColors(
         content: color1,
         surface: color2,
         decoration: color1,
@@ -130,7 +130,7 @@ void main() {
         ]),
       );
 
-      final boxColors1 = BoxColors(
+      final boxColors1 = AccentableBoxColors(
         content: color1,
         surface: color1,
         decoration: color1,
@@ -139,7 +139,7 @@ void main() {
         placeholder: color1,
       );
 
-      final boxColors2 = BoxColors(
+      final boxColors2 = AccentableBoxColors(
         content: color1,
         surface: color1,
         decoration: color1,
@@ -160,7 +160,7 @@ void main() {
         ]),
       );
 
-      final boxColors = BoxColors(
+      final boxColors = AccentableBoxColors(
         content: color1,
         surface: color1,
         decoration: color1,
@@ -180,7 +180,7 @@ void main() {
         ]),
       );
 
-      final boxColors = BoxColors(
+      final boxColors = AccentableBoxColors(
         content: color1,
         surface: color1,
         decoration: color1,
@@ -200,7 +200,7 @@ void main() {
         ]),
       );
 
-      final boxColors = BoxColors(
+      final boxColors = AccentableBoxColors(
         content: color1,
         surface: color1,
         decoration: color1,
@@ -228,7 +228,7 @@ void main() {
         ]),
       );
 
-      final boxColors1 = BoxColors(
+      final boxColors1 = AccentableBoxColors(
         content: color1,
         surface: color1,
         decoration: color1,
@@ -237,7 +237,7 @@ void main() {
         placeholder: color1,
       );
 
-      final boxColors2 = BoxColors(
+      final boxColors2 = AccentableBoxColors(
         content: color1,
         surface: color1,
         decoration: color1,
@@ -257,7 +257,7 @@ void main() {
         ]),
       );
 
-      final boxColors = BoxColors(
+      final boxColors = AccentableBoxColors(
         content: color1,
         surface: color1,
         decoration: color1,

@@ -1,3 +1,4 @@
+import 'package:oui/src/core/locales.dart' show Locale;
 import 'package:oui/src/core/routing.dart';
 import 'package:oui/src/core/screen.dart';
 
@@ -6,7 +7,7 @@ Screen testScreen(
   List<PathSegment> segments = const [],
   List<Screen> children = const [],
 }) {
-  return Screen(id)
-      .pathSegments(segments.isEmpty ? [PathSegment.static(id)] : segments)
-      .children(children);
+  return Screen(id).pathSegments({
+    Locale.any: segments.isEmpty ? [PathSegment.static(id)] : segments,
+  }).children(children);
 }

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart' show IconData, Key;
 import 'package:oui/src/core/background.dart';
 import 'package:oui/src/core/border.dart';
 import 'package:oui/src/core/geometry.dart';
+import 'package:oui/src/core/locales.dart' show Locale, Locales;
 
 import '../components/box.dart';
 import 'component.dart';
@@ -26,19 +27,19 @@ import 'routing.dart';
 /// - `modal`: Displays the screen as a modal dialog, which requires user interaction
 ///   before returning to the underlying content. This type is suitable for
 ///   critical actions or information that needs to be acknowledged by the user.
-enum ScreenType {
+enum ScreenDisplayType {
   panel,
   sheet,
   modal;
 
-  ScreenType demote() {
+  ScreenDisplayType demote() {
     switch (this) {
-      case ScreenType.panel:
-        return ScreenType.sheet;
-      case ScreenType.sheet:
-        return ScreenType.sheet;
-      case ScreenType.modal:
-        return ScreenType.modal;
+      case ScreenDisplayType.panel:
+        return ScreenDisplayType.sheet;
+      case ScreenDisplayType.sheet:
+        return ScreenDisplayType.sheet;
+      case ScreenDisplayType.modal:
+        return ScreenDisplayType.modal;
     }
   }
 }
@@ -64,21 +65,13 @@ class ScreenMetadata extends Metadata {
     super.tags,
   });
 
-  ScreenMetadata.always({
-    required Path path,
-    required super.name,
-    super.icon,
-    super.attributes,
-  })  : path = Localized.always(path),
-        super.always();
-
   @override
   ScreenMetadata copyWith({
     Localized<Path>? path,
     Localized<String>? name,
     Localized<IconData?>? icon,
     Localized<List<String>>? tags,
-    LocalizedMap<String, dynamic>? attributes,
+    Localized<Map<String, dynamic>>? attributes,
   }) {
     return ScreenMetadata(
       path: path ?? this.path,
@@ -96,7 +89,7 @@ class Screen extends BoxLike<Screen> {
   final String id;
 
   /// The type of the screen.
-  final ScreenType type;
+  final ScreenDisplayType type;
 
   /// The localized metadata for the screen.
   final ScreenMetadata metadata;
@@ -125,25 +118,18 @@ class Screen extends BoxLike<Screen> {
   }) : this._(
           key: key,
           id: id,
-          type: ScreenType.panel,
-          metadata: ScreenMetadata.always(
-            name: id,
-            path: Path.fromString(id),
+          type: ScreenDisplayType.panel,
+          metadata: ScreenMetadata(
+            name: {Locale.any: id},
+            path: {Locale.any: Path.fromString(id)},
           ),
           children: const [],
         );
 
-  // : metadata = ScreenMetadata.always(
-  //       name: id,
-  //       path: [PathSegment.static(id)],
-  //     ),
-  //     type = ScreenType.panel,
-  //     children = const [];
-
   @override
   Screen copyWith({
     ComponentModifiers? modifiers,
-    ScreenType? type,
+    ScreenDisplayType? type,
     ScreenMetadata? metadata,
     List<Screen>? children,
   }) {
@@ -157,60 +143,35 @@ class Screen extends BoxLike<Screen> {
     );
   }
 
-  Screen withType(ScreenType type) {
+  Screen display(ScreenDisplayType type) {
     return copyWith(type: type);
   }
 
-  Screen tags(
-    List<String> tags, [
-    Map<Locale, List<String>> localized = const {},
-  ]) {
-    return copyWith(
-      metadata: metadata.copyWith(tags: Localized(tags, localized)),
-    );
+  Screen tags(Localized<List<String>> tags) {
+    return copyWith(metadata: metadata.copyWith(tags: tags));
   }
 
-  Screen name(
-    String name, [
-    Map<Locale, String> localized = const {},
-  ]) {
-    return copyWith(
-      metadata: metadata.copyWith(name: Localized(name, localized)),
-    );
+  Screen name(Localized<String> name) {
+    return copyWith(metadata: metadata.copyWith(name: name));
   }
 
-  Screen icon(
-    IconData icon, [
-    Map<Locale, IconData?> localized = const {},
-  ]) {
-    return copyWith(
-      metadata: metadata.copyWith(icon: Localized(icon, localized)),
-    );
+  Screen icon(Localized<IconData> icon) {
+    return copyWith(metadata: metadata.copyWith(icon: icon));
   }
 
-  Screen pathSegments(
-    List<PathSegment> segments, [
-    Map<Locale, Path> localized = const {},
-  ]) {
-    return copyWith(
-      metadata: metadata.copyWith(path: Localized(Path(segments), localized)),
-    );
-  }
-
-  Screen path(
-    String path, [
-    Map<Locale, String> localized = const {},
-  ]) {
+  Screen pathSegments(Localized<PathSegments> segments) {
     return copyWith(
       metadata: metadata.copyWith(
-        path: Localized(
-          Path.fromString(path),
-          localized.map(
-            (key, value) {
-              return MapEntry(key, Path.fromString(value));
-            },
-          ),
-        ),
+        path: segments.mapped<Path>((value) => Path(value)),
+      ),
+      // metadata: metadata.copyWith(path: Localized(Path(segments), localized)),
+    );
+  }
+
+  Screen path(Map<Locale, String> path) {
+    return copyWith(
+      metadata: metadata.copyWith(
+        path: path.mapped((value) => Path.fromString(value)),
       ),
     );
   }
@@ -285,7 +246,7 @@ class ScreenRegistry {
       if (entries.any((entry) => entry.screen.id == screen.id)) {
         throw Exception('Duplicate screen ID: ${screen.id}');
       }
-      final segments = screen.metadata.path.forLocale(locale).segments;
+      final segments = screen.metadata.path.forLocale(locale)?.segments ?? [];
       final path = parentPath?.add(segments) ?? Path(segments);
       entries.add(ScreenRegistryEntry(screen, path, parents ?? []));
       for (final child in screen._children) {
@@ -312,8 +273,7 @@ class ScreenRegistry {
     for (final locale in supportedLocales) {
       localized[locale] = _buildEntries(root, locale);
     }
-
-    return Localized(_buildEntries(root), localized);
+    return localized;
   }
 
   /// Creates a new screen registry for the given [screen] and [locale].
@@ -332,9 +292,9 @@ class ScreenRegistry {
   /// ```
   ScreenRegistry(
     Screen screen, [
-    Locales supportedLocales = const [Locale.english],
+    Locales supportedLocales = const [Locale.en],
   ])  : assert(
-          screen.type == ScreenType.panel,
+          screen.type == ScreenDisplayType.panel,
           'Root screen must be of type Panel',
         ),
         _entries = _buildRegistry(screen, supportedLocales),
@@ -344,7 +304,7 @@ class ScreenRegistry {
   ///
   /// Returns the screen if found, otherwise returns null.
   Screen? getScreenById(String id) {
-    for (final entry in _entries.base) {
+    for (final entry in _entries.forLocale(null) ?? []) {
       if (entry.screen.id == id) {
         return entry.screen;
       }
@@ -361,8 +321,7 @@ class ScreenRegistry {
       return _rootMatch;
     }
 
-    final matches = _entries
-        .forLocale(locale)
+    final matches = (_entries.forLocale(locale) ?? [])
         .where((entry) => entry.path.length <= segments.length)
         .map((entry) => entry.path.match(segments, entry.screens))
         .toList();
@@ -379,5 +338,5 @@ class ScreenRegistry {
   }
 
   /// Returns the number of entries in the registry.
-  int get count => _entries.base.length;
+  int get count => _entries.forLocale(null)?.length ?? 0;
 }
