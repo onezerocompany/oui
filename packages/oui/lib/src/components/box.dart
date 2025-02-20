@@ -1,5 +1,6 @@
+import 'package:flutter/painting.dart' show BoxDecoration, Decoration;
 import 'package:flutter/widgets.dart'
-    show BuildContext, InheritedWidget, Widget;
+    show BuildContext, DecoratedBox, InheritedWidget, Widget;
 import 'package:oui/src/core/background.dart'
     show BackgroundModifier, ModifiableBackground;
 import 'package:oui/src/core/border.dart' show ModifiableBorder;
@@ -8,8 +9,9 @@ import 'package:oui/src/core/component.dart'
     show
         Component,
         ComponentContext,
+        ComponentModifier,
         ComponentModifiers,
-        ModifiableChildProvider;
+        ModifiableContentProvider;
 import 'package:oui/src/core/corners.dart' show ModifiableCorner;
 import 'package:oui/src/core/geometry.dart'
     show ModifiableAlignment, ModifiableInset, ModifiableSize;
@@ -17,9 +19,21 @@ import 'package:oui/src/core/modifiers.dart';
 import 'package:oui/src/core/shadow.dart' show ModifiableShadow;
 import 'package:oui/src/core/state.dart' show ModifiableState;
 
+/// Mixin for modifiers that decorate widgets.
+mixin DecorationModifier on ComponentModifier {
+  Decoration? decorate(
+    Decoration decoration,
+    ComponentContext context,
+  );
+}
+
 class BoxLevel {
   final int level;
   const BoxLevel(this.level);
+
+  BoxLevel increase(int amount) {
+    return BoxLevel(level + amount);
+  }
 
   static BoxLevel of(BuildContext context) {
     final boxLevel =
@@ -58,7 +72,7 @@ abstract class BoxLike<T extends Component<T>> extends Component<T>
         ModifiableInset<T>,
         ModifiableBorder<T>,
         ModifiableShadow<T>,
-        ModifiableChildProvider<T>,
+        ModifiableContentProvider<T>,
         ModifiableState<T>,
         ModifiableAccent<T> {
   const BoxLike({
@@ -67,17 +81,24 @@ abstract class BoxLike<T extends Component<T>> extends Component<T>
   });
 
   @override
-  Widget build(BuildContext context) {
-    var widget = _buildWithModifiers(
-      ComponentContext(
-        runtimeType,
-        context,
-      ),
-    );
+  Widget builder(ComponentContext context) {
+    var widget = super.builder(context);
 
-    if (modifiers.hasModifier<BackgroundModifier>()) {
-      return BoxLevelContext(
-        level: context.boxLevel + 1,
+    final decorators = context.modifiers.whereType<DecorationModifier>();
+    if (decorators.isNotEmpty) {
+      final Decoration decoration = decorators.fold(
+        const BoxDecoration(),
+        (Decoration acc, decorator) {
+          return decorator.decorate(acc, context) ?? acc;
+        },
+      );
+      widget = DecoratedBox(decoration: decoration, child: widget);
+    }
+
+    final hasBackground = context.modifiers.hasModifier<BackgroundModifier>();
+    if (hasBackground) {
+      widget = BoxLevelContext(
+        level: BoxLevel.of(context.build).increase(1),
         child: widget,
       );
     }

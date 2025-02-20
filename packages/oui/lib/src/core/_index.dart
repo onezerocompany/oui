@@ -1,4 +1,3 @@
-export '../components/screen.dart';
 export 'app.dart';
 export 'background.dart';
 export 'border.dart';

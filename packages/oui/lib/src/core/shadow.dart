@@ -1,6 +1,7 @@
 import 'package:flutter/painting.dart' as painting show BoxShadow;
 import 'package:flutter/widgets.dart'
     show BoxDecoration, BoxShadow, Decoration, ShapeDecoration;
+import 'package:oui/src/components/box.dart' show DecorationModifier;
 import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
 
 import 'colors.dart';

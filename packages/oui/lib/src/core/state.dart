@@ -67,7 +67,7 @@ class StateContext extends InheritedWidget {
   }
 }
 
-class StateModifier extends ComponentModifier with ChildModifier {
+class StateModifier extends ComponentModifier with ContentModifier {
   final State state;
 
   const StateModifier(

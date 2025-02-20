@@ -3,7 +3,7 @@ import 'package:oui/oui.dart';
 final allModifiers = [
   StateModifier,
   AccentModifier,
-  ChildProviderModifier,
+  ContentProviderModifier,
   // Text Modifiers
   MaxLinesModifier,
   TextAlignModifier,
@@ -53,29 +53,30 @@ extension ModifierSorting on ComponentModifiers {
   }
 
   ComponentModifiers resolve(ResponsiveContext context) {
-    final resolved = where(
+    final applicable = where(
       (modifier) => modifier.condition?.call(context) ?? true,
     ).toList();
 
-    resolved.sort(_sortModifier);
+    applicable.sort(_sortModifier);
 
     // get all unique types of modifiers
     final types =
-        resolved.map((modifier) => modifier.runtimeType).toSet().toList();
+        applicable.map((modifier) => modifier.runtimeType).toSet().toList();
 
-    // remove all modifiers that are not the first of their type
-    // if they have no canHaveMultiple
-    for (var i = 0; i < resolved.length; i++) {
-      final modifier = resolved[i];
-      if (!modifier.multi &&
-          types.contains(modifier.runtimeType) &&
-          resolved.indexWhere((m) => m.runtimeType == modifier.runtimeType) !=
-              i) {
-        resolved.removeAt(i);
-        i--;
+    final resolved = <ComponentModifier>[];
+    for (final type in types) {
+      final modifiers = applicable.where((m) => m.runtimeType == type).toList();
+      if (modifiers.length == 1) {
+        resolved.add(modifiers.first);
+      } else {
+        // find the first conditional modifier and fallback to the first non conditional
+        final conditional = modifiers.firstWhere(
+          (m) => m.condition != null,
+          orElse: () => modifiers.first,
+        );
+        resolved.add(conditional);
       }
     }
-
     return resolved;
   }
 

@@ -1,19 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart'
-    show
-        BoxDecoration,
-        BuildContext,
-        DecoratedBox,
-        Decoration,
-        InheritedWidget,
-        SizedBox,
-        StatelessWidget,
-        Text,
-        TextStyle,
-        Widget;
-import 'package:oui/src/components/aligner.dart' show Aligner;
+    show BuildContext, InheritedWidget, SizedBox, StatelessWidget, Widget;
 import 'package:oui/src/core/config.dart' show Config;
-import 'package:oui/src/core/geometry.dart' show FlowDirection;
+import 'package:oui/src/core/geometry.dart' show Aligner, FlowDirection;
 import 'package:oui/src/core/modifiers.dart' show ModifierSorting;
 import 'package:oui/src/core/utils.dart' show FirstOfTypeExtension;
 
@@ -144,24 +133,20 @@ typedef ComponentModifierConditional = bool Function(ComponentContext context);
 
 /// Base class for all modifiers.
 abstract class ComponentModifier {
-  /// Whether the modifier can be applied multiple times.
-  final bool multi;
-
   final ResponsiveCondition? condition;
   const ComponentModifier({
     this.condition,
-    this.multi = false,
   });
 }
 
 typedef ComponentModifiers = List<ComponentModifier>;
 
-class ChildProviderModifier extends ComponentModifier {
+class ContentProviderModifier extends ComponentModifier {
   final List<Widget> content;
   final Widget Function(ComponentContext)? builder;
   final FlowDirection direction;
 
-  const ChildProviderModifier({
+  const ContentProviderModifier({
     this.content = const [],
     this.builder,
     this.direction = FlowDirection.topToBottom,
@@ -184,14 +169,14 @@ class ChildProviderModifier extends ComponentModifier {
   }
 }
 
-mixin ModifiableChildProvider<Type extends Component> on Component<Type> {
+mixin ModifiableContentProvider<Type extends Component> on Component<Type> {
   Type contents(
     List<Widget> content, {
     FlowDirection direction = FlowDirection.topToBottom,
     ResponsiveCondition? condition,
   }) {
     return withModifier(
-      ChildProviderModifier(
+      ContentProviderModifier(
         content: content,
         direction: direction,
         condition: condition,
@@ -206,7 +191,7 @@ mixin ModifiableChildProvider<Type extends Component> on Component<Type> {
     ResponsiveCondition? condition,
   ) {
     return withModifier(
-      ChildProviderModifier(
+      ContentProviderModifier(
         builder: builder,
         condition: condition,
       ),
@@ -215,41 +200,12 @@ mixin ModifiableChildProvider<Type extends Component> on Component<Type> {
 }
 
 /// Mixin for modifiers that modify child widgets.
-mixin ChildModifier on ComponentModifier {
+mixin ContentModifier on ComponentModifier {
   Widget? modify(
     Widget? child,
     ComponentContext context,
   );
 }
-
-/// Mixin for modifiers that decorate widgets.
-mixin DecorationModifier on ComponentModifier {
-  Decoration? decorate(
-    Decoration decoration,
-    ComponentContext context,
-  );
-}
-
-/// Mixin for modifiers that modify text styles.
-mixin TextStyleModifier on ComponentModifier {
-  TextStyle modify(
-    TextStyle style,
-    ComponentContext context,
-  );
-}
-
-/// Mixin for modifiers that modify labels.
-mixin TextModifier on ComponentModifier {
-  Text modify(
-    Text text,
-    ComponentContext context,
-  );
-}
-
-typedef ComponentBuilder = Widget Function(
-  ComponentContext context,
-  Widget? child,
-);
 
 /// Abstract class for widgets that can be modified with a list of [ComponentModifier]s.
 abstract class Component<ComponentType extends Widget> extends StatelessWidget {
@@ -258,7 +214,6 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
   const Component({
     super.key,
     this.modifiers = const [],
-    this.builder,
   });
 
   /// Creates a copy of the component with the given modifiers.
@@ -278,42 +233,20 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
     );
   }
 
-  final ComponentBuilder? builder;
+  Widget builder(ComponentContext context) {
+    var widget = context.modifiers
+            .firstOfType<ContentProviderModifier>()
+            ?.provide(context) ??
+        const SizedBox.shrink();
 
-  /// Builds the widget with the applied modifiers.
-  Widget _buildWithModifiers(BuildContext buildContext) {
-    final context = ComponentContext.of(buildContext);
-    Decoration? decoration;
-    Widget? widget = builder?.call(context, null);
-
-    final lastDecorationModifierIndex = context.modifiers.lastIndexWhere(
-      (m) => m is DecorationModifier,
+    widget = context.modifiers.whereType<ContentModifier>().fold(
+      widget,
+      (Widget acc, ContentModifier modifier) {
+        return modifier.modify(acc, context) ?? acc;
+      },
     );
 
-    for (int i = 0; i < context.modifiers.length; i++) {
-      final modifier = context.modifiers[i];
-      if (modifier is ChildProviderModifier) {
-        widget = modifier.provide(context);
-      }
-      if (modifier is ChildModifier) {
-        widget = modifier.modify(widget, context) ?? widget;
-      }
-      if (modifier is DecorationModifier) {
-        decoration = modifier.decorate(
-              decoration ?? const BoxDecoration(),
-              context,
-            ) ??
-            decoration;
-      }
-      if (i == lastDecorationModifierIndex && decoration != null) {
-        widget = DecoratedBox(
-          decoration: decoration,
-          child: widget,
-        );
-      }
-    }
-
-    return widget ?? const SizedBox.shrink();
+    return widget;
   }
 
   ComponentContext _componentContext(BuildContext context) {
@@ -327,9 +260,10 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
   @nonVirtual
   @override
   Widget build(BuildContext context) {
+    final componentContext = _componentContext(context);
     return ComponentContextProvider(
-      context: _componentContext(context),
-      child: _buildWithModifiers(context),
+      context: componentContext,
+      child: builder(componentContext),
     );
   }
 }

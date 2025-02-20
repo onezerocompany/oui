@@ -2,6 +2,7 @@ import 'package:flutter/painting.dart' as painting
     show Border, BorderSide, BoxBorder;
 import 'package:flutter/rendering.dart'
     show BoxBorder, BoxDecoration, Decoration, ShapeDecoration;
+import 'package:oui/src/components/box.dart' show DecorationModifier;
 import 'package:oui/src/core/component.dart';
 import 'package:oui/src/core/interpolation.dart';
 import 'package:oui/src/core/responsive.dart';

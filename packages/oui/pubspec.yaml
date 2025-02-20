@@ -2,6 +2,7 @@ name: oui
 description: "UI Components for Flutter you want to say 'Oui!' to."
 version: 1.0.0
 homepage: github.com/onezerocompany/oui
+publish_to: none
 
 environment:
   sdk: ^3.5.4
@@ -11,6 +12,8 @@ dependencies:
   flutter:
     sdk: flutter
   vector_math: ^2.1.4
+  contour:
+    path: ../contour
 
 dev_dependencies:
   flutter_test:

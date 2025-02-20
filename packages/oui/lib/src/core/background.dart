@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart'
         ShapeDecoration,
         Stack,
         Widget;
+import 'package:oui/src/components/box.dart' show DecorationModifier;
 import 'package:oui/src/core/responsive.dart';
 
 import 'colors.dart';
@@ -183,7 +184,7 @@ class BackgroundImage {
 }
 
 class BackgroundModifier extends ComponentModifier
-    with ChildModifier, DecorationModifier {
+    with ContentModifier, DecorationModifier {
   final bool auto;
   final Background? background;
 

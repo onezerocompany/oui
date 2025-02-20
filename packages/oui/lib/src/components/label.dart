@@ -1,7 +1,46 @@
-import 'package:flutter/widgets.dart' as ui;
-import 'package:flutter/widgets.dart' show Key, Text, Widget;
+import 'package:flutter/widgets.dart' show Key, Text, TextStyle, Widget;
+import 'package:oui/src/core/colors.dart' show ModifiableAccent;
+import 'package:oui/src/core/component.dart'
+    show Component, ComponentContext, ComponentModifier, ComponentModifiers;
+import 'package:oui/src/core/localization.dart'
+    show Localized, LocalizedExtension;
+import 'package:oui/src/core/state.dart' show ModifiableState;
 
-import '../core/_index.dart';
+import '../core/typography.dart'
+    show
+        FontModifier,
+        ModifiableLetterSpacing,
+        ModifiableMaxLines,
+        ModifiableSelectionColor,
+        ModifiableSemanticsLabel,
+        ModifiableSoftWrap,
+        ModifiableTextAlign,
+        ModifiableTextColor,
+        ModifiableTextHeightBehavior,
+        ModifiableTextOverflow,
+        ModifiableTextScaler,
+        ModifiableTextSize,
+        ModifiableTextSlant,
+        ModifiableTextWeight,
+        ModifiableTextWidthMode,
+        ModifiableWordSpacing,
+        TextColorModifier;
+
+/// Mixin for modifiers that modify text styles.
+mixin TextStyleModifier on ComponentModifier {
+  TextStyle modify(
+    TextStyle style,
+    ComponentContext context,
+  );
+}
+
+/// Mixin for modifiers that modify labels.
+mixin TextModifier on ComponentModifier {
+  Text modify(
+    Text text,
+    ComponentContext context,
+  );
+}
 
 class Label extends Component<Label>
     with
@@ -62,23 +101,19 @@ class Label extends Component<Label>
   }
 
   @override
-  Widget _buildWithModifiers(
-    ComponentContext context, [
-    Widget? child,
-  ]) {
-    Text label = Text(text ?? '', maxLines: 1);
-    ui.TextStyle style = const ui.TextStyle();
+  Widget builder(ComponentContext context) {
+    var label = Text(localized?.resolve(context.build) ?? text ?? '');
 
-    for (final modifier in context.modifiers) {
-      if (modifier is TextModifier) {
-        label = modifier.modify(label, context);
-      }
-      if (modifier is TextStyleModifier) {
-        style = modifier.modify(style, context);
-      }
-    }
+    final labelModifiers = context.modifiers.whereType<TextModifier>();
+    label = labelModifiers.fold(label, (Text acc, modifier) {
+      return modifier.modify(acc, context);
+    });
 
-    label = label.copyWith(style: style);
+    final styleModifiers = context.modifiers.whereType<TextStyleModifier>();
+    TextStyle style = const TextStyle();
+    style = styleModifiers.fold(style, (TextStyle acc, modifier) {
+      return modifier.modify(acc, context);
+    });
 
     return label;
   }

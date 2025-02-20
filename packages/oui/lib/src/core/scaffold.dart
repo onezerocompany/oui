@@ -295,7 +295,7 @@ class Scaffold extends Box {
     return [
       const StateModifier(State.normal),
       const BackgroundModifier(null),
-      ChildProviderModifier(content: [_buildScaffold()]),
+      ContentProviderModifier(content: [_buildScaffold()]),
     ];
   }
 }

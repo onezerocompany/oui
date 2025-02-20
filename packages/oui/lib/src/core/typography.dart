@@ -12,18 +12,14 @@ import 'package:flutter/widgets.dart' as ui
         TextStyle,
         TextWidthBasis;
 import 'package:flutter/widgets.dart' show BuildContext;
+import 'package:oui/src/components/label.dart'
+    show TextModifier, TextStyleModifier;
 import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
 import 'package:oui/src/core/utils.dart'
     show EnumContainer, Range, SizeLevel, SizedContainer, TextExtension;
 
 import 'colors.dart' show Color;
-import 'component.dart'
-    show
-        Component,
-        ComponentContext,
-        ComponentModifier,
-        TextModifier,
-        TextStyleModifier;
+import 'component.dart' show Component, ComponentContext, ComponentModifier;
 import 'interpolation.dart' show Curve, DoubleInterpolator;
 
 class TypographyConfigGroup {

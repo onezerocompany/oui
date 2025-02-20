@@ -23,6 +23,7 @@ import 'package:flutter/widgets.dart'
         StatelessWidget,
         TextDirection,
         Widget;
+import 'package:oui/src/components/box.dart' show DecorationModifier;
 import 'package:oui/src/core/interpolation.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
 
@@ -1013,7 +1014,7 @@ class CornerBorderRadius extends BorderRadius
 }
 
 class CornerModifier extends ComponentModifier
-    with DecorationModifier, ChildModifier {
+    with DecorationModifier, ContentModifier {
   final SizeLevel? roundness;
   final CornerBorder? corner;
   final bool clip;

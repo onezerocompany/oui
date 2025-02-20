@@ -1495,12 +1495,7 @@ class ColorPalette {
   }
 
   static ColorPalette of(BuildContext context) {
-    final staticContext =
-        context.dependOnInheritedWidgetOfExactType<StaticAppContext>();
-    if (staticContext == null) {
-      throw Exception('No StaticAppContext found in the widget tree.');
-    }
-    return staticContext.colorPalette;
+    return StaticAppContext.of(context).colorPalette;
   }
 }
 
@@ -1706,7 +1701,7 @@ class AccentContext extends InheritedWidget {
   }
 }
 
-class AccentModifier extends ComponentModifier with ChildModifier {
+class AccentModifier extends ComponentModifier with ContentModifier {
   final Accent accent;
 
   const AccentModifier(
