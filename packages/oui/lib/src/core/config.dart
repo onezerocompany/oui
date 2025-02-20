@@ -1,10 +1,14 @@
-import 'package:oui/src/core/locales.dart' show Locale, Locales;
-import 'package:oui/src/core/typography.dart';
+import 'package:flutter/widgets.dart' show BuildContext;
+import 'package:oui/src/core/app.dart' show StaticAppContext;
 
-import 'colors.dart';
-import 'geometry.dart';
-import 'metadata.dart';
-import 'utils.dart';
+import '../components/screen.dart' show Screen;
+import 'colors.dart' show Color;
+import 'geometry.dart' show RangedDimension, Size;
+import 'locales.dart' show Locale, Locales;
+import 'metadata.dart' show Metadata;
+import 'responsive.dart' show ResponsiveBreakpoints;
+import 'typography.dart' show TypographyConfig;
+import 'utils.dart' show Range;
 
 class Version {
   final int major;
@@ -73,6 +77,28 @@ class ScaffoldConfig {
   });
 }
 
+class ResponsiveConfig {
+  final ResponsiveBreakpoints horizontal;
+  final ResponsiveBreakpoints vertical;
+
+  const ResponsiveConfig({
+    this.horizontal = const ResponsiveBreakpoints(
+      sm: 300,
+      md: 768,
+      lg: 991,
+      xl: 1200,
+      xxl: 1600,
+    ),
+    this.vertical = const ResponsiveBreakpoints(
+      sm: 300,
+      md: 768,
+      lg: 991,
+      xl: 1200,
+      xxl: 1600,
+    ),
+  });
+}
+
 class ScreenConfig {
   final Range<double> roundness;
   final RangedDimension? defaultPanelWidth;
@@ -86,6 +112,14 @@ class ScreenConfig {
   });
 }
 
+class ScreenRegistryConfig {
+  final Screen root;
+
+  const ScreenRegistryConfig({
+    required this.root,
+  });
+}
+
 class Config {
   final AppDetails details;
   final ScaffoldConfig scaffold;
@@ -93,15 +127,23 @@ class Config {
   final ColorConfig colors;
   final Locales locales;
   final TypographyConfig typography;
+  final ResponsiveConfig responsive;
+  final ScreenRegistryConfig registry;
 
   const Config({
     required this.details,
+    required this.registry,
     this.colors = const ColorConfig(),
     this.scaffold = const ScaffoldConfig(),
     this.screens = const ScreenConfig(),
     this.typography = const TypographyConfig(),
+    this.responsive = const ResponsiveConfig(),
     this.locales = const [
       Locale.en,
     ],
   });
+
+  static Config of(BuildContext context) {
+    return StaticAppContext.of(context).config;
+  }
 }

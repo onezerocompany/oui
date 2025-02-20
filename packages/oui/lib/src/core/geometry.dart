@@ -2,6 +2,7 @@ import 'package:flutter/rendering.dart' as rendering
     show Alignment, AlignmentGeometry, EdgeInsets, Offset, BoxFit;
 import 'package:flutter/widgets.dart'
     show
+        Align,
         AlignmentGeometry,
         BoxConstraints,
         ConstrainedBox,
@@ -9,9 +10,7 @@ import 'package:flutter/widgets.dart'
         Padding,
         SizedBox,
         Widget;
-import 'package:oui/src/components/aligner.dart';
-import 'package:oui/src/core/app.dart';
-import 'package:oui/src/core/screen.dart';
+import 'package:oui/src/components/screen.dart';
 
 import 'component.dart';
 import 'utils.dart';
@@ -238,14 +237,17 @@ class Alignment {
 class AlignmentModifier extends ComponentModifier with ChildModifier {
   final Alignment alignment;
 
-  const AlignmentModifier(this.alignment);
+  const AlignmentModifier(
+    this.alignment, {
+    super.condition,
+  });
 
   @override
   Widget? modify(Widget? child, ComponentContext context) {
     if (child == null) return null;
-    return Aligner(
-      alignment: alignment,
-      children: [child],
+    return Align(
+      alignment: alignment.uiAlignment,
+      child: child,
     );
   }
 }
@@ -407,7 +409,10 @@ class Insets {
 class InsetModifier extends ComponentModifier with ChildModifier {
   final Insets insets;
 
-  const InsetModifier(this.insets);
+  const InsetModifier(
+    this.insets, {
+    super.condition,
+  });
 
   @override
   Widget? modify(Widget? child, ComponentContext context) {
@@ -654,7 +659,10 @@ class Size {
 class SizeModifier extends ComponentModifier with ChildModifier {
   final Size? size;
 
-  const SizeModifier(this.size);
+  const SizeModifier(
+    this.size, {
+    super.condition,
+  });
 
   /// Creates a `BoxSize` with a fixed size.
   ///
@@ -663,6 +671,7 @@ class SizeModifier extends ComponentModifier with ChildModifier {
   SizeModifier.fixed({
     double? width,
     double? height,
+    super.condition,
   }) : size = Size.fixed(width: width, height: height);
 
   /// Creates a `BoxSize` with a dynamic size.
@@ -676,6 +685,7 @@ class SizeModifier extends ComponentModifier with ChildModifier {
     double maxWidth = double.infinity,
     double minHeight = 0,
     double maxHeight = double.infinity,
+    super.condition,
   }) : size = Size.dynamic(
           minWidth: minWidth,
           maxWidth: maxWidth,
@@ -686,8 +696,8 @@ class SizeModifier extends ComponentModifier with ChildModifier {
   @override
   Widget modify(Widget? child, ComponentContext context) {
     if (child == null) return const SizedBox.shrink();
-    if (size == null && context.componentType == Screen) {
-      final config = context.buildContext.config.screens;
+    if (size == null && context.type == Screen) {
+      final config = context.config.screens;
       if (config.defaultPanelWidth != null) {
         return Size(
           config.defaultPanelWidth!,

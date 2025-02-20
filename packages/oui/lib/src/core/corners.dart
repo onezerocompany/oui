@@ -1022,6 +1022,7 @@ class CornerModifier extends ComponentModifier
     this.corner,
     this.roundness,
     this.clip = false,
+    super.condition,
   });
 
   CornerBorderRadius borderRadius(ComponentContext context) {
@@ -1112,7 +1113,6 @@ mixin ModifiableCorner<Type extends Component> on Component<Type> {
           ),
         ),
       ),
-      unique: true,
     );
   }
 

@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart'
         ShapeDecoration,
         Stack,
         Widget;
+import 'package:oui/src/core/responsive.dart';
 
 import 'colors.dart';
 import 'component.dart';
@@ -188,8 +189,8 @@ class BackgroundModifier extends ComponentModifier
 
   const BackgroundModifier(
     this.background, {
-    super.condition,
     this.auto = false,
+    super.condition,
   });
 
   @override
@@ -201,13 +202,13 @@ class BackgroundModifier extends ComponentModifier
       final color = context.colors.surface;
       return Background.color(color).decorate(
         decoration,
-        context.buildContext,
+        context.build,
       );
     }
 
     return background?.decorate(
       decoration,
-      context.buildContext,
+      context.build,
     );
   }
 
@@ -221,16 +222,7 @@ class BackgroundModifier extends ComponentModifier
 }
 
 mixin ModifiableBackground<Type extends Component> on Component<Type> {
-  Type background([Background? background]) {
-    return withModifier(
-      BackgroundModifier(background, auto: background == null),
-    );
-  }
-
-  Type backgroundWhen(
-    ComponentModifierConditional condition, [
-    Background? background,
-  ]) {
+  Type background(Background? background, {ResponsiveCondition? condition}) {
     return withModifier(
       BackgroundModifier(
         background,
@@ -240,18 +232,7 @@ mixin ModifiableBackground<Type extends Component> on Component<Type> {
     );
   }
 
-  Type backgroundColor(Color color) {
-    return withModifier(
-      BackgroundModifier(
-        Background.color(color),
-      ),
-    );
-  }
-
-  Type backgroundColorWhen(
-    ComponentModifierConditional condition,
-    Color color,
-  ) {
+  Type backgroundColor(Color color, {ResponsiveCondition? condition}) {
     return withModifier(
       BackgroundModifier(
         Background.color(color),
@@ -260,18 +241,10 @@ mixin ModifiableBackground<Type extends Component> on Component<Type> {
     );
   }
 
-  Type backgroundImage(BackgroundImage image) {
-    return withModifier(
-      BackgroundModifier(
-        Background.image(image),
-      ),
-    );
-  }
-
-  Type backgroundImageWhen(
-    ComponentModifierConditional condition,
-    BackgroundImage image,
-  ) {
+  Type backgroundImage(
+    BackgroundImage image, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
       BackgroundModifier(
         Background.image(image),
@@ -280,18 +253,7 @@ mixin ModifiableBackground<Type extends Component> on Component<Type> {
     );
   }
 
-  Type backgroundGradient(Gradient gradient) {
-    return withModifier(
-      BackgroundModifier(
-        Background.gradient(gradient),
-      ),
-    );
-  }
-
-  Type backgroundGradientWhen(
-    ComponentModifierConditional condition,
-    Gradient gradient,
-  ) {
+  Type backgroundGradient(Gradient gradient, {ResponsiveCondition? condition}) {
     return withModifier(
       BackgroundModifier(
         Background.gradient(gradient),

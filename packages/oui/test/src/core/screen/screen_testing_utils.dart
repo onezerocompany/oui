@@ -1,6 +1,6 @@
+import 'package:oui/src/components/screen.dart';
 import 'package:oui/src/core/locales.dart' show Locale;
 import 'package:oui/src/core/routing.dart';
-import 'package:oui/src/core/screen.dart';
 
 Screen testScreen(
   String id, {

@@ -1,6 +1,7 @@
 import 'package:flutter/painting.dart' as painting show BoxShadow;
 import 'package:flutter/widgets.dart'
     show BoxDecoration, BoxShadow, Decoration, ShapeDecoration;
+import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
 
 import 'colors.dart';
 import 'component.dart';
@@ -73,8 +74,9 @@ class ShadowModifier extends ComponentModifier with DecorationModifier {
   /// All parameters are required.
   const ShadowModifier(
     this.auto,
-    this.shadow,
-  );
+    this.shadow, {
+    required super.condition,
+  });
 
   @override
   Decoration? decorate(
@@ -127,6 +129,7 @@ mixin ModifiableShadow<Type extends Component> on Component<Type> {
     double spread = 0,
     Color? color,
     Offset offset = Offset.zero,
+    ResponsiveCondition? condition,
   }) {
     return withModifier(
       ShadowModifier(
@@ -137,6 +140,7 @@ mixin ModifiableShadow<Type extends Component> on Component<Type> {
           color: color ?? Color.black,
           offset: offset,
         ),
+        condition: condition,
       ),
     );
   }

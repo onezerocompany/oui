@@ -3,10 +3,11 @@ import 'package:flutter/widgets.dart'
     show BuildContext, RouteInformation, RouterDelegate, Widget;
 import 'package:flutter/widgets.dart' as widgets show RouteInformationParser;
 import 'package:oui/src/core/locales.dart';
+import 'package:oui/src/core/screen_registry.dart';
 
+import '../components/screen.dart';
 import 'localization.dart';
 import 'scaffold.dart';
-import 'screen.dart';
 
 /// Represents a segment of a path in the Oui routing system.
 class PathSegment {

@@ -1493,6 +1493,15 @@ class ColorPalette {
   String toString() {
     return 'ColorPalette(\n  levels: $levels,\n  barrier: $barrier\n)';
   }
+
+  static ColorPalette of(BuildContext context) {
+    final staticContext =
+        context.dependOnInheritedWidgetOfExactType<StaticAppContext>();
+    if (staticContext == null) {
+      throw Exception('No StaticAppContext found in the widget tree.');
+    }
+    return staticContext.colorPalette;
+  }
 }
 
 /// Enum representing the types of gradients available.
@@ -1629,7 +1638,7 @@ enum DynamicTheme {
     return this == DynamicTheme.light || this == DynamicTheme.muted;
   }
 
-  static DynamicTheme forContext(BuildContext context) {
+  static DynamicTheme of(BuildContext context) {
     final brightness = MediaQuery.of(context).platformBrightness;
 
     if (brightness == ui.Brightness.dark) {
@@ -1672,10 +1681,20 @@ class DynamicContainer<T> extends EnumContainer<DynamicTheme, T> {
   }
 }
 
-class ComponentAccent extends InheritedWidget {
-  final int accent;
+class Accent {
+  final int level;
+  const Accent(this.level);
 
-  const ComponentAccent({
+  static Accent of(BuildContext context) {
+    final accent = context.dependOnInheritedWidgetOfExactType<AccentContext>();
+    return accent?.accent ?? const Accent(0);
+  }
+}
+
+class AccentContext extends InheritedWidget {
+  final Accent accent;
+
+  const AccentContext({
     super.key,
     required this.accent,
     required super.child,
@@ -1683,40 +1702,35 @@ class ComponentAccent extends InheritedWidget {
 
   @override
   bool updateShouldNotify(covariant InheritedWidget oldWidget) {
-    return accent != (oldWidget as ComponentAccent).accent;
-  }
-
-  static int of(BuildContext context) {
-    return context
-            .dependOnInheritedWidgetOfExactType<ComponentAccent>()
-            ?.accent ??
-        0;
-  }
-}
-
-extension ComponentAccentExtension on BuildContext {
-  int get accent {
-    return ComponentAccent.of(this);
+    return accent != (oldWidget as AccentContext).accent;
   }
 }
 
 class AccentModifier extends ComponentModifier with ChildModifier {
-  final int accent;
+  final Accent accent;
 
-  const AccentModifier(this.accent);
+  const AccentModifier(
+    this.accent, {
+    required super.condition,
+  });
 
   @override
   Widget? modify(Widget? child, ComponentContext context) {
     if (child == null) return null;
-    return ComponentAccent(
-      accent: accent,
+    return AccentContext(
+      accent: Accent.of(context.build),
       child: child,
     );
   }
 }
 
 mixin ModifiableAccent<Type extends Component> on Component<Type> {
-  Type accented([int accent = 1]) {
-    return withModifier(AccentModifier(accent));
+  Type accented(int accent, {ResponsiveCondition? condition}) {
+    return withModifier(
+      AccentModifier(
+        Accent(accent),
+        condition: condition,
+      ),
+    );
   }
 }

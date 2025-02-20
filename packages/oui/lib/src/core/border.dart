@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart'
     show BoxBorder, BoxDecoration, Decoration, ShapeDecoration;
 import 'package:oui/src/core/component.dart';
 import 'package:oui/src/core/interpolation.dart';
+import 'package:oui/src/core/responsive.dart';
 
 import 'colors.dart';
 import 'corners.dart';
@@ -274,6 +275,7 @@ mixin ModifiableBorder<Type extends Component> on Component<Type> {
     BorderSide? bottom,
     BorderSide? left,
     BorderAlign align = BorderAlign.inside,
+    ResponsiveCondition? condition,
   }) {
     return withModifier(
       BorderModifier(
@@ -284,6 +286,7 @@ mixin ModifiableBorder<Type extends Component> on Component<Type> {
           left: left,
           align: align,
         ),
+        condition: condition,
       ),
     );
   }
@@ -292,6 +295,7 @@ mixin ModifiableBorder<Type extends Component> on Component<Type> {
     RectangleSide boxSide,
     BorderSide borderSide, {
     BorderAlign align = BorderAlign.inside,
+    ResponsiveCondition? condition,
   }) {
     return withModifier(
       BorderModifier(
@@ -302,18 +306,17 @@ mixin ModifiableBorder<Type extends Component> on Component<Type> {
           left: boxSide == RectangleSide.left ? borderSide : null,
           align: align,
         ),
+        condition: condition,
       ),
     );
   }
 
-  Type get noBorder => border(0);
-  Type get bordered => border();
-
-  Type border([
+  Type border({
     double thickness = 1,
     Color? color,
     BorderAlign align = BorderAlign.inside,
-  ]) {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
       BorderModifier(
         Border.all(
@@ -323,6 +326,7 @@ mixin ModifiableBorder<Type extends Component> on Component<Type> {
           ),
           align: align,
         ),
+        condition: condition,
       ),
     );
   }

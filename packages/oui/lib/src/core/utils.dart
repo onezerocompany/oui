@@ -328,6 +328,17 @@ extension FirstWhereOrNullExtension<E> on Iterable<E> {
   }
 }
 
+extension FirstOfTypeExtension<E> on Iterable<E> {
+  T? firstOfType<T>() {
+    for (E element in this) {
+      if (element is T) {
+        return element;
+      }
+    }
+    return null;
+  }
+}
+
 extension TextExtension on Text {
   Text copyWith({
     TextAlign? textAlign,

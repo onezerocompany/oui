@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:oui/src/core/component.dart';
+import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
 import 'package:oui/src/core/utils.dart';
 
 /// Represents the various states that an object can be in within the OUI framework.
@@ -30,7 +31,13 @@ enum State {
 
   /// Indicates that the object has encountered an error.
   /// In this state, the component may display an error message or icon, and may change color to indicate an issue (e.g., red).
-  errored,
+  errored;
+
+  static State of(BuildContext context) {
+    final stateContext =
+        context.dependOnInheritedWidgetOfExactType<StateContext>();
+    return stateContext?.state ?? State.normal;
+  }
 }
 
 class StatefulContainer<T> extends EnumContainer<State, T> {
@@ -45,10 +52,10 @@ class StatefulContainer<T> extends EnumContainer<State, T> {
   List<State> get keys => State.values;
 }
 
-class ComponentState extends InheritedWidget {
+class StateContext extends InheritedWidget {
   final State state;
 
-  const ComponentState({
+  const StateContext({
     super.key,
     required this.state,
     required super.child,
@@ -56,32 +63,22 @@ class ComponentState extends InheritedWidget {
 
   @override
   bool updateShouldNotify(covariant InheritedWidget oldWidget) {
-    return state != (oldWidget as ComponentState).state;
-  }
-
-  static State of(BuildContext context) {
-    return context
-            .dependOnInheritedWidgetOfExactType<ComponentState>()
-            ?.state ??
-        State.normal;
-  }
-}
-
-extension ComponentStateExtension on BuildContext {
-  State get state {
-    return ComponentState.of(this);
+    return state != (oldWidget as StateContext).state;
   }
 }
 
 class StateModifier extends ComponentModifier with ChildModifier {
   final State state;
 
-  const StateModifier(this.state);
+  const StateModifier(
+    this.state, {
+    super.condition,
+  });
 
   @override
   Widget? modify(Widget? child, ComponentContext context) {
     if (child == null) return null;
-    return ComponentState(
+    return StateContext(
       state: state,
       child: child,
     );
@@ -89,8 +86,16 @@ class StateModifier extends ComponentModifier with ChildModifier {
 }
 
 mixin ModifiableState<Type extends Component<Type>> on Component<Type> {
-  Type state(State state) {
-    return withModifier(StateModifier(state));
+  Type state(
+    State state, {
+    ResponsiveCondition? condition,
+  }) {
+    return withModifier(
+      StateModifier(
+        state,
+        condition: condition,
+      ),
+    );
   }
 
   Type get normal => state(State.normal);

@@ -1,34 +1,9 @@
-import 'package:oui/src/components/box.dart' show BoxContentModifier;
-import 'package:oui/src/core/background.dart' show BackgroundModifier;
-import 'package:oui/src/core/border.dart' show BorderModifier;
-import 'package:oui/src/core/colors.dart';
-import 'package:oui/src/core/component.dart' show ComponentModifier;
-import 'package:oui/src/core/corners.dart' show CornerModifier;
-import 'package:oui/src/core/geometry.dart'
-    show AlignmentModifier, InsetModifier, SizeModifier;
-import 'package:oui/src/core/shadow.dart' show ShadowModifier;
-import 'package:oui/src/core/state.dart' show StateModifier;
-import 'package:oui/src/core/typography.dart'
-    show
-        MaxLinesModifier,
-        SelectionColorModifier,
-        SemanticsLabelModifier,
-        SoftWrapModifier,
-        TextAlignModifier,
-        TextColorModifier,
-        FontModifier,
-        TextHeightBehaviorModifier,
-        LetterSpacingModifier,
-        TextOverflowModifier,
-        TextScalerModifier,
-        TextSizeModifier,
-        TextSlantModifier,
-        TextWeightModifier,
-        TextWidthModeModifier,
-        WordSpacingModifier;
+import 'package:oui/oui.dart';
 
 final allModifiers = [
-  BoxContentModifier,
+  StateModifier,
+  AccentModifier,
+  ChildProviderModifier,
   // Text Modifiers
   MaxLinesModifier,
   TextAlignModifier,
@@ -57,29 +32,74 @@ final allModifiers = [
   SizeModifier,
   AlignmentModifier,
   InsetModifier,
-  StateModifier,
-  AccentModifier,
 ];
 
-int sortModifier(ComponentModifier a, ComponentModifier b) {
-  final aIndex = allModifiers.indexOf(a.runtimeType);
-  final bIndex = allModifiers.indexOf(b.runtimeType);
+extension ModifierSorting on ComponentModifiers {
+  int _sortModifier(ComponentModifier a, ComponentModifier b) {
+    final aIndex = allModifiers.indexOf(a.runtimeType);
+    final bIndex = allModifiers.indexOf(b.runtimeType);
 
-  if (aIndex == -1) {
-    return 1;
+    if (aIndex == -1 || bIndex == -1) {
+      return aIndex.compareTo(bIndex);
+    }
+
+    final aConditional = a.condition != null;
+    final bConditional = b.condition != null;
+    if (aConditional != bConditional) {
+      return aConditional ? 1 : -1;
+    }
+
+    return aIndex - bIndex;
   }
-  if (bIndex == -1) {
-    return -1;
+
+  ComponentModifiers resolve(ResponsiveContext context) {
+    final resolved = where(
+      (modifier) => modifier.condition?.call(context) ?? true,
+    ).toList();
+
+    resolved.sort(_sortModifier);
+
+    // get all unique types of modifiers
+    final types =
+        resolved.map((modifier) => modifier.runtimeType).toSet().toList();
+
+    // remove all modifiers that are not the first of their type
+    // if they have no canHaveMultiple
+    for (var i = 0; i < resolved.length; i++) {
+      final modifier = resolved[i];
+      if (!modifier.multi &&
+          types.contains(modifier.runtimeType) &&
+          resolved.indexWhere((m) => m.runtimeType == modifier.runtimeType) !=
+              i) {
+        resolved.removeAt(i);
+        i--;
+      }
+    }
+
+    return resolved;
   }
 
-  return aIndex - bIndex;
-}
-
-extension SortModifiers on List<ComponentModifier> {
-  List<ComponentModifier> get sorted {
+  /// Groups the modifiers by type.
+  List<List<ComponentModifier>> get grouped {
     final copy = List<ComponentModifier>.from(this);
-    copy.sort(sortModifier);
-    return copy;
+    copy.sort(_sortModifier);
+
+    final groups = <List<ComponentModifier>>[];
+    var currentGroup = <ComponentModifier>[];
+
+    for (var i = 0; i < copy.length; i++) {
+      final current = copy[i];
+      final next = i + 1 < copy.length ? copy[i + 1] : null;
+
+      currentGroup.add(current);
+
+      if (next == null || current.runtimeType != next.runtimeType) {
+        groups.add(currentGroup);
+        currentGroup = <ComponentModifier>[];
+      }
+    }
+
+    return groups;
   }
 
   bool hasModifier<Modifier extends ComponentModifier>() {

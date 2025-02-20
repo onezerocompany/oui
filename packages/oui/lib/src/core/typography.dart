@@ -12,6 +12,7 @@ import 'package:flutter/widgets.dart' as ui
         TextStyle,
         TextWidthBasis;
 import 'package:flutter/widgets.dart' show BuildContext;
+import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
 import 'package:oui/src/core/utils.dart'
     show EnumContainer, Range, SizeLevel, SizedContainer, TextExtension;
 
@@ -206,7 +207,10 @@ enum TextAlign {
 class TextAlignModifier extends ComponentModifier with TextModifier {
   final TextAlign align;
 
-  const TextAlignModifier(this.align);
+  const TextAlignModifier(
+    this.align, {
+    required super.condition,
+  });
 
   @override
   ui.Text modify(
@@ -220,9 +224,15 @@ class TextAlignModifier extends ComponentModifier with TextModifier {
 }
 
 mixin ModifiableTextAlign<Type extends Component> on Component<Type> {
-  Type align(TextAlign align) {
+  Type align(
+    TextAlign align, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      TextAlignModifier(align),
+      TextAlignModifier(
+        align,
+        condition: condition,
+      ),
     );
   }
 
@@ -235,7 +245,10 @@ mixin ModifiableTextAlign<Type extends Component> on Component<Type> {
 class MaxLinesModifier extends ComponentModifier with TextModifier {
   final int maxLines;
 
-  const MaxLinesModifier(this.maxLines);
+  const MaxLinesModifier(
+    this.maxLines, {
+    required super.condition,
+  });
 
   @override
   ui.Text modify(
@@ -249,9 +262,15 @@ class MaxLinesModifier extends ComponentModifier with TextModifier {
 }
 
 mixin ModifiableMaxLines<Type extends Component> on Component<Type> {
-  Type lines(int maxLines) {
+  Type lines(
+    int maxLines, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      MaxLinesModifier(maxLines),
+      MaxLinesModifier(
+        maxLines,
+        condition: condition,
+      ),
     );
   }
 }
@@ -259,7 +278,10 @@ mixin ModifiableMaxLines<Type extends Component> on Component<Type> {
 class SoftWrapModifier extends ComponentModifier with TextModifier {
   final bool softWrap;
 
-  const SoftWrapModifier(this.softWrap);
+  const SoftWrapModifier(
+    this.softWrap, {
+    required super.condition,
+  });
 
   @override
   ui.Text modify(
@@ -273,9 +295,15 @@ class SoftWrapModifier extends ComponentModifier with TextModifier {
 }
 
 mixin ModifiableSoftWrap<Type extends Component> on Component<Type> {
-  Type wrap(bool softWrap) {
+  Type wrap(
+    bool softWrap, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      SoftWrapModifier(softWrap),
+      SoftWrapModifier(
+        softWrap,
+        condition: condition,
+      ),
     );
   }
 }
@@ -303,7 +331,10 @@ enum TextOverflow {
 class TextOverflowModifier extends ComponentModifier with TextModifier {
   final TextOverflow overflow;
 
-  const TextOverflowModifier(this.overflow);
+  const TextOverflowModifier(
+    this.overflow, {
+    required super.condition,
+  });
 
   @override
   ui.Text modify(
@@ -317,9 +348,15 @@ class TextOverflowModifier extends ComponentModifier with TextModifier {
 }
 
 mixin ModifiableTextOverflow<Type extends Component> on Component<Type> {
-  Type overflow(TextOverflow overflow) {
+  Type overflow(
+    TextOverflow overflow, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      TextOverflowModifier(overflow),
+      TextOverflowModifier(
+        overflow,
+        condition: condition,
+      ),
     );
   }
 
@@ -332,7 +369,10 @@ mixin ModifiableTextOverflow<Type extends Component> on Component<Type> {
 class TextScalerModifier extends ComponentModifier with TextModifier {
   final ui.TextScaler scaler;
 
-  const TextScalerModifier(this.scaler);
+  const TextScalerModifier(
+    this.scaler, {
+    required super.condition,
+  });
 
   @override
   ui.Text modify(
@@ -346,9 +386,15 @@ class TextScalerModifier extends ComponentModifier with TextModifier {
 }
 
 mixin ModifiableTextScaler<Type extends Component> on Component<Type> {
-  Type scale(ui.TextScaler scaler) {
+  Type scale(
+    ui.TextScaler scaler, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      TextScalerModifier(scaler),
+      TextScalerModifier(
+        scaler,
+        condition: condition,
+      ),
     );
   }
 }
@@ -370,7 +416,10 @@ enum TextWidthMode {
 class TextWidthModeModifier extends ComponentModifier with TextModifier {
   final TextWidthMode mode;
 
-  const TextWidthModeModifier(this.mode);
+  const TextWidthModeModifier(
+    this.mode, {
+    required super.condition,
+  });
 
   @override
   ui.Text modify(
@@ -384,9 +433,15 @@ class TextWidthModeModifier extends ComponentModifier with TextModifier {
 }
 
 mixin ModifiableTextWidthMode<Type extends Component> on Component<Type> {
-  Type width(TextWidthMode mode) {
+  Type width(
+    TextWidthMode mode, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      TextWidthModeModifier(mode),
+      TextWidthModeModifier(
+        mode,
+        condition: condition,
+      ),
     );
   }
 
@@ -397,7 +452,10 @@ mixin ModifiableTextWidthMode<Type extends Component> on Component<Type> {
 class TextHeightBehaviorModifier extends ComponentModifier with TextModifier {
   final ui.TextHeightBehavior behavior;
 
-  const TextHeightBehaviorModifier(this.behavior);
+  const TextHeightBehaviorModifier(
+    this.behavior, {
+    required super.condition,
+  });
 
   @override
   ui.Text modify(
@@ -411,9 +469,15 @@ class TextHeightBehaviorModifier extends ComponentModifier with TextModifier {
 }
 
 mixin ModifiableTextHeightBehavior<Type extends Component> on Component<Type> {
-  Type height(ui.TextHeightBehavior behavior) {
+  Type height(
+    ui.TextHeightBehavior behavior, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      TextHeightBehaviorModifier(behavior),
+      TextHeightBehaviorModifier(
+        behavior,
+        condition: condition,
+      ),
     );
   }
 }
@@ -421,7 +485,10 @@ mixin ModifiableTextHeightBehavior<Type extends Component> on Component<Type> {
 class SemanticsLabelModifier extends ComponentModifier with TextModifier {
   final String label;
 
-  const SemanticsLabelModifier(this.label);
+  const SemanticsLabelModifier(
+    this.label, {
+    required super.condition,
+  });
 
   @override
   ui.Text modify(
@@ -435,9 +502,15 @@ class SemanticsLabelModifier extends ComponentModifier with TextModifier {
 }
 
 mixin ModifiableSemanticsLabel<Type extends Component> on Component<Type> {
-  Type semanticLabel(String label) {
+  Type semanticLabel(
+    String label, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      SemanticsLabelModifier(label),
+      SemanticsLabelModifier(
+        label,
+        condition: condition,
+      ),
     );
   }
 }
@@ -445,7 +518,10 @@ mixin ModifiableSemanticsLabel<Type extends Component> on Component<Type> {
 class SelectionColorModifier extends ComponentModifier with TextModifier {
   final Color color;
 
-  const SelectionColorModifier(this.color);
+  const SelectionColorModifier(
+    this.color, {
+    required super.condition,
+  });
 
   @override
   ui.Text modify(
@@ -459,9 +535,15 @@ class SelectionColorModifier extends ComponentModifier with TextModifier {
 }
 
 mixin ModifiableSelectionColor<Type extends Component> on Component<Type> {
-  Type selectionColor(Color color) {
+  Type selectionColor(
+    Color color, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      SelectionColorModifier(color),
+      SelectionColorModifier(
+        color,
+        condition: condition,
+      ),
     );
   }
 }
@@ -469,7 +551,10 @@ mixin ModifiableSelectionColor<Type extends Component> on Component<Type> {
 class TextColorModifier extends ComponentModifier with TextStyleModifier {
   final Color? color;
 
-  const TextColorModifier([this.color]);
+  const TextColorModifier(
+    this.color, {
+    super.condition,
+  });
 
   @override
   ui.TextStyle modify(
@@ -489,9 +574,15 @@ class TextColorModifier extends ComponentModifier with TextStyleModifier {
 }
 
 mixin ModifiableTextColor<Type extends Component> on Component<Type> {
-  Type color(Color color) {
+  Type color(
+    Color? color, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      TextColorModifier(color),
+      TextColorModifier(
+        color,
+        condition: condition,
+      ),
     );
   }
 }
@@ -499,7 +590,10 @@ mixin ModifiableTextColor<Type extends Component> on Component<Type> {
 class TextSizeModifier extends ComponentModifier with TextStyleModifier {
   final double size;
 
-  const TextSizeModifier(this.size);
+  const TextSizeModifier(
+    this.size, {
+    required super.condition,
+  });
 
   @override
   ui.TextStyle modify(
@@ -513,9 +607,15 @@ class TextSizeModifier extends ComponentModifier with TextStyleModifier {
 }
 
 mixin ModifiableTextSize<Type extends Component> on Component<Type> {
-  Type size(double size) {
+  Type size(
+    double size, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      TextSizeModifier(size),
+      TextSizeModifier(
+        size,
+        condition: condition,
+      ),
     );
   }
 }
@@ -523,7 +623,10 @@ mixin ModifiableTextSize<Type extends Component> on Component<Type> {
 class FontModifier extends ComponentModifier with TextStyleModifier {
   final String? font;
 
-  const FontModifier([this.font]);
+  const FontModifier(
+    this.font, {
+    super.condition,
+  });
 
   @override
   ui.TextStyle modify(
@@ -539,9 +642,15 @@ class FontModifier extends ComponentModifier with TextStyleModifier {
 }
 
 mixin ModifiableFont<Type extends Component> on Component<Type> {
-  Type font(String font) {
+  Type font(
+    String font, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      FontModifier(font),
+      FontModifier(
+        font,
+        condition: condition,
+      ),
     );
   }
 }
@@ -591,7 +700,10 @@ class TextWeight {
 class TextWeightModifier extends ComponentModifier with TextStyleModifier {
   final TextWeight weight;
 
-  const TextWeightModifier(this.weight);
+  const TextWeightModifier(
+    this.weight, {
+    required super.condition,
+  });
 
   @override
   ui.TextStyle modify(
@@ -609,9 +721,15 @@ class TextWeightModifier extends ComponentModifier with TextStyleModifier {
 }
 
 mixin ModifiableTextWeight<Type extends Component> on Component<Type> {
-  Type weight(TextWeight weight) {
+  Type weight(
+    TextWeight weight, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      TextWeightModifier(weight),
+      TextWeightModifier(
+        weight,
+        condition: condition,
+      ),
     );
   }
 }
@@ -619,7 +737,10 @@ mixin ModifiableTextWeight<Type extends Component> on Component<Type> {
 class TextSlantModifier extends ComponentModifier with TextStyleModifier {
   final TextSlant slant;
 
-  const TextSlantModifier(this.slant);
+  const TextSlantModifier(
+    this.slant, {
+    required super.condition,
+  });
 
   @override
   ui.TextStyle modify(
@@ -637,9 +758,15 @@ class TextSlantModifier extends ComponentModifier with TextStyleModifier {
 }
 
 mixin ModifiableTextSlant<Type extends Component> on Component<Type> {
-  Type slant(TextSlant slant) {
+  Type slant(
+    TextSlant slant, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      TextSlantModifier(slant),
+      TextSlantModifier(
+        slant,
+        condition: condition,
+      ),
     );
   }
 }
@@ -660,7 +787,10 @@ class LetterSpacing {
 class LetterSpacingModifier extends ComponentModifier with TextStyleModifier {
   final LetterSpacing letterSpacing;
 
-  const LetterSpacingModifier(this.letterSpacing);
+  const LetterSpacingModifier(
+    this.letterSpacing, {
+    required super.condition,
+  });
 
   @override
   ui.TextStyle modify(
@@ -674,9 +804,15 @@ class LetterSpacingModifier extends ComponentModifier with TextStyleModifier {
 }
 
 mixin ModifiableLetterSpacing<Type extends Component> on Component<Type> {
-  Type letterSpacing(LetterSpacing letterSpacing) {
+  Type letterSpacing(
+    LetterSpacing letterSpacing, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
-      LetterSpacingModifier(letterSpacing),
+      LetterSpacingModifier(
+        letterSpacing,
+        condition: condition,
+      ),
     );
   }
 }
@@ -697,7 +833,10 @@ class WordSpacing {
 class WordSpacingModifier extends ComponentModifier with TextStyleModifier {
   final WordSpacing wordSpacing;
 
-  const WordSpacingModifier(this.wordSpacing);
+  const WordSpacingModifier(
+    this.wordSpacing, {
+    required super.condition,
+  });
 
   @override
   ui.TextStyle modify(
@@ -711,9 +850,12 @@ class WordSpacingModifier extends ComponentModifier with TextStyleModifier {
 }
 
 mixin ModifiableWordSpacing<Type extends Component> on Component<Type> {
-  Type wordSpacing(WordSpacing wordSpacing) {
+  Type wordSpacing(WordSpacing wordSpacing, {ResponsiveCondition? condition}) {
     return withModifier(
-      WordSpacingModifier(wordSpacing),
+      WordSpacingModifier(
+        wordSpacing,
+        condition: condition,
+      ),
     );
   }
 }

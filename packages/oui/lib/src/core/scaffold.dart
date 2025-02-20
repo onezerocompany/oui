@@ -20,16 +20,16 @@ import 'package:flutter/widgets.dart'
         StatelessWidget,
         Transform,
         Widget;
+import 'package:oui/src/core/config.dart' show Config;
 import 'package:oui/src/core/state.dart';
 
 import '../components/box.dart';
-import 'app.dart';
+import '../components/screen.dart';
 import 'background.dart';
 import 'border.dart';
 import 'component.dart';
 import 'geometry.dart';
 import 'routing.dart';
-import 'screen.dart';
 
 enum RailContainerStyle {
   // The rails on the sides reach the top and bottom of the container.
@@ -181,7 +181,8 @@ class ScaffoldLayoutBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final minPanelWidth = context.config.scaffold.defaultPanelSize.width.start;
+    final minPanelWidth =
+        Config.of(context).scaffold.defaultPanelSize.width.start;
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = Size.fixed(
@@ -294,7 +295,7 @@ class Scaffold extends Box {
     return [
       const StateModifier(State.normal),
       const BackgroundModifier(null),
-      BoxContentModifier(content: [_buildScaffold()]),
+      ChildProviderModifier(content: [_buildScaffold()]),
     ];
   }
 }

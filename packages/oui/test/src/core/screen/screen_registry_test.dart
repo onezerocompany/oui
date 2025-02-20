@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oui/src/core/routing.dart';
-import 'package:oui/src/core/screen.dart';
+import 'package:oui/src/core/screen_registry.dart';
 
 import 'screen_testing_utils.dart';
 

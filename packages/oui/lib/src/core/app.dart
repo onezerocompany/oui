@@ -10,96 +10,129 @@ import 'package:flutter/widgets.dart'
         Widget,
         WidgetsApp;
 import 'package:flutter/widgets.dart' as widgets show State;
-import 'package:oui/src/components/box.dart';
+import 'package:oui/src/core/responsive.dart';
+import 'package:oui/src/core/screen_registry.dart';
 
 import 'colors.dart';
 import 'config.dart';
 import 'routing.dart';
-import 'screen.dart';
-import 'state.dart';
 import 'typography.dart';
 
 class StaticAppContext extends InheritedWidget {
   final Config config;
+  final RouteInformationParser routerInformationParser;
   final Router router;
   final ColorPalette colorPalette;
   final Typography typography;
+  final ScreenRegistry screenRegistry;
 
   const StaticAppContext({
     super.key,
     required this.config,
+    required this.routerInformationParser,
     required this.router,
     required this.colorPalette,
     required this.typography,
     required super.child,
+    required this.screenRegistry,
   });
 
-  static StaticAppContext? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<StaticAppContext>();
-  }
-
-  static Config? configOf(BuildContext context) {
-    return of(context)?.config;
-  }
-
-  static Router? routerOf(BuildContext context) {
-    return of(context)?.router;
-  }
-
-  static ColorPalette? colorPaletteOf(BuildContext context) {
-    return of(context)?.colorPalette;
+  static StaticAppContext of(BuildContext context) {
+    final staticContext =
+        context.dependOnInheritedWidgetOfExactType<StaticAppContext>();
+    if (staticContext == null) {
+      throw FlutterError(
+        'AppContext not found in context. Make sure to wrap your app with OuiApp.',
+      );
+    }
+    return staticContext;
   }
 
   @override
   bool updateShouldNotify(StaticAppContext oldWidget) {
-    return router != oldWidget.router || config != oldWidget.config;
+    return config != oldWidget.config ||
+        router != oldWidget.router ||
+        colorPalette != oldWidget.colorPalette ||
+        typography != oldWidget.typography;
   }
 }
 
-extension AppContextExtension on BuildContext {
-  T _getFromContext<T>(T Function(StaticAppContext) extractor) {
-    final context = StaticAppContext.of(this);
-    if (context == null) {
-      throw FlutterError(
-        'AppContext not found in context. Make sure to wrap your app with OuiApp.\nThe context used to retrieve the value must be a descendant of AppContext.',
-      );
-    }
-    return extractor(context);
-  }
+class StaticAppContextProvider extends StatelessWidget {
+  final Config config;
+  final Widget child;
 
-  Config get config {
-    return _getFromContext((context) => context.config);
-  }
+  const StaticAppContextProvider({
+    super.key,
+    required this.config,
+    required this.child,
+  });
 
-  Router get router {
-    return _getFromContext((context) => context.router);
-  }
-
-  ColorPalette get palette {
-    return _getFromContext((context) => context.colorPalette);
-  }
-
-  BoxColors get colors {
-    return palette.levels.get(theme).get(boxLevel).get(state).accented(accent);
+  @override
+  Widget build(BuildContext context) {
+    final screenRegistry = ScreenRegistry.fromConfig(config);
+    return StaticAppContext(
+      config: config,
+      router: Router(),
+      routerInformationParser: RouteInformationParser(screenRegistry),
+      screenRegistry: screenRegistry,
+      colorPalette: ColorPalette.fromConfig(config.colors),
+      typography: Typography.fromConfig(config.typography),
+      child: child,
+    );
   }
 }
+
+// extension AppContextExtension on BuildContext {
+//   T _getFromContext<T>(T Function(StaticAppContextProvider) extractor) {
+//     final context = StaticAppContextProvider.of(this);
+//     if (context == null) {
+//       throw FlutterError(
+//         'AppContext not found in context. Make sure to wrap your app with OuiApp.\nThe context used to retrieve the value must be a descendant of AppContext.',
+//       );
+//     }
+//     return extractor(context);
+//   }
+
+//   Config get config {
+//     return _getFromContext((context) => context.config);
+//   }
+
+//   Router get router {
+//     return _getFromContext((context) => context.router);
+//   }
+
+//   ColorPalette get palette {
+//     return _getFromContext((context) => context.colorPalette);
+//   }
+
+//   BoxColors get colors {
+//     return palette.levels.get(theme).get(boxLevel).get(state).accented(accent);
+//   }
+// }
 
 class DynamicAppContext extends InheritedWidget {
-  final DynamicTheme theme;
+  final ResponsiveContext responsive;
 
   const DynamicAppContext({
     super.key,
-    required this.theme,
+    required this.responsive,
     required super.child,
   });
 
   @override
-  bool updateShouldNotify(covariant InheritedWidget oldWidget) {
-    return theme != (oldWidget as DynamicAppContext).theme;
+  bool updateShouldNotify(covariant DynamicAppContext oldWidget) {
+    return responsive != oldWidget.responsive;
   }
 
-  static DynamicAppContext? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<DynamicAppContext>();
+  static DynamicAppContext of(BuildContext context) {
+    final dynamicContext =
+        context.dependOnInheritedWidgetOfExactType<DynamicAppContext>();
+    if (dynamicContext == null) {
+      throw FlutterError(
+        'DynamicAppContext not found in context. Make sure to wrap your app with OuiApp.',
+      );
+    }
+    return dynamicContext;
   }
 }
 
@@ -122,16 +155,11 @@ class _DynamicAppContextProviderState
 
   @override
   Widget build(BuildContext context) {
+    final config = StaticAppContext.of(context).config;
     return DynamicAppContext(
-      theme: DynamicTheme.forContext(context),
+      responsive: ResponsiveContext.from(config, context),
       child: widget.child,
     );
-  }
-}
-
-extension DynamicAppContextExtension on BuildContext {
-  DynamicTheme get theme {
-    return DynamicAppContext.of(this)?.theme ?? DynamicTheme.light;
   }
 }
 
@@ -144,44 +172,33 @@ class OuiApp extends StatelessWidget {
   /// The theme configuration for the application.
   final Config config;
 
-  /// Registry that contains all screens in the application.
-  final ScreenRegistry _registry;
-
-  /// Parser responsible for converting URLs into state objects.
-  late final RouteInformationParser _routerInformationParser;
-
-  /// Delegate that handles routing decisions.
-  late final Router _router;
-
   /// Creates an [OuiApp].
   ///
   /// The [root] parameter defines the initial screen of the application.
   /// The [notFound] parameter specifies the screen to show when a route is not found.
   /// The optional [authScreen] parameter specifies an authentication screen.
   /// The [config] parameter allows customization of the application's visual properties.
-  OuiApp({
+  const OuiApp({
     super.key,
-    required Screen root,
     required this.config,
-  }) : _registry = ScreenRegistry(root, config.locales) {
-    _routerInformationParser = RouteInformationParser(_registry);
-    _router = Router();
+  });
+
+  Widget _buildApp(BuildContext context) {
+    final staticContext = StaticAppContext.of(context);
+    return WidgetsApp.router(
+      color: const ui.Color.fromARGB(205, 0, 0, 0),
+      routerDelegate: staticContext.router,
+      routeInformationParser: staticContext.routerInformationParser,
+      debugShowCheckedModeBanner: false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return StaticAppContext(
-      router: _router,
+    return StaticAppContextProvider(
       config: config,
-      colorPalette: ColorPalette.fromConfig(config.colors),
-      typography: Typography.fromConfig(config.typography),
       child: DynamicAppContextProvider(
-        child: WidgetsApp.router(
-          color: const ui.Color.fromARGB(255, 0, 0, 0),
-          routerDelegate: _router,
-          routeInformationParser: _routerInformationParser,
-          debugShowCheckedModeBanner: false,
-        ),
+        child: _buildApp(context),
       ),
     );
   }

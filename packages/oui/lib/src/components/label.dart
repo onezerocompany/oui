@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart' as ui;
 import 'package:flutter/widgets.dart' show Key, Text, Widget;
-import 'package:oui/src/core/modifiers.dart';
 
 import '../core/_index.dart';
 
@@ -31,8 +30,8 @@ class Label extends Component<Label>
   }) : super(
           modifiers: modifiers ??
               const [
-                FontModifier(),
-                TextColorModifier(),
+                FontModifier(null),
+                TextColorModifier(null),
               ],
         );
 
@@ -63,14 +62,14 @@ class Label extends Component<Label>
   }
 
   @override
-  Widget buildWithModifiers(
+  Widget _buildWithModifiers(
     ComponentContext context, [
     Widget? child,
   ]) {
     Text label = Text(text ?? '', maxLines: 1);
     ui.TextStyle style = const ui.TextStyle();
 
-    for (final modifier in modifiers.sorted) {
+    for (final modifier in context.modifiers) {
       if (modifier is TextModifier) {
         label = modifier.modify(label, context);
       }
