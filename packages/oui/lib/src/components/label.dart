@@ -5,6 +5,8 @@ import 'package:oui/src/core/component.dart'
 import 'package:oui/src/core/localization.dart'
     show Localized, LocalizedExtension;
 import 'package:oui/src/core/state.dart' show ModifiableState;
+import 'package:oui/src/core/utils.dart'
+    show FirstOfTypeExtension, TextExtension;
 
 import '../core/typography.dart'
     show
@@ -23,8 +25,10 @@ import '../core/typography.dart'
         ModifiableTextSlant,
         ModifiableTextWeight,
         ModifiableTextWidthMode,
+        ModifiableTypography,
         ModifiableWordSpacing,
-        TextColorModifier;
+        TextColorModifier,
+        TypographyModifier;
 
 /// Mixin for modifiers that modify text styles.
 mixin TextStyleModifier on ComponentModifier {
@@ -60,7 +64,8 @@ class Label extends Component<Label>
         ModifiableLetterSpacing<Label>,
         ModifiableWordSpacing<Label>,
         ModifiableAccent<Label>,
-        ModifiableState<Label> {
+        ModifiableState<Label>,
+        ModifiableTypography<Label> {
   const Label(
     this.text, {
     this.localized,
@@ -69,13 +74,25 @@ class Label extends Component<Label>
   }) : super(
           modifiers: modifiers ??
               const [
-                FontModifier(null),
-                TextColorModifier(null),
+                FontModifier(),
+                TextColorModifier(),
               ],
         );
 
   final String? text;
   final Localized<String>? localized;
+
+  factory Label.text(
+    String text, {
+    Key? key,
+    ComponentModifiers? modifiers,
+  }) {
+    return Label(
+      text,
+      key: key,
+      modifiers: modifiers,
+    );
+  }
 
   factory Label.localized(
     Localized<String> localized, {
@@ -109,11 +126,16 @@ class Label extends Component<Label>
       return modifier.modify(acc, context);
     });
 
+    final typographyModifier =
+        context.modifiers.firstOfType<TypographyModifier>();
     final styleModifiers = context.modifiers.whereType<TextStyleModifier>();
-    TextStyle style = const TextStyle();
+    TextStyle style =
+        typographyModifier?.context.style(context) ?? const TextStyle();
     style = styleModifiers.fold(style, (TextStyle acc, modifier) {
       return modifier.modify(acc, context);
     });
+
+    label = label.copyWith(style: style);
 
     return label;
   }

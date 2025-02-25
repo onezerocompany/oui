@@ -1090,18 +1090,28 @@ class CornerModifier extends ComponentModifier
       child: child,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is CornerModifier) return other;
+    return this;
+  }
 }
 
 mixin ModifiableCorner<Type extends Component> on Component<Type> {
-  Type corner(CornerBorder corner) {
+  Type corner(
+    CornerBorder corner, {
+    bool clip = false,
+  }) {
     return withModifier(
-      CornerModifier(corner: corner),
+      CornerModifier(corner: corner, clip: clip),
     );
   }
 
   Type allCorners(
     double radius, {
     double smoothing = 0.7,
+    bool clip = false,
   }) {
     return withModifier(
       CornerModifier(
@@ -1113,16 +1123,19 @@ mixin ModifiableCorner<Type extends Component> on Component<Type> {
             ),
           ),
         ),
+        clip: clip,
       ),
     );
   }
 
-  Type rounded([
-    SizeLevel? roundness,
-  ]) {
+  Type rounded(
+    SizeLevel? roundness, {
+    bool clip = false,
+  }) {
     return withModifier(
       CornerModifier(
         roundness: roundness,
+        clip: clip,
       ),
     );
   }

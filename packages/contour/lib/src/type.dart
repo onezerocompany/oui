@@ -1,143 +1,128 @@
-/// Base class for all operations that can be performed on a value during validation
-/// or transformation.
-abstract class ContourOperation<T> {
-  const ContourOperation();
-  dynamic call(T value);
+import 'package:contour/src/instance.dart' show VariableInstance;
+
+enum ContourErrorType {
+  /// Indicates that the error is related to a missing required field.
+  missing,
+
+  /// Indicates that the error is related to a type mismatch.
+  type,
+
+  /// Indicates that the error is related to a failed validation check.
+  check,
 }
 
 /// Represents a single validation error that occurred during parsing.
 class ContourError implements Exception {
+  /// The name of the field that caused the error.
+  final String field;
+
+  /// The type of the field that caused the error.
+  final ContourErrorType type;
+
   /// The error message describing what went wrong.
   final String message;
 
-  /// The name or identifier of the validation that failed.
-  final String name;
-
-  const ContourError({required this.message, required this.name});
-
-  @override
-  String toString() => 'ContourValidationError: $name - $message';
+  const ContourError({
+    required this.field,
+    required this.type,
+    required this.message,
+  });
 }
 
-/// Represents multiple validation errors that occurred during parsing.
-class ContourParseError implements Exception {
-  /// List of individual validation errors.
-  final List<ContourError> errors;
+typedef ContourErrors = List<ContourError>;
 
-  const ContourParseError(this.errors);
+class ContourParseResult<T> {
+  final T? value;
+  final ContourErrors errors;
+
+  /// Creates a new [ContourParseResult].
+  const ContourParseResult(this.value, this.errors);
+
+  /// Merge two [ContourParseResult]s.
+  ContourParseResult<T> merge(ContourParseResult<T> other) {
+    return ContourParseResult(other.value, [...errors, ...other.errors]);
+  }
 
   @override
   String toString() {
-    return 'ContourParseError: ${errors.map((e) => e.toString()).join(', ')}';
+    return 'ContourParseResult(value: $value, errors: $errors)';
   }
 }
 
-/// A function that checks if a value meets certain criteria.
-typedef ContourChecker<T> = bool Function(T value);
+typedef ContourOperator<T> =
+    ContourParseResult<T> Function(String field, T? value);
 
-/// An operation that validates a value against specific criteria.
-class ContourCheck<T> extends ContourOperation<T> {
-  /// The function that performs the validation check.
-  final ContourChecker<T> check;
+enum ContourOperationType {
+  /// Indicates that the operation is a transformation.
+  transform,
 
-  /// The error message to display if validation fails.
-  final String message;
+  /// Indicates that the operation is a validation check.
+  check,
+}
 
-  /// The name of this validation check.
+/// An operation that can be performed on a value during parsing.
+class ContourOperation<T> {
+  /// The name of this operation.
   final String name;
 
-  const ContourCheck({required this.check, this.message = '', this.name = ''});
+  /// The type of this operation.
+  final ContourOperationType type;
 
-  @override
-  T call(T value) {
-    if (!check(value)) {
-      throw ContourError(message: message, name: name);
-    }
-    return value;
-  }
-}
+  /// The operator function that performs the operation.
+  final ContourOperator<T> operator;
 
-/// A function that transforms a value into another value of the same type.
-typedef ContourTransformer<T> = T Function(T value);
+  /// Creates a new [ContourOperation].
+  const ContourOperation._(this.name, this.type, this.operator);
 
-/// An operation that transforms a value.
-class ContourTransformation<T> extends ContourOperation<T> {
-  /// The function that performs the transformation.
-  final ContourTransformer<T> transform;
+  /// Creates a new [ContourOperation] for a transformation.
+  /// The [name] is used for error reporting and debugging.
+  const ContourOperation.transform(String name, ContourOperator<T> operator)
+    : this._(name, ContourOperationType.transform, operator);
 
-  const ContourTransformation(this.transform);
-
-  @override
-  T call(T value) {
-    return transform(value);
-  }
+  /// Creates a new [ContourOperation] for a validation check.
+  /// The [name] is used for error reporting and debugging.
+  const ContourOperation.check(String name, ContourOperator<T> operator)
+    : this._(name, ContourOperationType.check, operator);
 }
 
 /// Main class for defining type validation and transformation rules.
-class ContourType<T> {
+abstract class ContourType<T, Instance extends ContourType<T, Instance>> {
   /// List of operations to be performed during parsing.
-  final List<ContourOperation<T>> operations = [];
+  final List<ContourOperation<T>> operations;
 
-  ContourType();
+  const ContourType([this.operations = const []]);
 
-  /// Adds a transformation operation to the pipeline.
-  ///
-  /// The transformer function will be called during parsing to modify the value.
-  ContourType<T> transform(ContourTransformer<T> transformer) {
-    operations.add(ContourTransformation(transformer));
-    return this;
+  T? coerce(dynamic value) {
+    if (value is T) {
+      return value;
+    }
+    return null;
   }
 
-  /// Adds a validation check to the pipeline.
-  ///
-  /// The check function will be called during parsing to validate the value.
-  ContourType<T> check({
-    required ContourChecker<T> check,
-    String message = '',
-    String name = '',
-  }) {
-    operations.add(ContourCheck(check: check, message: message, name: name));
-    return this;
-  }
+  Instance get required;
+  Instance get optional;
+  Instance fallback(T value);
 
   /// Parses a value by running it through all defined operations.
   ///
   /// Throws [ContourParseError] if any validation fails.
-  T parse(T value) {
-    T newValue = value;
-    List<ContourError> errors = [];
+  ContourParseResult<T> parse(dynamic value, {String name = 'schema'}) {
+    var result = ContourParseResult<T>(coerce(value), []);
 
-    // First, apply all transformations in the order they were added
-    for (var op in operations.where((op) => op is ContourTransformation<T>)) {
-      newValue = op(newValue);
+    for (final op in operations.where(
+      (op) => op.type == ContourOperationType.transform,
+    )) {
+      result = result.merge(op.operator(name, result.value));
     }
 
-    // Then, apply all checks in the order they were added, accumulating errors
-    for (var op in operations.where((op) => op is ContourCheck<T>)) {
-      try {
-        newValue = op(newValue);
-      } on ContourError catch (e) {
-        errors.add(e);
-      }
+    for (final op in operations.where(
+      (op) => op.type == ContourOperationType.check,
+    )) {
+      result = result.merge(op.operator(name, result.value));
     }
 
-    if (errors.isNotEmpty) {
-      throw ContourParseError(errors);
-    }
-    return newValue;
+    return result;
   }
-}
 
-/// Extension method to sort a list of [ContourOperation] objects.
-extension ContourOperationSorter<T> on List<ContourOperation<T>> {
-  List<ContourOperation<T>> get sorted {
-    return this..sort((a, b) {
-      if (a is ContourTransformation && b is ContourCheck) {
-        return -1;
-      } else if (a is ContourCheck && b is ContourTransformation) {
-        return 1;
-      }
-      return 0;
-    });
-  }
+  VariableInstance<T> instance(String name);
 }

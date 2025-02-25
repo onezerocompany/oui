@@ -16,18 +16,20 @@ import 'package:flutter/widgets.dart'
         Padding,
         Positioned,
         Row,
+        SafeArea,
         Stack,
+        StatefulWidget,
         StatelessWidget,
         Transform,
         Widget;
+import 'package:flutter/widgets.dart' as widgets show State;
+import 'package:oui/src/core/app.dart' show StaticAppContext;
 import 'package:oui/src/core/config.dart' show Config;
-import 'package:oui/src/core/state.dart';
+import 'package:oui/src/core/state.dart' show StateContext, State;
 
 import '../components/box.dart';
 import '../components/screen.dart';
-import 'background.dart';
 import 'border.dart';
-import 'component.dart';
 import 'geometry.dart';
 import 'routing.dart';
 
@@ -214,13 +216,39 @@ class ScaffoldPanels extends StatelessWidget {
   }
 }
 
-class Scaffold extends Box {
-  final PathMatch currentPath;
-
-  const Scaffold(
-    this.currentPath, {
+class Scaffold extends StatefulWidget {
+  const Scaffold({
     super.key,
   });
+
+  @override
+  widgets.State<Scaffold> createState() => ScaffoldState();
+}
+
+class ScaffoldState extends widgets.State<Scaffold> {
+  PathMatch activeMatch = PathMatch.noMatch;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final newMatch = StaticAppContext.of(context).router.activeMatch;
+    if (newMatch != activeMatch) {
+      setState(() {
+        activeMatch = newMatch;
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant Scaffold oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final newMatch = StaticAppContext.of(context).router.activeMatch;
+    if (newMatch != activeMatch) {
+      setState(() {
+        activeMatch = newMatch;
+      });
+    }
+  }
 
   List<Widget> _buildPanels(
     BuildContext context,
@@ -246,14 +274,16 @@ class Scaffold extends Box {
         .toList(growable: false);
   }
 
-  Widget _buildScaffold() {
+  Widget _buildScaffold(context) {
     return ScaffoldLayoutBuilder(
-      currentPath: currentPath,
+      currentPath: activeMatch,
       builder: (context, layout) {
-        final main = RailedContainer(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: _buildPanels(context, layout.panels),
+        final main = SafeArea(
+          child: RailedContainer(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: _buildPanels(context, layout.panels),
+            ),
           ),
         );
 
@@ -291,11 +321,13 @@ class Scaffold extends Box {
   }
 
   @override
-  ComponentModifiers get modifiers {
-    return [
-      const StateModifier(State.normal),
-      const BackgroundModifier(null),
-      ContentProviderModifier(content: [_buildScaffold()]),
-    ];
+  Widget build(BuildContext context) {
+    return StateContext(
+      state: State.normal,
+      child: BoxLevelContext(
+        level: const BoxLevel(0),
+        child: const Box().background(null).contentBuilder(_buildScaffold),
+      ),
+    );
   }
 }

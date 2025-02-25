@@ -259,6 +259,14 @@ class AlignmentModifier extends ComponentModifier with ContentModifier {
       child: child,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is AlignmentModifier) {
+      return AlignmentModifier(alignment);
+    }
+    return this;
+  }
 }
 
 mixin ModifiableAlignment<Type extends Component> on Component<Type> {
@@ -436,6 +444,16 @@ class InsetModifier extends ComponentModifier with ContentModifier {
   @override
   String toString() {
     return 'InsetModifier(insets: $insets)';
+  }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is InsetModifier) {
+      return InsetModifier(
+        insets + other.insets,
+      );
+    }
+    return this;
   }
 }
 
@@ -724,6 +742,14 @@ class SizeModifier extends ComponentModifier with ContentModifier {
     }
     return size?.apply(child) ?? child;
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is SizeModifier) {
+      return other;
+    }
+    return this;
+  }
 }
 
 mixin ModifiableSize<Type extends Component> on Component<Type> {
@@ -857,13 +883,13 @@ enum RectangleFit {
   const RectangleFit(this.boxFit);
 }
 
-class Aligner extends StatelessWidget {
+class MultiChildAligner extends StatelessWidget {
   final List<Widget> children;
   final Alignment alignment;
   final FlowDirection flowDirection;
   final bool scrollable;
 
-  const Aligner({
+  const MultiChildAligner({
     super.key,
     required this.children,
     this.alignment = Alignment.center,
@@ -876,19 +902,19 @@ class Aligner extends StatelessWidget {
     return Align(
       alignment: alignment.uiAlignment,
       child: Flow(
-        delegate: AlignerDelegate(flowDirection),
+        delegate: MultiChildAlignerDelegate(flowDirection),
         children: children,
       ),
     );
   }
 }
 
-class AlignerDelegate extends FlowDelegate {
+class MultiChildAlignerDelegate extends FlowDelegate {
   final FlowDirection flowDirection;
   final Alignment alignment;
   final int maxLines;
 
-  const AlignerDelegate(
+  const MultiChildAlignerDelegate(
     this.flowDirection, [
     this.alignment = Alignment.center,
     this.maxLines = 1,
@@ -956,7 +982,7 @@ class AlignerDelegate extends FlowDelegate {
 
   @override
   bool shouldRepaint(covariant FlowDelegate oldDelegate) {
-    return oldDelegate is! AlignerDelegate ||
+    return oldDelegate is! MultiChildAlignerDelegate ||
         oldDelegate.flowDirection != flowDirection ||
         oldDelegate.maxLines != maxLines;
   }

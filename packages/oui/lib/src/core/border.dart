@@ -104,6 +104,14 @@ class BorderSide with Interpolable<BorderSide> {
       ),
     );
   }
+
+  BorderSide merge(BorderSide? other) {
+    if (other == null) return this;
+    return BorderSide(
+      thickness: thickness + other.thickness,
+      color: other.color ?? color,
+    );
+  }
 }
 
 extension BorderSideExtension on painting.BorderSide {
@@ -212,6 +220,16 @@ class Border {
   String toString() {
     return 'Border(top: $top, right: $right, bottom: $bottom, left: $left)';
   }
+
+  Border merge(Border other) {
+    return Border.only(
+      top: top?.merge(other.top) ?? other.top,
+      right: right?.merge(other.right) ?? other.right,
+      bottom: bottom?.merge(other.bottom) ?? other.bottom,
+      left: left?.merge(other.left) ?? other.left,
+      align: other.align,
+    );
+  }
 }
 
 /// A class that modifies a border.
@@ -225,6 +243,17 @@ class BorderModifier extends ComponentModifier with DecorationModifier {
     this.auto = false,
     super.condition,
   });
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is BorderModifier) {
+      return BorderModifier(
+        border.merge(other.border),
+        auto: other.auto,
+      );
+    }
+    return this;
+  }
 
   @override
   Decoration? decorate(

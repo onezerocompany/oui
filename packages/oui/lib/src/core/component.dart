@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart'
     show BuildContext, InheritedWidget, SizedBox, StatelessWidget, Widget;
 import 'package:oui/src/core/config.dart' show Config;
-import 'package:oui/src/core/geometry.dart' show Aligner, FlowDirection;
+import 'package:oui/src/core/geometry.dart'
+    show MultiChildAligner, FlowDirection;
 import 'package:oui/src/core/modifiers.dart' show ModifierSorting;
 import 'package:oui/src/core/utils.dart' show FirstOfTypeExtension;
 
@@ -90,7 +91,8 @@ class ComponentContext extends ResponsiveContext {
         other.density == density &&
         other.theme == theme &&
         other.accent == accent &&
-        other.state == state;
+        other.state == state &&
+        other.modifiers == modifiers;
   }
 
   @override
@@ -102,7 +104,8 @@ class ComponentContext extends ResponsiveContext {
         density.hashCode ^
         theme.hashCode ^
         accent.hashCode ^
-        state.hashCode;
+        state.hashCode ^
+        modifiers.hashCode;
   }
 
   static ComponentContext of(BuildContext buildContext) {
@@ -131,12 +134,22 @@ class ComponentContextProvider extends InheritedWidget {
 
 typedef ComponentModifierConditional = bool Function(ComponentContext context);
 
-/// Base class for all modifiers.
 abstract class ComponentModifier {
   final ResponsiveCondition? condition;
+  ComponentModifier merge(ComponentModifier other);
   const ComponentModifier({
     this.condition,
   });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is ComponentModifier && other.condition == condition;
+  }
+
+  @override
+  int get hashCode => condition.hashCode;
 }
 
 typedef ComponentModifiers = List<ComponentModifier>;
@@ -159,12 +172,25 @@ class ContentProviderModifier extends ComponentModifier {
     } else if (content.length == 1) {
       return content.first;
     } else if (content.isNotEmpty) {
-      return Aligner(
+      return MultiChildAligner(
         flowDirection: direction,
         children: content,
       );
     } else {
       return const SizedBox.shrink();
+    }
+  }
+
+  @override
+  ContentProviderModifier merge(ComponentModifier other) {
+    if (other is ContentProviderModifier) {
+      return ContentProviderModifier(
+        content: [...content, ...other.content],
+        builder: other.builder ?? builder,
+        direction: other.direction,
+      );
+    } else {
+      return this;
     }
   }
 }
@@ -184,12 +210,24 @@ mixin ModifiableContentProvider<Type extends Component> on Component<Type> {
     );
   }
 
-  Type content(Widget content) => contents([content]);
+  Type content(
+    Widget content, {
+    FlowDirection direction = FlowDirection.topToBottom,
+    ResponsiveCondition? condition,
+  }) =>
+      contents([content], direction: direction, condition: condition);
+
+  Type items(
+    List<Widget> children, {
+    FlowDirection direction = FlowDirection.topToBottom,
+    ResponsiveCondition? condition,
+  }) =>
+      contents(children, direction: direction, condition: condition);
 
   Type contentBuilder(
-    Widget Function(ComponentContext) builder,
+    Widget Function(ComponentContext) builder, {
     ResponsiveCondition? condition,
-  ) {
+  }) {
     return withModifier(
       ContentProviderModifier(
         builder: builder,
@@ -203,6 +241,13 @@ mixin ModifiableContentProvider<Type extends Component> on Component<Type> {
 mixin ContentModifier on ComponentModifier {
   Widget? modify(
     Widget? child,
+    ComponentContext context,
+  );
+}
+
+mixin WrapperModifier on ComponentModifier {
+  Widget wrap(
+    Widget child,
     ComponentContext context,
   );
 }
@@ -221,16 +266,27 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
     ComponentModifiers? modifiers,
   });
 
-  /// Adds a modifier to the component, optionally ensuring uniqueness.
+  /// Adds a modifier to the component
   ComponentType withModifier(
     ComponentModifier modifier,
   ) {
-    return copyWith(
-      modifiers: [
-        ...modifiers,
-        modifier,
-      ],
-    );
+    if (modifier.condition == null) {
+      return copyWith(
+        modifiers: [
+          ...modifiers.where(
+            (m) => m.runtimeType != modifier.runtimeType || m.condition != null,
+          ),
+          modifier,
+        ],
+      );
+    } else {
+      return copyWith(
+        modifiers: [
+          ...modifiers,
+          modifier,
+        ],
+      );
+    }
   }
 
   Widget builder(ComponentContext context) {
@@ -260,6 +316,7 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
   @nonVirtual
   @override
   Widget build(BuildContext context) {
+    print('Building $runtimeType');
     final componentContext = _componentContext(context);
     return ComponentContextProvider(
       context: componentContext,

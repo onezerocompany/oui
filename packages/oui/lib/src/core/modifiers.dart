@@ -1,8 +1,11 @@
 import 'package:oui/oui.dart';
 
 final allModifiers = [
+  // Wrapper Modifiers
   StateModifier,
   AccentModifier,
+  TypographyModifier,
+  // Content Providers
   ContentProviderModifier,
   // Text Modifiers
   MaxLinesModifier,
@@ -25,13 +28,13 @@ final allModifiers = [
   // Decoration Modifiers
   ShadowModifier,
   BorderModifier,
-  // Child + Decoration Modifiers
-  BackgroundModifier,
-  CornerModifier,
   // Child Modifiers
   SizeModifier,
   AlignmentModifier,
   InsetModifier,
+  // Child + Decoration Modifiers
+  BackgroundModifier,
+  CornerModifier,
 ];
 
 extension ModifierSorting on ComponentModifiers {
@@ -57,6 +60,11 @@ extension ModifierSorting on ComponentModifiers {
       (modifier) => modifier.condition?.call(context) ?? true,
     ).toList();
 
+    if (applicable.hasModifier<SizeModifier>() &&
+        !applicable.hasModifier<AlignmentModifier>()) {
+      applicable.add(const AlignmentModifier(Alignment.topLeft));
+    }
+
     applicable.sort(_sortModifier);
 
     // get all unique types of modifiers
@@ -66,41 +74,9 @@ extension ModifierSorting on ComponentModifiers {
     final resolved = <ComponentModifier>[];
     for (final type in types) {
       final modifiers = applicable.where((m) => m.runtimeType == type).toList();
-      if (modifiers.length == 1) {
-        resolved.add(modifiers.first);
-      } else {
-        // find the first conditional modifier and fallback to the first non conditional
-        final conditional = modifiers.firstWhere(
-          (m) => m.condition != null,
-          orElse: () => modifiers.first,
-        );
-        resolved.add(conditional);
-      }
+      resolved.add(modifiers.reduce((a, b) => a.merge(b)));
     }
     return resolved;
-  }
-
-  /// Groups the modifiers by type.
-  List<List<ComponentModifier>> get grouped {
-    final copy = List<ComponentModifier>.from(this);
-    copy.sort(_sortModifier);
-
-    final groups = <List<ComponentModifier>>[];
-    var currentGroup = <ComponentModifier>[];
-
-    for (var i = 0; i < copy.length; i++) {
-      final current = copy[i];
-      final next = i + 1 < copy.length ? copy[i + 1] : null;
-
-      currentGroup.add(current);
-
-      if (next == null || current.runtimeType != next.runtimeType) {
-        groups.add(currentGroup);
-        currentGroup = <ComponentModifier>[];
-      }
-    }
-
-    return groups;
   }
 
   bool hasModifier<Modifier extends ComponentModifier>() {

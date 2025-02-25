@@ -1,9 +1,10 @@
+import 'package:flutter/widgets.dart'
+    show BuildContext, InheritedWidget, Widget;
 import 'package:flutter/widgets.dart' as ui
     show
         FontStyle,
         FontVariation,
         FontWeight,
-        InheritedWidget,
         Text,
         TextAlign,
         TextHeightBehavior,
@@ -11,15 +12,16 @@ import 'package:flutter/widgets.dart' as ui
         TextScaler,
         TextStyle,
         TextWidthBasis;
-import 'package:flutter/widgets.dart' show BuildContext;
 import 'package:oui/src/components/label.dart'
     show TextModifier, TextStyleModifier;
+import 'package:oui/src/core/app.dart' show StaticAppContext;
 import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
 import 'package:oui/src/core/utils.dart'
     show EnumContainer, Range, SizeLevel, SizedContainer, TextExtension;
 
 import 'colors.dart' show Color;
-import 'component.dart' show Component, ComponentContext, ComponentModifier;
+import 'component.dart'
+    show Component, ComponentContext, ComponentModifier, WrapperModifier;
 import 'interpolation.dart' show Curve, DoubleInterpolator;
 
 class TypographyConfigGroup {
@@ -45,11 +47,11 @@ class TypographyConfig {
 
   const TypographyConfig({
     this.headings = const TypographyConfigGroup(
-      size: Range(18.0, 36.0),
+      size: Range(18.0, 44.0),
       weight: Range(400.0, 600.0),
     ),
     this.subheadings = const TypographyConfigGroup(
-      size: Range(18.0, 36.0),
+      size: Range(18.0, 22.0),
       weight: Range(400.0, 600.0),
     ),
     this.body = const TypographyConfigGroup(
@@ -125,24 +127,99 @@ class TypographyGroupContainer extends SizedContainer<TextStyle> {
   }
 }
 
-class TypographyContext extends ui.InheritedWidget {
+class TypographyContext {
   final TypographyGroup group;
   final SizeLevel size;
 
   const TypographyContext({
-    super.key,
     required this.group,
     required this.size,
-    required super.child,
   });
 
   static TypographyContext? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<TypographyContext>();
+    return context
+        .dependOnInheritedWidgetOfExactType<TypographyContextProvider>()
+        ?.context;
+  }
+
+  ui.TextStyle style(ComponentContext context) {
+    return StaticAppContext.of(context.build)
+        .typography
+        .get(group)
+        .get(size)
+        .uiStyle;
   }
 
   @override
-  bool updateShouldNotify(covariant TypographyContext oldWidget) {
-    return group != oldWidget.group || size != oldWidget.size;
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is TypographyContext &&
+        other.group == group &&
+        other.size == size;
+  }
+
+  @override
+  int get hashCode => group.hashCode ^ size.hashCode;
+}
+
+class TypographyContextProvider extends InheritedWidget {
+  final TypographyContext context;
+
+  const TypographyContextProvider({
+    super.key,
+    required this.context,
+    required super.child,
+  });
+
+  @override
+  bool updateShouldNotify(covariant TypographyContextProvider oldWidget) {
+    return context != oldWidget.context;
+  }
+}
+
+class TypographyModifier extends ComponentModifier with WrapperModifier {
+  final TypographyContext context;
+
+  const TypographyModifier({
+    required this.context,
+    super.condition,
+  });
+
+  @override
+  Widget wrap(
+    Widget child,
+    ComponentContext componentContext,
+  ) {
+    return TypographyContextProvider(
+      context: context,
+      child: child,
+    );
+  }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is TypographyModifier) {
+      return TypographyModifier(
+        context: context,
+      );
+    }
+    return this;
+  }
+}
+
+mixin ModifiableTypography<Type extends Component> on Component<Type> {
+  Type typography(
+    TypographyGroup group,
+    SizeLevel size, {
+    ResponsiveCondition? condition,
+  }) {
+    return withModifier(
+      TypographyModifier(
+        context: TypographyContext(group: group, size: size),
+        condition: condition,
+      ),
+    );
   }
 }
 
@@ -178,6 +255,16 @@ class TextStyle {
     this.wordSpacing = WordSpacing.normal,
     this.letterSpacing = LetterSpacing.normal,
   });
+
+  ui.TextStyle get uiStyle {
+    return ui.TextStyle(
+      fontSize: size,
+      fontWeight: weight.uiWeight,
+      fontStyle: italic.uiSlant,
+      letterSpacing: letterSpacing.value,
+      wordSpacing: wordSpacing.value,
+    );
+  }
 }
 
 enum TextAlign {
@@ -203,9 +290,9 @@ enum TextAlign {
 class TextAlignModifier extends ComponentModifier with TextModifier {
   final TextAlign align;
 
-  const TextAlignModifier(
-    this.align, {
-    required super.condition,
+  const TextAlignModifier({
+    required this.align,
+    super.condition,
   });
 
   @override
@@ -217,6 +304,16 @@ class TextAlignModifier extends ComponentModifier with TextModifier {
       textAlign: align.uiAlign,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is TextAlignModifier) {
+      return TextAlignModifier(
+        align: other.align,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableTextAlign<Type extends Component> on Component<Type> {
@@ -226,24 +323,19 @@ mixin ModifiableTextAlign<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       TextAlignModifier(
-        align,
+        align: align,
         condition: condition,
       ),
     );
   }
-
-  Type get start => align(TextAlign.start);
-  Type get end => align(TextAlign.end);
-  Type get center => align(TextAlign.center);
-  Type get justify => align(TextAlign.justify);
 }
 
 class MaxLinesModifier extends ComponentModifier with TextModifier {
   final int maxLines;
 
-  const MaxLinesModifier(
-    this.maxLines, {
-    required super.condition,
+  const MaxLinesModifier({
+    required this.maxLines,
+    super.condition,
   });
 
   @override
@@ -255,6 +347,16 @@ class MaxLinesModifier extends ComponentModifier with TextModifier {
       maxLines: maxLines,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is MaxLinesModifier) {
+      return MaxLinesModifier(
+        maxLines: other.maxLines,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableMaxLines<Type extends Component> on Component<Type> {
@@ -264,7 +366,7 @@ mixin ModifiableMaxLines<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       MaxLinesModifier(
-        maxLines,
+        maxLines: maxLines,
         condition: condition,
       ),
     );
@@ -274,9 +376,9 @@ mixin ModifiableMaxLines<Type extends Component> on Component<Type> {
 class SoftWrapModifier extends ComponentModifier with TextModifier {
   final bool softWrap;
 
-  const SoftWrapModifier(
-    this.softWrap, {
-    required super.condition,
+  const SoftWrapModifier({
+    required this.softWrap,
+    super.condition,
   });
 
   @override
@@ -288,6 +390,16 @@ class SoftWrapModifier extends ComponentModifier with TextModifier {
       softWrap: softWrap,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is SoftWrapModifier) {
+      return SoftWrapModifier(
+        softWrap: other.softWrap,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableSoftWrap<Type extends Component> on Component<Type> {
@@ -297,7 +409,7 @@ mixin ModifiableSoftWrap<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       SoftWrapModifier(
-        softWrap,
+        softWrap: softWrap,
         condition: condition,
       ),
     );
@@ -327,9 +439,9 @@ enum TextOverflow {
 class TextOverflowModifier extends ComponentModifier with TextModifier {
   final TextOverflow overflow;
 
-  const TextOverflowModifier(
-    this.overflow, {
-    required super.condition,
+  const TextOverflowModifier({
+    required this.overflow,
+    super.condition,
   });
 
   @override
@@ -341,6 +453,16 @@ class TextOverflowModifier extends ComponentModifier with TextModifier {
       overflow: overflow.uiOverflow,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is TextOverflowModifier) {
+      return TextOverflowModifier(
+        overflow: other.overflow,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableTextOverflow<Type extends Component> on Component<Type> {
@@ -350,7 +472,7 @@ mixin ModifiableTextOverflow<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       TextOverflowModifier(
-        overflow,
+        overflow: overflow,
         condition: condition,
       ),
     );
@@ -365,9 +487,9 @@ mixin ModifiableTextOverflow<Type extends Component> on Component<Type> {
 class TextScalerModifier extends ComponentModifier with TextModifier {
   final ui.TextScaler scaler;
 
-  const TextScalerModifier(
-    this.scaler, {
-    required super.condition,
+  const TextScalerModifier({
+    required this.scaler,
+    super.condition,
   });
 
   @override
@@ -379,6 +501,16 @@ class TextScalerModifier extends ComponentModifier with TextModifier {
       textScaler: scaler,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is TextScalerModifier) {
+      return TextScalerModifier(
+        scaler: other.scaler,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableTextScaler<Type extends Component> on Component<Type> {
@@ -388,7 +520,7 @@ mixin ModifiableTextScaler<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       TextScalerModifier(
-        scaler,
+        scaler: scaler,
         condition: condition,
       ),
     );
@@ -412,9 +544,9 @@ enum TextWidthMode {
 class TextWidthModeModifier extends ComponentModifier with TextModifier {
   final TextWidthMode mode;
 
-  const TextWidthModeModifier(
-    this.mode, {
-    required super.condition,
+  const TextWidthModeModifier({
+    required this.mode,
+    super.condition,
   });
 
   @override
@@ -426,6 +558,14 @@ class TextWidthModeModifier extends ComponentModifier with TextModifier {
       textWidthBasis: mode.basis,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is TextWidthModeModifier) {
+      return TextWidthModeModifier(mode: mode);
+    }
+    return this;
+  }
 }
 
 mixin ModifiableTextWidthMode<Type extends Component> on Component<Type> {
@@ -435,7 +575,7 @@ mixin ModifiableTextWidthMode<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       TextWidthModeModifier(
-        mode,
+        mode: mode,
         condition: condition,
       ),
     );
@@ -448,9 +588,9 @@ mixin ModifiableTextWidthMode<Type extends Component> on Component<Type> {
 class TextHeightBehaviorModifier extends ComponentModifier with TextModifier {
   final ui.TextHeightBehavior behavior;
 
-  const TextHeightBehaviorModifier(
-    this.behavior, {
-    required super.condition,
+  const TextHeightBehaviorModifier({
+    required this.behavior,
+    super.condition,
   });
 
   @override
@@ -462,6 +602,16 @@ class TextHeightBehaviorModifier extends ComponentModifier with TextModifier {
       textHeightBehavior: behavior,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is TextHeightBehaviorModifier) {
+      return TextHeightBehaviorModifier(
+        behavior: other.behavior,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableTextHeightBehavior<Type extends Component> on Component<Type> {
@@ -471,7 +621,7 @@ mixin ModifiableTextHeightBehavior<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       TextHeightBehaviorModifier(
-        behavior,
+        behavior: behavior,
         condition: condition,
       ),
     );
@@ -481,9 +631,9 @@ mixin ModifiableTextHeightBehavior<Type extends Component> on Component<Type> {
 class SemanticsLabelModifier extends ComponentModifier with TextModifier {
   final String label;
 
-  const SemanticsLabelModifier(
-    this.label, {
-    required super.condition,
+  const SemanticsLabelModifier({
+    required this.label,
+    super.condition,
   });
 
   @override
@@ -495,6 +645,16 @@ class SemanticsLabelModifier extends ComponentModifier with TextModifier {
       semanticsLabel: label,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is SemanticsLabelModifier) {
+      return SemanticsLabelModifier(
+        label: other.label,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableSemanticsLabel<Type extends Component> on Component<Type> {
@@ -504,7 +664,7 @@ mixin ModifiableSemanticsLabel<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       SemanticsLabelModifier(
-        label,
+        label: label,
         condition: condition,
       ),
     );
@@ -514,9 +674,9 @@ mixin ModifiableSemanticsLabel<Type extends Component> on Component<Type> {
 class SelectionColorModifier extends ComponentModifier with TextModifier {
   final Color color;
 
-  const SelectionColorModifier(
-    this.color, {
-    required super.condition,
+  const SelectionColorModifier({
+    required this.color,
+    super.condition,
   });
 
   @override
@@ -528,16 +688,26 @@ class SelectionColorModifier extends ComponentModifier with TextModifier {
       selectionColor: color.uiColor,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is SelectionColorModifier) {
+      return SelectionColorModifier(
+        color: other.color,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableSelectionColor<Type extends Component> on Component<Type> {
-  Type selectionColor(
-    Color color, {
+  Type selectionColor({
+    required Color color,
     ResponsiveCondition? condition,
   }) {
     return withModifier(
       SelectionColorModifier(
-        color,
+        color: color,
         condition: condition,
       ),
     );
@@ -547,8 +717,8 @@ mixin ModifiableSelectionColor<Type extends Component> on Component<Type> {
 class TextColorModifier extends ComponentModifier with TextStyleModifier {
   final Color? color;
 
-  const TextColorModifier(
-    this.color, {
+  const TextColorModifier({
+    this.color,
     super.condition,
   });
 
@@ -567,6 +737,16 @@ class TextColorModifier extends ComponentModifier with TextStyleModifier {
       color: color!.uiColor,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is TextColorModifier) {
+      return TextColorModifier(
+        color: other.color,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableTextColor<Type extends Component> on Component<Type> {
@@ -576,7 +756,7 @@ mixin ModifiableTextColor<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       TextColorModifier(
-        color,
+        color: color,
         condition: condition,
       ),
     );
@@ -586,9 +766,9 @@ mixin ModifiableTextColor<Type extends Component> on Component<Type> {
 class TextSizeModifier extends ComponentModifier with TextStyleModifier {
   final double size;
 
-  const TextSizeModifier(
-    this.size, {
-    required super.condition,
+  const TextSizeModifier({
+    required this.size,
+    super.condition,
   });
 
   @override
@@ -600,16 +780,26 @@ class TextSizeModifier extends ComponentModifier with TextStyleModifier {
       fontSize: size,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is TextSizeModifier) {
+      return TextSizeModifier(
+        size: other.size,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableTextSize<Type extends Component> on Component<Type> {
-  Type size(
-    double size, {
+  Type size({
+    required double size,
     ResponsiveCondition? condition,
   }) {
     return withModifier(
       TextSizeModifier(
-        size,
+        size: size,
         condition: condition,
       ),
     );
@@ -619,8 +809,8 @@ mixin ModifiableTextSize<Type extends Component> on Component<Type> {
 class FontModifier extends ComponentModifier with TextStyleModifier {
   final String? font;
 
-  const FontModifier(
-    this.font, {
+  const FontModifier({
+    this.font,
     super.condition,
   });
 
@@ -635,6 +825,16 @@ class FontModifier extends ComponentModifier with TextStyleModifier {
       fontFamily: font ?? defaultFont,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is FontModifier) {
+      return FontModifier(
+        font: other.font,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableFont<Type extends Component> on Component<Type> {
@@ -644,7 +844,7 @@ mixin ModifiableFont<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       FontModifier(
-        font,
+        font: font,
         condition: condition,
       ),
     );
@@ -696,9 +896,9 @@ class TextWeight {
 class TextWeightModifier extends ComponentModifier with TextStyleModifier {
   final TextWeight weight;
 
-  const TextWeightModifier(
-    this.weight, {
-    required super.condition,
+  const TextWeightModifier({
+    required this.weight,
+    super.condition,
   });
 
   @override
@@ -714,6 +914,16 @@ class TextWeightModifier extends ComponentModifier with TextStyleModifier {
       ],
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is TextWeightModifier) {
+      return TextWeightModifier(
+        weight: weight,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableTextWeight<Type extends Component> on Component<Type> {
@@ -723,7 +933,7 @@ mixin ModifiableTextWeight<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       TextWeightModifier(
-        weight,
+        weight: weight,
         condition: condition,
       ),
     );
@@ -733,9 +943,9 @@ mixin ModifiableTextWeight<Type extends Component> on Component<Type> {
 class TextSlantModifier extends ComponentModifier with TextStyleModifier {
   final TextSlant slant;
 
-  const TextSlantModifier(
-    this.slant, {
-    required super.condition,
+  const TextSlantModifier({
+    required this.slant,
+    super.condition,
   });
 
   @override
@@ -751,6 +961,16 @@ class TextSlantModifier extends ComponentModifier with TextStyleModifier {
       ],
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is TextSlantModifier) {
+      return TextSlantModifier(
+        slant: slant,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableTextSlant<Type extends Component> on Component<Type> {
@@ -760,7 +980,7 @@ mixin ModifiableTextSlant<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       TextSlantModifier(
-        slant,
+        slant: slant,
         condition: condition,
       ),
     );
@@ -783,9 +1003,9 @@ class LetterSpacing {
 class LetterSpacingModifier extends ComponentModifier with TextStyleModifier {
   final LetterSpacing letterSpacing;
 
-  const LetterSpacingModifier(
-    this.letterSpacing, {
-    required super.condition,
+  const LetterSpacingModifier({
+    required this.letterSpacing,
+    super.condition,
   });
 
   @override
@@ -797,6 +1017,16 @@ class LetterSpacingModifier extends ComponentModifier with TextStyleModifier {
       letterSpacing: letterSpacing.value,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is LetterSpacingModifier) {
+      return LetterSpacingModifier(
+        letterSpacing: other.letterSpacing,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableLetterSpacing<Type extends Component> on Component<Type> {
@@ -806,7 +1036,7 @@ mixin ModifiableLetterSpacing<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       LetterSpacingModifier(
-        letterSpacing,
+        letterSpacing: letterSpacing,
         condition: condition,
       ),
     );
@@ -829,9 +1059,9 @@ class WordSpacing {
 class WordSpacingModifier extends ComponentModifier with TextStyleModifier {
   final WordSpacing wordSpacing;
 
-  const WordSpacingModifier(
-    this.wordSpacing, {
-    required super.condition,
+  const WordSpacingModifier({
+    required this.wordSpacing,
+    super.condition,
   });
 
   @override
@@ -843,13 +1073,23 @@ class WordSpacingModifier extends ComponentModifier with TextStyleModifier {
       wordSpacing: wordSpacing.value,
     );
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is WordSpacingModifier) {
+      return WordSpacingModifier(
+        wordSpacing: other.wordSpacing,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableWordSpacing<Type extends Component> on Component<Type> {
   Type wordSpacing(WordSpacing wordSpacing, {ResponsiveCondition? condition}) {
     return withModifier(
       WordSpacingModifier(
-        wordSpacing,
+        wordSpacing: wordSpacing,
         condition: condition,
       ),
     );

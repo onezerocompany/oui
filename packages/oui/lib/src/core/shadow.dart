@@ -73,10 +73,10 @@ class ShadowModifier extends ComponentModifier with DecorationModifier {
   /// Creates a new [ShadowModifier] instance with the given properties.
   ///
   /// All parameters are required.
-  const ShadowModifier(
-    this.auto,
-    this.shadow, {
-    required super.condition,
+  const ShadowModifier({
+    required this.shadow,
+    this.auto = false,
+    super.condition,
   });
 
   @override
@@ -116,6 +116,17 @@ class ShadowModifier extends ComponentModifier with DecorationModifier {
 
     return null;
   }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is ShadowModifier) {
+      return ShadowModifier(
+        shadow: other.shadow,
+        auto: other.auto,
+      );
+    }
+    return this;
+  }
 }
 
 mixin ModifiableShadow<Type extends Component> on Component<Type> {
@@ -134,8 +145,8 @@ mixin ModifiableShadow<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       ShadowModifier(
-        color == null,
-        Shadow(
+        auto: color == null,
+        shadow: Shadow(
           blur: blur,
           spread: spread,
           color: color ?? Color.black,

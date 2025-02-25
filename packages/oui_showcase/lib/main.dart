@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart'
     show usePathUrlStrategy;
 import 'package:oui/oui.dart';
@@ -22,5 +21,5 @@ final config = Config(
 
 void main() {
   usePathUrlStrategy();
-  runApp(OuiApp(config));
+  runApp(config);
 }

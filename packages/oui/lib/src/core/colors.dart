@@ -1118,27 +1118,10 @@ class MonochromaticColorGenerator extends ColorGenerator {
     }
   }
 
-  Color colorForLevel(
-    int level,
-    Color color,
-    DynamicTheme theme,
-  ) {
-    final t = level / config.levels;
-    const interpolator = Interpolator<HslColor>();
-    final hsl = color.hsl;
-
-    return interpolator
-        .resolve(
-          hsl,
-          theme.isLight ? hsl.darken(0.1) : hsl.lighten(0.1),
-          t,
-        )
-        .color;
-  }
-
   static AccentableBoxColors boxColors(
     Color base,
     DynamicTheme theme,
+    double levelProgress,
     State state, [
     AccentableBoxColors? previous,
   ]) {
@@ -1150,8 +1133,8 @@ class MonochromaticColorGenerator extends ColorGenerator {
     if (theme.isLight) {
       final content = isVeryStateful ? base : base.lerpTo(Color.black, 0.95);
       final surface = isVeryStateful
-          ? base.lerpTo(Color.white, 0.8)
-          : base.lerpTo(Color.white, 0.92);
+          ? base.desaturate(0.8).lighten(0.3)
+          : base.desaturate(0.92).lighten(0.3);
       final decoration = surface.lerpTo(base, 0.1).darken(0.05);
       final edge = isVeryStateful
           ? content.lerpTo(surface, 0.3)
@@ -1193,7 +1176,9 @@ class MonochromaticColorGenerator extends ColorGenerator {
       );
     } else {
       final content = base.lerpTo(Color.white, 0.95);
-      final surface = base.lerpTo(Color.black, 0.92);
+      final surface = isVeryStateful
+          ? base.desaturate(0.8).darken(0.2)
+          : base.desaturate(0.92).darken(0.2);
       final decoration = surface.lerpTo(base, 0.1).lighten(0.05);
       final edge = surface.lerpTo(Color.white, 0.1);
       final placeholder = surface.lerpTo(content, 0.3);
@@ -1236,37 +1221,28 @@ class MonochromaticColorGenerator extends ColorGenerator {
 
   StatefulBoxColors statefulBoxColors(
     Color color,
-    DynamicTheme theme, [
+    DynamicTheme theme,
+    int level, [
     StatefulBoxColors? previous,
   ]) {
     return StatefulContainer<AccentableBoxColors>.generate((state) {
       return boxColors(
         colorForState(state, color),
         theme,
+        (level + 1) / config.levels,
         state,
         previous?.get(state),
       );
     });
   }
 
-  LeveledContainer<Color> leveledColors(Color base, DynamicTheme theme) {
-    return LeveledContainer.generate(
-      (level) {
-        return colorForLevel(level, base, theme);
-      },
-      config.levels,
-    );
-  }
-
   @override
   ColorPaletteLevels get levels {
     StatefulBoxColors? previousLevel;
     return base.map<LeveledStatefulBoxColors>(
-      (base, theme) => leveledColors(base, theme).map<StatefulBoxColors>(
-        (color) {
-          previousLevel = statefulBoxColors(color, theme, previousLevel);
-          return previousLevel!;
-        },
+      (base, theme) => LeveledContainer.generate(
+        (level) => statefulBoxColors(base, theme, level, previousLevel),
+        config.levels,
       ),
     );
   }
@@ -1701,29 +1677,41 @@ class AccentContext extends InheritedWidget {
   }
 }
 
-class AccentModifier extends ComponentModifier with ContentModifier {
+class AccentModifier extends ComponentModifier with WrapperModifier {
   final Accent accent;
 
-  const AccentModifier(
-    this.accent, {
-    required super.condition,
+  const AccentModifier({
+    required this.accent,
+    super.condition,
   });
 
   @override
-  Widget? modify(Widget? child, ComponentContext context) {
-    if (child == null) return null;
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is AccentModifier) {
+      return AccentModifier(
+        accent: other.accent,
+      );
+    }
+    return this;
+  }
+
+  @override
+  Widget wrap(Widget child, ComponentContext context) {
     return AccentContext(
-      accent: Accent.of(context.build),
+      accent: accent,
       child: child,
     );
   }
 }
 
 mixin ModifiableAccent<Type extends Component> on Component<Type> {
-  Type accented(int accent, {ResponsiveCondition? condition}) {
+  Type accented(
+    int accent, {
+    ResponsiveCondition? condition,
+  }) {
     return withModifier(
       AccentModifier(
-        Accent(accent),
+        accent: Accent(accent),
         condition: condition,
       ),
     );

@@ -67,7 +67,7 @@ class StateContext extends InheritedWidget {
   }
 }
 
-class StateModifier extends ComponentModifier with ContentModifier {
+class StateModifier extends ComponentModifier with WrapperModifier {
   final State state;
 
   const StateModifier(
@@ -76,12 +76,21 @@ class StateModifier extends ComponentModifier with ContentModifier {
   });
 
   @override
-  Widget? modify(Widget? child, ComponentContext context) {
-    if (child == null) return null;
+  Widget wrap(Widget child, ComponentContext context) {
     return StateContext(
       state: state,
       child: child,
     );
+  }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is StateModifier) {
+      return StateModifier(
+        state,
+      );
+    }
+    return this;
   }
 }
 
@@ -97,7 +106,4 @@ mixin ModifiableState<Type extends Component<Type>> on Component<Type> {
       ),
     );
   }
-
-  Type get normal => state(State.normal);
-  Type get disabled => state(State.disabled);
 }

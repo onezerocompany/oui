@@ -118,6 +118,15 @@ class ScreenRegistryConfig {
   const ScreenRegistryConfig({
     required this.root,
   });
+
+  @override
+  int get hashCode => root.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is ScreenRegistryConfig && other.root == root);
+  }
 }
 
 class Config {
@@ -145,5 +154,31 @@ class Config {
 
   static Config of(BuildContext context) {
     return StaticAppContext.of(context).config;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        details,
+        scaffold,
+        screens,
+        colors,
+        locales,
+        typography,
+        responsive,
+        registry,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is Config &&
+            other.details == details &&
+            other.scaffold == scaffold &&
+            other.screens == screens &&
+            other.colors == colors &&
+            other.locales == locales &&
+            other.typography == typography &&
+            other.responsive == responsive &&
+            other.registry == registry);
   }
 }

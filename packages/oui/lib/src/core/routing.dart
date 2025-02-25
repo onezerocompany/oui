@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier, SynchronousFuture;
 import 'package:flutter/widgets.dart'
-    show BuildContext, RouteInformation, RouterDelegate, Widget;
+    show BuildContext, GlobalKey, RouteInformation, RouterDelegate, Widget;
 import 'package:flutter/widgets.dart' as widgets show RouteInformationParser;
-import 'package:oui/src/core/locales.dart';
-import 'package:oui/src/core/screen_registry.dart';
 
 import '../components/screen.dart';
+import 'locales.dart';
 import 'localization.dart';
 import 'scaffold.dart';
+import 'screen_registry.dart';
 
 /// Represents a segment of a path in the Oui routing system.
 class PathSegment {
@@ -361,6 +361,11 @@ class PathMatch {
       0,
     );
   }
+
+  @override
+  String toString() {
+    return 'PathMatch{segments: $segments, leftovers: $leftovers, screens: $screens}';
+  }
 }
 
 /// A route information parser that converts URIs to [PathMatch] objects.
@@ -389,6 +394,7 @@ class RouteInformationParser extends widgets.RouteInformationParser<PathMatch> {
     final segments = routeInformation.uri.pathSegments
         .where((segment) => segment.isNotEmpty)
         .toList();
+
     return SynchronousFuture(_registry.match(segments, context.currentLocale));
   }
 
@@ -402,31 +408,32 @@ class RouteInformationParser extends widgets.RouteInformationParser<PathMatch> {
 }
 
 class Router extends RouterDelegate<PathMatch> with ChangeNotifier {
-  PathMatch _activeMatch = PathMatch.noMatch;
-  PathMatch get match => _activeMatch;
+  PathMatch activeMatch = PathMatch.noMatch;
+  final GlobalKey<ScaffoldState> routerKey = GlobalKey<ScaffoldState>();
 
   Router();
 
   @override
-  PathMatch? get currentConfiguration => _activeMatch;
+  PathMatch? get currentConfiguration => activeMatch;
 
   @override
   Future<void> setNewRoutePath(PathMatch configuration) {
-    _activeMatch = configuration;
+    activeMatch = configuration;
     notifyListeners();
     return SynchronousFuture(null);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(_activeMatch);
+    return Scaffold(key: routerKey);
   }
 
   @override
   Future<bool> popRoute() {
-    final willPop = _activeMatch.canPop;
-    if (willPop) {
-      _activeMatch = _activeMatch.pop();
+    final willPop = routerKey.currentState?.activeMatch.canPop ?? false;
+    if (willPop && routerKey.currentState != null) {
+      routerKey.currentState!.activeMatch =
+          routerKey.currentState!.activeMatch.pop();
       notifyListeners();
     }
     return SynchronousFuture(willPop);

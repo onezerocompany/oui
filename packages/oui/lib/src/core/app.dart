@@ -5,19 +5,20 @@ import 'package:flutter/widgets.dart'
         BuildContext,
         FlutterError,
         InheritedWidget,
+        State,
         StatefulWidget,
-        StatelessWidget,
         Widget,
         WidgetsApp;
-import 'package:flutter/widgets.dart' as widgets show State;
-import 'package:oui/src/core/responsive.dart';
-import 'package:oui/src/core/screen_registry.dart';
+import 'package:flutter/widgets.dart' as widgets show runApp;
 
 import 'colors.dart';
 import 'config.dart';
+import 'responsive.dart';
 import 'routing.dart';
+import 'screen_registry.dart';
 import 'typography.dart';
 
+/// Encapsulates all static configuration data for your app.
 class StaticAppContext {
   final Config config;
   final RouteInformationParser routerInformationParser;
@@ -40,9 +41,7 @@ class StaticAppContext {
     return StaticAppContext(
       config: config,
       router: Router(),
-      routerInformationParser: RouteInformationParser(
-        screenRegistry,
-      ),
+      routerInformationParser: RouteInformationParser(screenRegistry),
       colorPalette: ColorPalette.fromConfig(config.colors),
       typography: Typography.fromConfig(config.typography),
       screenRegistry: screenRegistry,
@@ -50,54 +49,58 @@ class StaticAppContext {
   }
 
   @override
-  int get hashCode =>
-      config.hashCode ^
-      routerInformationParser.hashCode ^
-      router.hashCode ^
-      colorPalette.hashCode ^
-      typography.hashCode ^
-      screenRegistry.hashCode;
+  int get hashCode => Object.hash(
+        config,
+        routerInformationParser,
+        router,
+        colorPalette,
+        typography,
+        screenRegistry,
+      );
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is StaticAppContext &&
-        other.config == config &&
-        other.routerInformationParser == routerInformationParser &&
-        other.router == router &&
-        other.colorPalette == colorPalette &&
-        other.typography == typography &&
-        other.screenRegistry == screenRegistry;
+    return identical(this, other) ||
+        (other is StaticAppContext &&
+            other.config == config &&
+            other.routerInformationParser == routerInformationParser &&
+            other.router == router &&
+            other.colorPalette == colorPalette &&
+            other.typography == typography &&
+            other.screenRegistry == screenRegistry);
   }
 
+  /// Retrieve the nearest StaticAppContext in the widget tree.
   static StaticAppContext of(BuildContext context) {
-    final staticContext =
-        context.dependOnInheritedWidgetOfExactType<StaticAppContextProvider>();
-    if (staticContext == null) {
+    final inherited =
+        context.dependOnInheritedWidgetOfExactType<InheritedStaticAppContext>();
+    if (inherited == null) {
       throw FlutterError(
-        'StaticAppContext not found in context. Make sure to wrap your app with OuiApp.',
-      );
+          'StaticAppContext not found in context. Make sure to wrap your app with OuiApp.');
     }
-    return staticContext.context;
+    return inherited.context;
   }
 }
 
-class StaticAppContextProvider extends InheritedWidget {
+/// Provides static configuration to the widget subtree.
+/// This widget only notifies dependents if the static context changes.
+class InheritedStaticAppContext extends InheritedWidget {
   final StaticAppContext context;
 
-  const StaticAppContextProvider({
+  const InheritedStaticAppContext({
     super.key,
     required this.context,
     required super.child,
   });
 
   @override
-  bool updateShouldNotify(covariant InheritedWidget oldWidget) {
-    return context != (oldWidget as StaticAppContextProvider).context;
+  bool updateShouldNotify(covariant InheritedStaticAppContext oldWidget) {
+    return context != oldWidget.context;
   }
 }
 
+/// Provides responsive configuration to the widget subtree.
+/// Only widgets that actually depend on the [ResponsiveContext] will rebuild.
 class DynamicAppContext extends InheritedWidget {
   final ResponsiveContext responsive;
 
@@ -112,80 +115,116 @@ class DynamicAppContext extends InheritedWidget {
     return responsive != oldWidget.responsive;
   }
 
+  /// Retrieve the nearest DynamicAppContext in the widget tree.
   static DynamicAppContext of(BuildContext context) {
-    final dynamicContext =
+    final inherited =
         context.dependOnInheritedWidgetOfExactType<DynamicAppContext>();
-    if (dynamicContext == null) {
+    if (inherited == null) {
       throw FlutterError(
-        'DynamicAppContext not found in context. Make sure to wrap your app with OuiApp.',
-      );
+          'DynamicAppContext not found in context. Make sure to wrap your app with OuiApp.');
     }
-    return dynamicContext;
+    return inherited;
   }
 }
 
-class DynamicAppContextProvider extends StatefulWidget {
-  final Widget child;
+/// The root widget of your application that wires up static and dynamic contexts.
+class OuiApp extends StatefulWidget {
   final Config config;
 
-  const DynamicAppContextProvider({
+  const OuiApp({
     super.key,
+    required this.config,
+  });
+
+  @override
+  State<OuiApp> createState() => _OuiAppState();
+}
+
+class _OuiAppState extends State<OuiApp> {
+  late StaticAppContext staticAppContext;
+
+  @override
+  void initState() {
+    super.initState();
+    staticAppContext = StaticAppContext.forConfig(widget.config);
+  }
+
+  @override
+  void didUpdateWidget(covariant OuiApp oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.config != oldWidget.config) {
+      setState(() {
+        // Rebuild the app with the new static context.
+        staticAppContext = StaticAppContext.forConfig(widget.config);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InheritedStaticAppContext(
+      context: staticAppContext,
+      child: _DynamicAppContextProvider(
+        config: widget.config,
+        child: WidgetsApp.router(
+          routerDelegate: staticAppContext.router,
+          routeInformationParser: staticAppContext.routerInformationParser,
+          color: const ui.Color.fromARGB(205, 0, 0, 0),
+          debugShowCheckedModeBanner: false,
+          restorationScopeId: 'oui_app',
+        ),
+      ),
+    );
+  }
+}
+
+/// A stateful widget that computes the responsive context once and only rebuilds if needed.
+class _DynamicAppContextProvider extends StatefulWidget {
+  final Config config;
+  final Widget child;
+
+  const _DynamicAppContextProvider({
     required this.config,
     required this.child,
   });
 
   @override
-  widgets.State<DynamicAppContextProvider> createState() =>
+  _DynamicAppContextProviderState createState() =>
       _DynamicAppContextProviderState();
 }
 
 class _DynamicAppContextProviderState
-    extends widgets.State<DynamicAppContextProvider> {
-  DynamicTheme get theme => DynamicTheme.light;
+    extends State<_DynamicAppContextProvider> {
+  late ResponsiveContext responsive;
+
+  void _updateResponsive() {
+    responsive = ResponsiveContext.from(widget.config, context);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateResponsive();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DynamicAppContextProvider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.config != oldWidget.config) {
+      _updateResponsive();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return DynamicAppContext(
-      responsive: ResponsiveContext.from(widget.config, context),
+      responsive: responsive,
       child: widget.child,
     );
   }
 }
 
-/// A widget that serves as the root of the OUI application.
-///
-/// [OuiApp] configures the top-level [WidgetsApp.router] with OUI-specific
-/// routing and theming functionality. It should be used as the root widget
-/// of your application.
-class OuiApp extends StatelessWidget {
-  /// The theme configuration for the application.
-  final Config config;
-
-  /// Creates an [OuiApp].
-  ///
-  /// The [root] parameter defines the initial screen of the application.
-  /// The [notFound] parameter specifies the screen to show when a route is not found.
-  /// The optional [authScreen] parameter specifies an authentication screen.
-  /// The [config] parameter allows customization of the application's visual properties.
-  const OuiApp(
-    this.config, {
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final staticContext = StaticAppContext.forConfig(config);
-    return StaticAppContextProvider(
-      context: staticContext,
-      child: DynamicAppContextProvider(
-        config: config,
-        child: WidgetsApp.router(
-          color: const ui.Color.fromARGB(205, 0, 0, 0),
-          routerDelegate: staticContext.router,
-          routeInformationParser: staticContext.routerInformationParser,
-          debugShowCheckedModeBanner: false,
-        ),
-      ),
-    );
-  }
+/// A helper function to run the app.
+void runApp(Config config) {
+  widgets.runApp(OuiApp(config: config));
 }

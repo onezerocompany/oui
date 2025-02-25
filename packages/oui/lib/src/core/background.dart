@@ -103,6 +103,16 @@ class Background {
       ],
     );
   }
+
+  Background? merge(Background? other) {
+    if (other == null) return this;
+    return Background._(
+      color: other.color ?? color,
+      gradient: other.gradient ?? gradient,
+      image: other.image ?? image,
+      custom: other.custom ?? custom,
+    );
+  }
 }
 
 /// Enum representing the different background repeat options for an image.
@@ -195,11 +205,22 @@ class BackgroundModifier extends ComponentModifier
   });
 
   @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is BackgroundModifier) {
+      return BackgroundModifier(
+        background?.merge(other.background) ?? other.background,
+        auto: other.auto,
+      );
+    }
+    return this;
+  }
+
+  @override
   Decoration? decorate(
     Decoration decoration,
     ComponentContext context,
   ) {
-    if (background == null) {
+    if (background == null && auto) {
       final color = context.colors.surface;
       return Background.color(color).decorate(
         decoration,
