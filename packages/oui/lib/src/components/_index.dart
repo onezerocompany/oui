@@ -1,3 +1,5 @@
 export 'box.dart';
+export 'image.dart';
 export 'label.dart';
-export 'screen.dart';
+export 'spacer.dart';
+export 'template.dart';

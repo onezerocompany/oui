@@ -5,8 +5,10 @@ final allModifiers = [
   StateModifier,
   AccentModifier,
   TypographyModifier,
+  InteractiveModifier,
+  ExpandableModifier,
   // Content Providers
-  ContentProviderModifier,
+  BoxContentProviderModifier,
   // Text Modifiers
   MaxLinesModifier,
   TextAlignModifier,

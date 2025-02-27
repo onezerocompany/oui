@@ -133,15 +133,21 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
     : assert(type is ContourObject) {
     for (final field in (type as ContourObject).schema.entries) {
       _instances[field.key] = field.value.instance(field.key);
+      _instances[field.key]!.subscribe((_) => notifySubscribers(value));
     }
   }
 
-  VariableInstance? field(VariableKey key) {
+  VariableInstance field(VariableKey key) {
     final (segment, next) = key.shift;
     final instance = _instances[segment.value];
     if (instance is ObjectVariableInstance && next != null) {
       return instance.field(next);
     }
+
+    if (instance == null) {
+      throw Exception("Field ${segment.value} not found");
+    }
+
     return instance;
   }
 

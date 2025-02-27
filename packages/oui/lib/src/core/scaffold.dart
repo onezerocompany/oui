@@ -23,15 +23,9 @@ import 'package:flutter/widgets.dart'
         Transform,
         Widget;
 import 'package:flutter/widgets.dart' as widgets show State;
-import 'package:oui/src/core/app.dart' show StaticAppContext;
-import 'package:oui/src/core/config.dart' show Config;
-import 'package:oui/src/core/state.dart' show StateContext, State;
+import 'package:oui/src/core/_index.dart';
 
 import '../components/box.dart';
-import '../components/screen.dart';
-import 'border.dart';
-import 'geometry.dart';
-import 'routing.dart';
 
 enum RailContainerStyle {
   // The rails on the sides reach the top and bottom of the container.
@@ -111,9 +105,9 @@ class RailedContainer extends StatelessWidget {
 
 class ScaffoldLayout {
   final Size size;
-  final List<Screen> panels;
-  final List<Screen> sheets;
-  final List<Screen> modals;
+  final List<RenderedScreen> panels;
+  final List<RenderedScreen> sheets;
+  final List<RenderedScreen> modals;
 
   ScaffoldLayout({
     required this.size,
@@ -124,11 +118,11 @@ class ScaffoldLayout {
 }
 
 class ScaffoldLayoutBuilder extends StatelessWidget {
-  final PathMatch currentPath;
+  final List<RenderedScreen> screens;
   final Function(BuildContext context, ScaffoldLayout layout) builder;
 
   const ScaffoldLayoutBuilder({
-    required this.currentPath,
+    required this.screens,
     required this.builder,
     super.key,
   });
@@ -137,26 +131,26 @@ class ScaffoldLayoutBuilder extends StatelessWidget {
     Size size,
     double minPanelWidth,
   ) {
-    final panels = <Screen>[];
-    final sheets = <Screen>[];
-    final modals = <Screen>[];
+    final panels = <RenderedScreen>[];
+    final sheets = <RenderedScreen>[];
+    final modals = <RenderedScreen>[];
 
-    bool canAddPanel(Screen screen) {
+    bool canAddPanel(RenderedScreen screen) {
       if (!panels.iterator.moveNext()) {
         return true;
       }
       final totalMinWidth = panels.fold<double>(
         0,
         (previousValue, screen) =>
-            previousValue + (screen.width?.start ?? minPanelWidth),
+            previousValue + (screen.size?.width.start ?? minPanelWidth),
       );
 
-      return totalMinWidth + (screen.width?.start ?? minPanelWidth) <=
+      return totalMinWidth + (screen.size?.width.start ?? minPanelWidth) <=
           size.width.start;
     }
 
-    for (final screen in currentPath.screens) {
-      switch (screen.type) {
+    for (final screen in screens) {
+      switch (screen.metadata.type) {
         case ScreenDisplayType.panel:
           if (canAddPanel(screen)) {
             panels.add(screen);
@@ -252,17 +246,17 @@ class ScaffoldState extends widgets.State<Scaffold> {
 
   List<Widget> _buildPanels(
     BuildContext context,
-    List<Screen> panels,
+    List<RenderedScreen> panels,
   ) {
     return panels
         .expand(
           (screen) => [
             Flexible(
-              flex: screen.width?.weight ?? 1,
+              flex: screen.size?.width.weight ?? 1,
               fit: FlexFit.loose,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: screen,
+                child: screen.content,
               ),
             ),
             if (screen != panels.last)
@@ -274,9 +268,9 @@ class ScaffoldState extends widgets.State<Scaffold> {
         .toList(growable: false);
   }
 
-  Widget _buildScaffold(context) {
+  Widget _buildScaffold(ComponentContext context) {
     return ScaffoldLayoutBuilder(
-      currentPath: activeMatch,
+      screens: activeMatch.screens.map(RenderedScreen.fromScreen).toList(),
       builder: (context, layout) {
         final main = SafeArea(
           child: RailedContainer(
@@ -307,12 +301,12 @@ class ScaffoldState extends widgets.State<Scaffold> {
               Positioned.fill(
                 child: ImageFiltered(
                   imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: layout.sheets[layout.sheets.length - 2],
+                  child: layout.sheets[layout.sheets.length - 2].content,
                 ),
               ),
             if (layout.sheets.isNotEmpty)
               Positioned.fill(
-                child: layout.sheets.last,
+                child: layout.sheets.last.content,
               ),
           ],
         );
@@ -326,7 +320,7 @@ class ScaffoldState extends widgets.State<Scaffold> {
       state: State.normal,
       child: BoxLevelContext(
         level: const BoxLevel(0),
-        child: const Box().background(null).contentBuilder(_buildScaffold),
+        child: const Box().defaultBackground().contentBuilder(_buildScaffold),
       ),
     );
   }

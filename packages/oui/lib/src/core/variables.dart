@@ -1,3 +1,0 @@
-class Variable {}
-
-class VariableContainer {}

@@ -1,8 +1,14 @@
-enum AuthState {
-  unauthenticated,
-  authenticated,
-}
+import 'package:contour/contour.dart' show Listenable;
 
-abstract class AuthProvider {
-  AuthState get state;
+import 'screen.dart' show Screen;
+
+abstract class AuthProvider extends Listenable {
+  final Screen? unauthenticatedScreen;
+
+  const AuthProvider({
+    this.unauthenticatedScreen,
+  });
+
+  String? get userId;
+  bool get authenticated;
 }

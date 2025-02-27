@@ -8,7 +8,8 @@ import 'package:flutter/widgets.dart'
         State,
         StatefulWidget,
         Widget,
-        WidgetsApp;
+        WidgetsApp,
+        WidgetsFlutterBinding;
 import 'package:flutter/widgets.dart' as widgets show runApp;
 
 import 'colors.dart';
@@ -76,7 +77,8 @@ class StaticAppContext {
         context.dependOnInheritedWidgetOfExactType<InheritedStaticAppContext>();
     if (inherited == null) {
       throw FlutterError(
-          'StaticAppContext not found in context. Make sure to wrap your app with OuiApp.');
+        'StaticAppContext not found in context. Make sure to wrap your app with OuiApp.',
+      );
     }
     return inherited.context;
   }
@@ -121,7 +123,8 @@ class DynamicAppContext extends InheritedWidget {
         context.dependOnInheritedWidgetOfExactType<DynamicAppContext>();
     if (inherited == null) {
       throw FlutterError(
-          'DynamicAppContext not found in context. Make sure to wrap your app with OuiApp.');
+        'DynamicAppContext not found in context. Make sure to wrap your app with OuiApp.',
+      );
     }
     return inherited;
   }
@@ -172,6 +175,9 @@ class _OuiAppState extends State<OuiApp> {
           color: const ui.Color.fromARGB(205, 0, 0, 0),
           debugShowCheckedModeBanner: false,
           restorationScopeId: 'oui_app',
+          supportedLocales: staticAppContext.config.locales
+              .map((e) => e.flutterLocale)
+              .toList(),
         ),
       ),
     );
@@ -224,7 +230,7 @@ class _DynamicAppContextProviderState
   }
 }
 
-/// A helper function to run the app.
-void runApp(Config config) {
+void runOuiApp(Config config) {
+  WidgetsFlutterBinding.ensureInitialized();
   widgets.runApp(OuiApp(config: config));
 }

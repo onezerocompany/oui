@@ -28,6 +28,7 @@ import '../core/typography.dart'
         ModifiableTypography,
         ModifiableWordSpacing,
         TextColorModifier,
+        TypographyContext,
         TypographyModifier;
 
 /// Mixin for modifiers that modify text styles.
@@ -66,8 +67,8 @@ class Label extends Component<Label>
         ModifiableAccent<Label>,
         ModifiableState<Label>,
         ModifiableTypography<Label> {
-  const Label(
-    this.text, {
+  const Label._({
+    this.text,
     this.localized,
     super.key,
     ComponentModifiers? modifiers,
@@ -87,8 +88,8 @@ class Label extends Component<Label>
     Key? key,
     ComponentModifiers? modifiers,
   }) {
-    return Label(
-      text,
+    return Label._(
+      text: text,
       key: key,
       modifiers: modifiers,
     );
@@ -99,8 +100,7 @@ class Label extends Component<Label>
     Key? key,
     ComponentModifiers? modifiers,
   }) {
-    return Label(
-      null,
+    return Label._(
       localized: localized,
       key: key,
       modifiers: modifiers,
@@ -109,8 +109,8 @@ class Label extends Component<Label>
 
   @override
   Label copyWith({ComponentModifiers? modifiers}) {
-    return Label(
-      text,
+    return Label._(
+      text: text,
       localized: localized,
       key: key,
       modifiers: modifiers ?? this.modifiers,
@@ -129,8 +129,9 @@ class Label extends Component<Label>
     final typographyModifier =
         context.modifiers.firstOfType<TypographyModifier>();
     final styleModifiers = context.modifiers.whereType<TextStyleModifier>();
-    TextStyle style =
-        typographyModifier?.context.style(context) ?? const TextStyle();
+    TextStyle style = typographyModifier?.context.style(context) ??
+        TypographyContext.of(context.build)?.style(context) ??
+        const TextStyle();
     style = styleModifiers.fold(style, (TextStyle acc, modifier) {
       return modifier.modify(acc, context);
     });
@@ -140,3 +141,5 @@ class Label extends Component<Label>
     return label;
   }
 }
+
+typedef LabelBuilder = Label Function(ComponentContext context);

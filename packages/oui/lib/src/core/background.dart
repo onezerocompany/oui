@@ -9,7 +9,8 @@ import 'package:flutter/widgets.dart'
         ShapeDecoration,
         Stack,
         Widget;
-import 'package:oui/src/components/box.dart' show DecorationModifier;
+import 'package:oui/src/components/box.dart'
+    show ContentModifier, DecorationModifier;
 import 'package:oui/src/core/responsive.dart';
 
 import 'colors.dart';
@@ -193,14 +194,20 @@ class BackgroundImage {
   }
 }
 
+typedef BackgroundBuilder = Background Function(ComponentContext context);
+
 class BackgroundModifier extends ComponentModifier
     with ContentModifier, DecorationModifier {
   final bool auto;
+  final bool flipped;
   final Background? background;
+  final BackgroundBuilder? builder;
 
-  const BackgroundModifier(
-    this.background, {
+  const BackgroundModifier({
+    this.background,
+    this.builder,
     this.auto = false,
+    this.flipped = false,
     super.condition,
   });
 
@@ -208,7 +215,8 @@ class BackgroundModifier extends ComponentModifier
   ComponentModifier merge(ComponentModifier other) {
     if (other is BackgroundModifier) {
       return BackgroundModifier(
-        background?.merge(other.background) ?? other.background,
+        background: background?.merge(other.background) ?? other.background,
+        builder: other.builder,
         auto: other.auto,
       );
     }
@@ -220,9 +228,16 @@ class BackgroundModifier extends ComponentModifier
     Decoration decoration,
     ComponentContext context,
   ) {
-    if (background == null && auto) {
-      final color = context.colors.surface;
+    if (background == null && builder == null && auto) {
+      final color = flipped ? context.colors.content : context.colors.surface;
       return Background.color(color).decorate(
+        decoration,
+        context.build,
+      );
+    }
+
+    if (builder != null) {
+      return builder!(context).decorate(
         decoration,
         context.build,
       );
@@ -244,11 +259,38 @@ class BackgroundModifier extends ComponentModifier
 }
 
 mixin ModifiableBackground<Type extends Component> on Component<Type> {
-  Type background(Background? background, {ResponsiveCondition? condition}) {
+  Type defaultBackground({
+    bool flipped = false,
+  }) {
     return withModifier(
       BackgroundModifier(
-        background,
-        auto: background == null,
+        auto: true,
+        flipped: flipped,
+      ),
+    );
+  }
+
+  Type background(
+    Background background, {
+    ResponsiveCondition? condition,
+  }) {
+    return withModifier(
+      BackgroundModifier(
+        background: background,
+        auto: false,
+        condition: condition,
+      ),
+    );
+  }
+
+  Type backgroundBuilder(
+    BackgroundBuilder builder, {
+    ResponsiveCondition? condition,
+  }) {
+    return withModifier(
+      BackgroundModifier(
+        builder: builder,
+        auto: false,
         condition: condition,
       ),
     );
@@ -257,7 +299,7 @@ mixin ModifiableBackground<Type extends Component> on Component<Type> {
   Type backgroundColor(Color color, {ResponsiveCondition? condition}) {
     return withModifier(
       BackgroundModifier(
-        Background.color(color),
+        background: Background.color(color),
         condition: condition,
       ),
     );
@@ -269,7 +311,7 @@ mixin ModifiableBackground<Type extends Component> on Component<Type> {
   }) {
     return withModifier(
       BackgroundModifier(
-        Background.image(image),
+        background: Background.image(image),
         condition: condition,
       ),
     );
@@ -278,7 +320,7 @@ mixin ModifiableBackground<Type extends Component> on Component<Type> {
   Type backgroundGradient(Gradient gradient, {ResponsiveCondition? condition}) {
     return withModifier(
       BackgroundModifier(
-        Background.gradient(gradient),
+        background: Background.gradient(gradient),
         condition: condition,
       ),
     );

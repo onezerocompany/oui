@@ -9,10 +9,6 @@ enum State {
   /// In this state, the component behaves as expected with no special visual or functional changes.
   normal,
 
-  /// Indicates a state where the object has reached its peak performance or usage.
-  /// In this state, the component may have enhanced visual styling to draw attention, such as a brighter color or a glow effect.
-  highlighted,
-
   /// Indicates a state where the object is disabled and not functional.
   /// In this state, the component is typically grayed out and does not respond to user interactions.
   disabled,

@@ -1,7 +1,8 @@
 // lib/src/listenable.dart
 
 class Listenable<T> {
-  final List<Subscription<T>> _subscriptions = [];
+  final List<Subscription<T>> _subscriptions = const [];
+  const Listenable();
 
   Subscription<T> subscribe(void Function(T? value) callback) {
     final subscription = Subscription<T>(this, callback);

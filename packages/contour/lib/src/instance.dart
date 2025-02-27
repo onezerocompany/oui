@@ -1,6 +1,5 @@
-import 'package:contour/contour.dart';
-
 import 'listenable.dart' show Listenable;
+import 'type.dart' show ContourErrors, ContourType;
 
 abstract class VariableInstance<T> extends Listenable<T> {
   final ContourType type;

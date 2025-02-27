@@ -23,7 +23,8 @@ import 'package:flutter/widgets.dart'
         StatelessWidget,
         TextDirection,
         Widget;
-import 'package:oui/src/components/box.dart' show DecorationModifier;
+import 'package:oui/src/components/box.dart'
+    show ContentModifier, DecorationModifier;
 import 'package:oui/src/core/interpolation.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
 
@@ -1128,13 +1129,13 @@ mixin ModifiableCorner<Type extends Component> on Component<Type> {
     );
   }
 
-  Type rounded(
-    SizeLevel? roundness, {
+  Type rounded({
+    SizeLevel? size,
     bool clip = false,
   }) {
     return withModifier(
       CornerModifier(
-        roundness: roundness,
+        roundness: size ?? SizeLevel.medium,
         clip: clip,
       ),
     );

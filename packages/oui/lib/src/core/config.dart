@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart' show BuildContext;
 import 'package:oui/src/core/app.dart' show StaticAppContext;
+import 'package:oui/src/core/icons.dart' show Icon;
+import 'package:oui/src/core/localization.dart' show Localized;
+import 'package:oui/src/core/screen.dart' show Screen;
 
-import '../components/screen.dart' show Screen;
 import 'colors.dart' show Color;
 import 'geometry.dart' show RangedDimension, Size;
 import 'locales.dart' show Locale, Locales;
@@ -49,11 +51,31 @@ class AppDetails extends Metadata {
   final Version version;
 
   const AppDetails({
+    required super.id,
     required super.name,
     super.icon,
     super.attributes,
     required this.version,
   });
+
+  @override
+  Metadata copyWith({
+    String? id,
+    Localized<String>? name,
+    Localized<Icon?>? icon,
+    Localized<List<String>>? tags,
+    Localized<Map<String, dynamic>>? attributes,
+    Version? version,
+  }) {
+    return AppDetails(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      icon: icon ?? this.icon,
+      attributes: attributes ?? this.attributes,
+      version:
+          version ?? this.version, // changed to use this.version for clarity
+    );
+  }
 }
 
 class ColorConfig {
@@ -113,20 +135,11 @@ class ScreenConfig {
 }
 
 class ScreenRegistryConfig {
-  final Screen root;
+  final List<Screen> screens;
 
   const ScreenRegistryConfig({
-    required this.root,
+    required this.screens,
   });
-
-  @override
-  int get hashCode => root.hashCode;
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other is ScreenRegistryConfig && other.root == root);
-  }
 }
 
 class Config {

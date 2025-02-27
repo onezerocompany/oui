@@ -1,25 +1,27 @@
-import 'dart:math' show max;
-
 import 'package:flutter/rendering.dart' as rendering
     show Alignment, AlignmentGeometry, EdgeInsets, Offset, BoxFit;
 import 'package:flutter/widgets.dart'
     show
         Align,
         AlignmentGeometry,
+        Axis,
         BoxConstraints,
         BuildContext,
+        Column,
         ConstrainedBox,
+        CrossAxisAlignment,
         EdgeInsets,
-        Flow,
-        FlowDelegate,
-        FlowPaintingContext,
-        Matrix4,
+        MainAxisAlignment,
+        MainAxisSize,
         Padding,
+        Row,
         SizedBox,
         StatelessWidget,
-        Widget;
-import 'package:oui/src/components/screen.dart';
+        Widget,
+        Wrap;
+import 'package:oui/src/components/box.dart' show ContentModifier;
 import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
+import 'package:oui/src/core/screen.dart' show Screen;
 
 import 'component.dart';
 import 'utils.dart';
@@ -108,6 +110,64 @@ enum FlowDirection {
         return FlowDirection.rightToLeft;
       case FlowDirection.rightToLeft:
         return FlowDirection.leftToRight;
+    }
+  }
+
+  MainAxisAlignment mainAxisAlignment(Alignment alignment) {
+    switch (this) {
+      case FlowDirection.topToBottom:
+        return alignment.main == Position.leading
+            ? MainAxisAlignment.start
+            : alignment.main == Position.middle
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.end;
+      case FlowDirection.bottomToTop:
+        return alignment.main == Position.leading
+            ? MainAxisAlignment.end
+            : alignment.main == Position.middle
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.start;
+      case FlowDirection.leftToRight:
+        return alignment.main == Position.leading
+            ? MainAxisAlignment.start
+            : alignment.main == Position.middle
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.end;
+      case FlowDirection.rightToLeft:
+        return alignment.main == Position.leading
+            ? MainAxisAlignment.end
+            : alignment.main == Position.middle
+                ? MainAxisAlignment.center
+                : MainAxisAlignment.start;
+    }
+  }
+
+  CrossAxisAlignment crossAxisAlignment(Alignment alignment) {
+    switch (this) {
+      case FlowDirection.topToBottom:
+        return alignment.cross == Position.leading
+            ? CrossAxisAlignment.start
+            : alignment.cross == Position.middle
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.end;
+      case FlowDirection.bottomToTop:
+        return alignment.cross == Position.leading
+            ? CrossAxisAlignment.end
+            : alignment.cross == Position.middle
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start;
+      case FlowDirection.leftToRight:
+        return alignment.cross == Position.leading
+            ? CrossAxisAlignment.start
+            : alignment.cross == Position.middle
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.end;
+      case FlowDirection.rightToLeft:
+        return alignment.cross == Position.leading
+            ? CrossAxisAlignment.end
+            : alignment.cross == Position.middle
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start;
     }
   }
 }
@@ -887,103 +947,42 @@ class MultiChildAligner extends StatelessWidget {
   final List<Widget> children;
   final Alignment alignment;
   final FlowDirection flowDirection;
-  final bool scrollable;
+  final bool wraps;
 
   const MultiChildAligner({
     super.key,
     required this.children,
     this.alignment = Alignment.center,
     this.flowDirection = FlowDirection.leftToRight,
-    this.scrollable = false,
+    this.wraps = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: alignment.uiAlignment,
-      child: Flow(
-        delegate: MultiChildAlignerDelegate(flowDirection),
+    final children = flowDirection.isReversed
+        ? this.children.reversed.toList()
+        : this.children;
+    if (wraps) {
+      return Wrap(
+        direction: flowDirection.isHorizontal ? Axis.horizontal : Axis.vertical,
         children: children,
-      ),
-    );
-  }
-}
-
-class MultiChildAlignerDelegate extends FlowDelegate {
-  final FlowDirection flowDirection;
-  final Alignment alignment;
-  final int maxLines;
-
-  const MultiChildAlignerDelegate(
-    this.flowDirection, [
-    this.alignment = Alignment.center,
-    this.maxLines = 1,
-  ]);
-
-  @override
-  void paintChildren(FlowPaintingContext context) {
-    double x = flowDirection.isReversed && flowDirection.isHorizontal
-        ? context.size.width
-        : 0.0;
-    double y = flowDirection.isReversed && flowDirection.isVertical
-        ? context.size.height
-        : 0.0;
-    double maxWidth = 0.0;
-    double maxHeight = 0.0;
-    int currentLine = 1;
-
-    for (var i = 0; i < context.childCount; i++) {
-      final childSize = context.getChildSize(i);
-      if (childSize == null) continue;
-
-      final overflow = flowDirection.isHorizontal
-          ? x + childSize.width > context.size.width
-          : y + childSize.height > context.size.height;
-
-      if (overflow) {
-        currentLine++;
-        if (currentLine > maxLines) break;
-
-        if (flowDirection.isHorizontal) {
-          x = flowDirection.isReversed ? context.size.width : 0.0;
-          y += maxHeight;
-          maxHeight = 0.0;
-        } else {
-          y = flowDirection.isReversed ? context.size.height : 0.0;
-          x += maxWidth;
-          maxWidth = 0.0;
-        }
-      }
-
-      context.paintChild(
-        i,
-        transform: Matrix4.translationValues(
-          x -
-              (flowDirection.isReversed && flowDirection.isHorizontal
-                  ? childSize.width
-                  : 0.0),
-          y -
-              (flowDirection.isReversed && flowDirection.isVertical
-                  ? childSize.height
-                  : 0.0),
-          0.0,
-        ),
       );
-
+    } else {
       if (flowDirection.isHorizontal) {
-        x += flowDirection.isReversed ? -childSize.width : childSize.width;
-        maxHeight = max(maxHeight, childSize.height);
+        return Row(
+          mainAxisAlignment: flowDirection.mainAxisAlignment(alignment),
+          crossAxisAlignment: flowDirection.crossAxisAlignment(alignment),
+          mainAxisSize: MainAxisSize.min,
+          children: children,
+        );
       } else {
-        y += flowDirection.isReversed ? -childSize.height : childSize.height;
-        maxWidth = max(maxWidth, childSize.width);
+        return Column(
+          mainAxisAlignment: flowDirection.mainAxisAlignment(alignment),
+          crossAxisAlignment: flowDirection.crossAxisAlignment(alignment),
+          mainAxisSize: MainAxisSize.min,
+          children: children,
+        );
       }
     }
-  }
-
-  @override
-  bool shouldRepaint(covariant FlowDelegate oldDelegate) {
-    return oldDelegate is! MultiChildAlignerDelegate ||
-        oldDelegate.flowDirection != flowDirection ||
-        oldDelegate.maxLines != maxLines;
   }
 }

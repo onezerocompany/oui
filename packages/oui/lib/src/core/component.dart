@@ -1,9 +1,21 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show nonVirtual;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart'
-    show BuildContext, InheritedWidget, SizedBox, StatelessWidget, Widget;
+    show
+        AnimatedOpacity,
+        BuildContext,
+        Column,
+        Curves,
+        Expanded,
+        GestureDetector,
+        InheritedWidget,
+        Row,
+        StatefulWidget,
+        StatelessWidget,
+        Widget;
+import 'package:flutter/widgets.dart' as widgets show State;
+import 'package:oui/src/core/actions.dart' show Action, ActionContext;
 import 'package:oui/src/core/config.dart' show Config;
-import 'package:oui/src/core/geometry.dart'
-    show MultiChildAligner, FlowDirection;
 import 'package:oui/src/core/modifiers.dart' show ModifierSorting;
 import 'package:oui/src/core/utils.dart' show FirstOfTypeExtension;
 
@@ -154,97 +166,6 @@ abstract class ComponentModifier {
 
 typedef ComponentModifiers = List<ComponentModifier>;
 
-class ContentProviderModifier extends ComponentModifier {
-  final List<Widget> content;
-  final Widget Function(ComponentContext)? builder;
-  final FlowDirection direction;
-
-  const ContentProviderModifier({
-    this.content = const [],
-    this.builder,
-    this.direction = FlowDirection.topToBottom,
-    super.condition,
-  });
-
-  Widget provide(ComponentContext context) {
-    if (builder != null) {
-      return builder!(context);
-    } else if (content.length == 1) {
-      return content.first;
-    } else if (content.isNotEmpty) {
-      return MultiChildAligner(
-        flowDirection: direction,
-        children: content,
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
-
-  @override
-  ContentProviderModifier merge(ComponentModifier other) {
-    if (other is ContentProviderModifier) {
-      return ContentProviderModifier(
-        content: [...content, ...other.content],
-        builder: other.builder ?? builder,
-        direction: other.direction,
-      );
-    } else {
-      return this;
-    }
-  }
-}
-
-mixin ModifiableContentProvider<Type extends Component> on Component<Type> {
-  Type contents(
-    List<Widget> content, {
-    FlowDirection direction = FlowDirection.topToBottom,
-    ResponsiveCondition? condition,
-  }) {
-    return withModifier(
-      ContentProviderModifier(
-        content: content,
-        direction: direction,
-        condition: condition,
-      ),
-    );
-  }
-
-  Type content(
-    Widget content, {
-    FlowDirection direction = FlowDirection.topToBottom,
-    ResponsiveCondition? condition,
-  }) =>
-      contents([content], direction: direction, condition: condition);
-
-  Type items(
-    List<Widget> children, {
-    FlowDirection direction = FlowDirection.topToBottom,
-    ResponsiveCondition? condition,
-  }) =>
-      contents(children, direction: direction, condition: condition);
-
-  Type contentBuilder(
-    Widget Function(ComponentContext) builder, {
-    ResponsiveCondition? condition,
-  }) {
-    return withModifier(
-      ContentProviderModifier(
-        builder: builder,
-        condition: condition,
-      ),
-    );
-  }
-}
-
-/// Mixin for modifiers that modify child widgets.
-mixin ContentModifier on ComponentModifier {
-  Widget? modify(
-    Widget? child,
-    ComponentContext context,
-  );
-}
-
 mixin WrapperModifier on ComponentModifier {
   Widget wrap(
     Widget child,
@@ -268,9 +189,10 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
 
   /// Adds a modifier to the component
   ComponentType withModifier(
-    ComponentModifier modifier,
-  ) {
-    if (modifier.condition == null) {
+    ComponentModifier modifier, {
+    bool stacks = false,
+  }) {
+    if (modifier.condition == null && !stacks) {
       return copyWith(
         modifiers: [
           ...modifiers.where(
@@ -289,20 +211,15 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
     }
   }
 
-  Widget builder(ComponentContext context) {
-    var widget = context.modifiers
-            .firstOfType<ContentProviderModifier>()
-            ?.provide(context) ??
-        const SizedBox.shrink();
+  Widget builder(ComponentContext context);
 
-    widget = context.modifiers.whereType<ContentModifier>().fold(
-      widget,
-      (Widget acc, ContentModifier modifier) {
-        return modifier.modify(acc, context) ?? acc;
+  Widget _wrapComponent(ComponentContext context, Widget child) {
+    return context.modifiers.whereType<WrapperModifier>().fold(
+      child,
+      (Widget acc, WrapperModifier modifier) {
+        return modifier.wrap(acc, context);
       },
     );
-
-    return widget;
   }
 
   ComponentContext _componentContext(BuildContext context) {
@@ -316,11 +233,176 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
   @nonVirtual
   @override
   Widget build(BuildContext context) {
-    print('Building $runtimeType');
     final componentContext = _componentContext(context);
     return ComponentContextProvider(
       context: componentContext,
-      child: builder(componentContext),
+      child: _wrapComponent(
+        componentContext,
+        builder(componentContext),
+      ),
+    );
+  }
+}
+
+typedef ComponentWidgetBuilder = Widget Function(ComponentContext context);
+typedef ComponentCondition = bool Function(ComponentContext context);
+
+class ConditionalComponent {
+  final ComponentCondition? condition;
+  final ComponentWidgetBuilder builder;
+
+  const ConditionalComponent({
+    this.condition,
+    required this.builder,
+  });
+
+  bool isAvailable(ComponentContext context) {
+    return condition?.call(context) ?? true;
+  }
+}
+
+class InteractiveWrapper extends StatefulWidget {
+  final Widget child;
+  final Action? tapAction;
+
+  const InteractiveWrapper({
+    super.key,
+    required this.child,
+    this.tapAction,
+  });
+
+  @override
+  widgets.State<InteractiveWrapper> createState() => _InteractiveWrapperState();
+}
+
+class _InteractiveWrapperState extends widgets.State<InteractiveWrapper> {
+  bool pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        HapticFeedback.selectionClick();
+        setState(() {
+          pressed = true;
+        });
+      },
+      onTapUp: (_) {
+        HapticFeedback.lightImpact();
+        setState(() {
+          pressed = false;
+        });
+        widget.tapAction?.execute(ActionContext());
+      },
+      onTapCancel: () {
+        setState(() {
+          pressed = false;
+        });
+      },
+      child: AnimatedOpacity(
+        opacity: pressed ? 0.2 : 1,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.fastOutSlowIn,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+class InteractiveModifier extends ComponentModifier with WrapperModifier {
+  final bool enabled;
+  final Action? tapAction;
+
+  const InteractiveModifier({
+    this.enabled = true,
+    this.tapAction,
+    super.condition,
+  });
+
+  @override
+  Widget wrap(Widget child, ComponentContext context) {
+    if (enabled) {
+      return InteractiveWrapper(child: child);
+    } else {
+      return child;
+    }
+  }
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is InteractiveModifier) {
+      return InteractiveModifier(
+        enabled: other.enabled,
+        tapAction: other.tapAction,
+      );
+    }
+    return this;
+  }
+}
+
+mixin ModifiableInteractive<Type extends Component> on Component<Type> {
+  Type interactive({
+    bool enabled = true,
+    Action? tapAction,
+    ResponsiveCondition? condition,
+  }) {
+    return withModifier(
+      InteractiveModifier(
+        enabled: enabled,
+        condition: condition,
+        tapAction: tapAction,
+      ),
+    );
+  }
+}
+
+class ExpandableModifier extends ComponentModifier with WrapperModifier {
+  final bool horizontal;
+  final bool vertical;
+
+  const ExpandableModifier({
+    this.horizontal = false,
+    this.vertical = false,
+    super.condition,
+  });
+
+  @override
+  ComponentModifier merge(ComponentModifier other) {
+    if (other is ExpandableModifier) {
+      return ExpandableModifier(
+        horizontal: other.horizontal,
+        vertical: other.vertical,
+      );
+    }
+    return this;
+  }
+
+  @override
+  Widget wrap(Widget child, ComponentContext context) {
+    if (horizontal && vertical) {
+      return Expanded(child: child);
+    } else if (horizontal) {
+      return Row(children: [Expanded(child: child)]);
+    } else if (vertical) {
+      return Column(children: [Expanded(child: child)]);
+    } else {
+      return child;
+    }
+  }
+}
+
+mixin ModifiableExpandable<Type extends Component> on Component<Type> {
+  Type expands({
+    bool horizontal = true,
+    bool vertical = true,
+    ResponsiveCondition? condition,
+  }) {
+    return withModifier(
+      ExpandableModifier(
+        horizontal: horizontal,
+        vertical: vertical,
+        condition: condition,
+      ),
     );
   }
 }

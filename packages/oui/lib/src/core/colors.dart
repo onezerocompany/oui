@@ -6,7 +6,6 @@ import 'package:flutter/rendering.dart' as rendering
 import 'package:flutter/widgets.dart'
     show BuildContext, InheritedWidget, MediaQuery, Widget;
 import 'package:oui/oui.dart';
-import 'package:oui/src/core/interpolation.dart';
 
 /// Enum representing different RGB color spaces.
 enum RgbColorSpace {
@@ -1103,8 +1102,6 @@ class MonochromaticColorGenerator extends ColorGenerator {
     switch (input) {
       case State.normal:
         return color;
-      case State.highlighted:
-        return hsl.saturate(0.04).lighten(0.1).color;
       case State.disabled:
         return hsl.withSaturation(0).withLightness(0.1).color;
       case State.loading:
@@ -1134,7 +1131,7 @@ class MonochromaticColorGenerator extends ColorGenerator {
       final content = isVeryStateful ? base : base.lerpTo(Color.black, 0.95);
       final surface = isVeryStateful
           ? base.desaturate(0.8).lighten(0.3)
-          : base.desaturate(0.92).lighten(0.3);
+          : base.desaturate(0.98).lighten(0.4);
       final decoration = surface.lerpTo(base, 0.1).darken(0.05);
       final edge = isVeryStateful
           ? content.lerpTo(surface, 0.3)

@@ -31,10 +31,52 @@ class TypographyConfigGroup {
   final Range<double> weight;
 
   const TypographyConfigGroup({
+    required this.curve,
+    required this.font,
+    required this.size,
+    required this.weight,
+  });
+
+  const TypographyConfigGroup.headings({
     this.curve = Curve.linear,
-    this.font = "NotoSans Regular",
-    this.size = const Range(14.0, 28.0),
+    this.font = "Roboto",
+    this.size = const Range(18.0, 64.0),
+    this.weight = const Range(400.0, 600.0),
+  });
+
+  const TypographyConfigGroup.subheadings({
+    this.curve = Curve.linear,
+    this.font = "Roboto",
+    this.size = const Range(18.0, 34.0),
+    this.weight = const Range(400.0, 600.0),
+  });
+
+  const TypographyConfigGroup.body({
+    this.curve = Curve.linear,
+    this.font = "Roboto",
+    this.size = const Range(8.0, 28.0),
     this.weight = const Range(300.0, 500.0),
+  });
+
+  const TypographyConfigGroup.caption({
+    this.curve = Curve.linear,
+    this.font = "Roboto",
+    this.size = const Range(12.0, 24.0),
+    this.weight = const Range(300.0, 400.0),
+  });
+
+  const TypographyConfigGroup.footnotes({
+    this.curve = Curve.linear,
+    this.font = "Roboto",
+    this.size = const Range(10.0, 20.0),
+    this.weight = const Range(300.0, 400.0),
+  });
+
+  const TypographyConfigGroup.button({
+    this.curve = Curve.linear,
+    this.font = "Roboto",
+    this.size = const Range(12.0, 24.0),
+    this.weight = const Range(400.0, 600.0),
   });
 }
 
@@ -44,29 +86,27 @@ class TypographyConfig {
   final TypographyConfigGroup body;
   final TypographyConfigGroup caption;
   final TypographyConfigGroup footnotes;
+  final TypographyConfigGroup button;
 
   const TypographyConfig({
-    this.headings = const TypographyConfigGroup(
-      size: Range(18.0, 44.0),
-      weight: Range(400.0, 600.0),
-    ),
-    this.subheadings = const TypographyConfigGroup(
-      size: Range(18.0, 22.0),
-      weight: Range(400.0, 600.0),
-    ),
-    this.body = const TypographyConfigGroup(
-      size: Range(14.0, 28.0),
-      weight: Range(300.0, 500.0),
-    ),
-    this.caption = const TypographyConfigGroup(
-      size: Range(12.0, 24.0),
-      weight: Range(300.0, 400.0),
-    ),
-    this.footnotes = const TypographyConfigGroup(
-      size: Range(10.0, 20.0),
-      weight: Range(300.0, 400.0),
-    ),
+    this.headings = const TypographyConfigGroup.headings(),
+    this.subheadings = const TypographyConfigGroup.subheadings(),
+    this.body = const TypographyConfigGroup.body(),
+    this.caption = const TypographyConfigGroup.caption(),
+    this.footnotes = const TypographyConfigGroup.footnotes(),
+    this.button = const TypographyConfigGroup.body(),
   });
+
+  static TypographyConfig withFont(String font) {
+    return TypographyConfig(
+      headings: TypographyConfigGroup.headings(font: font),
+      subheadings: TypographyConfigGroup.subheadings(font: font),
+      body: TypographyConfigGroup.body(font: font),
+      caption: TypographyConfigGroup.caption(font: font),
+      footnotes: TypographyConfigGroup.footnotes(font: font),
+      button: TypographyConfigGroup.button(font: font),
+    );
+  }
 }
 
 enum TypographyGroup {
@@ -75,6 +115,7 @@ enum TypographyGroup {
   body,
   caption,
   footnotes,
+  button,
 }
 
 class Typography
@@ -93,6 +134,8 @@ class Typography
             TypographyGroupContainer.fromConfig(config.caption),
         TypographyGroup.footnotes:
             TypographyGroupContainer.fromConfig(config.footnotes),
+        TypographyGroup.button:
+            TypographyGroupContainer.fromConfig(config.button),
       },
     );
   }
@@ -714,11 +757,17 @@ mixin ModifiableSelectionColor<Type extends Component> on Component<Type> {
   }
 }
 
+typedef TextColorBuilder = Color Function(ComponentContext context);
+
 class TextColorModifier extends ComponentModifier with TextStyleModifier {
+  final bool flipped;
   final Color? color;
+  final TextColorBuilder? builder;
 
   const TextColorModifier({
     this.color,
+    this.builder,
+    this.flipped = false,
     super.condition,
   });
 
@@ -727,9 +776,16 @@ class TextColorModifier extends ComponentModifier with TextStyleModifier {
     ui.TextStyle style,
     ComponentContext context,
   ) {
-    if (color == null) {
+    if (color == null && builder == null) {
+      final color = flipped ? context.colors.surface : context.colors.content;
       return style.copyWith(
-        color: context.colors.content.uiColor,
+        color: color.uiColor,
+      );
+    }
+
+    if (builder != null) {
+      return style.copyWith(
+        color: builder!(context).uiColor,
       );
     }
 
@@ -743,6 +799,7 @@ class TextColorModifier extends ComponentModifier with TextStyleModifier {
     if (other is TextColorModifier) {
       return TextColorModifier(
         color: other.color,
+        builder: other.builder,
       );
     }
     return this;
@@ -750,13 +807,35 @@ class TextColorModifier extends ComponentModifier with TextStyleModifier {
 }
 
 mixin ModifiableTextColor<Type extends Component> on Component<Type> {
+  Type defaultColor({
+    bool flipped = false,
+  }) {
+    return withModifier(
+      TextColorModifier(
+        flipped: flipped,
+      ),
+    );
+  }
+
   Type color(
-    Color? color, {
+    Color color, {
     ResponsiveCondition? condition,
   }) {
     return withModifier(
       TextColorModifier(
         color: color,
+        condition: condition,
+      ),
+    );
+  }
+
+  Type colorBuilder(
+    TextColorBuilder builder, {
+    ResponsiveCondition? condition,
+  }) {
+    return withModifier(
+      TextColorModifier(
+        builder: builder,
         condition: condition,
       ),
     );

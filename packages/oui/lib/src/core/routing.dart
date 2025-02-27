@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart' show ChangeNotifier, SynchronousFuture;
 import 'package:flutter/widgets.dart'
     show BuildContext, GlobalKey, RouteInformation, RouterDelegate, Widget;
 import 'package:flutter/widgets.dart' as widgets show RouteInformationParser;
+import 'package:oui/src/core/_index.dart';
 
-import '../components/screen.dart';
-import 'locales.dart';
 import 'localization.dart';
 import 'scaffold.dart';
+import 'screen.dart';
 import 'screen_registry.dart';
 
 /// Represents a segment of a path in the Oui routing system.
@@ -384,7 +384,7 @@ class RouteInformationParser extends widgets.RouteInformationParser<PathMatch> {
 
   /// Parses route information into an [PathMatch] object.
   ///
-  /// This method takes the current [RouteInformation] and [BuildContext],
+  /// This method takes the current [RouteIn1formation] and [BuildContext],
   /// extracts the URI segments and locale, and matches them against the root screen.
   @override
   Future<PathMatch> parseRouteInformationWithDependencies(
@@ -395,7 +395,12 @@ class RouteInformationParser extends widgets.RouteInformationParser<PathMatch> {
         .where((segment) => segment.isNotEmpty)
         .toList();
 
-    return SynchronousFuture(_registry.match(segments, context.currentLocale));
+    return SynchronousFuture(
+      _registry.resolve(
+        segments: segments,
+        context: ComponentContext.withDetails(context, type, modifiers),
+      ),
+    );
   }
 
   /// Converts an [PathMatch] back into [RouteInformation].
