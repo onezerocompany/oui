@@ -1,6 +1,7 @@
 import 'package:contour/src/key.dart' show VariableKey;
+import 'package:contour/src/types/list.dart' show ListVariableInstance;
 
-import '../instance.dart' show VariableInstance;
+import '../instance.dart' show VariableInstance, SingleVariableInstance;
 import '../type.dart'
     show
         ContourError,
@@ -46,34 +47,6 @@ class ContourObject extends ContourType<Map<String, dynamic>, ContourObject> {
     return ContourParseResult<Map<String, dynamic>>(values, errors);
   }
 
-  ContourObject additionalFields(bool allowed) {
-    final operations =
-        this.operations.where((op) => op.name != 'additionalFields').toList();
-
-    return ContourObject(schema, [
-      ...operations,
-      ContourOperation.check('additionalFields', (field, currentValue) {
-        if (currentValue != null) {
-          final additionalFields =
-              currentValue.keys
-                  .where((key) => !schema.containsKey(key))
-                  .toList();
-          if (additionalFields.isNotEmpty && !allowed) {
-            return ContourParseResult<Map<String, dynamic>>(null, [
-              for (final field in additionalFields)
-                ContourError(
-                  field: field,
-                  type: ContourErrorType.check,
-                  message: 'additional field is not allowed: $field',
-                ),
-            ]);
-          }
-        }
-        return ContourParseResult<Map<String, dynamic>>(currentValue, []);
-      }),
-    ]);
-  }
-
   @override
   ContourObject get optional {
     final operations =
@@ -111,6 +84,31 @@ class ContourObject extends ContourType<Map<String, dynamic>, ContourObject> {
       ContourOperation.check('fallback', (field, currentValue) {
         if (currentValue == null) {
           return ContourParseResult<Map<String, dynamic>>(value, []);
+        }
+        return ContourParseResult<Map<String, dynamic>>(currentValue, []);
+      }),
+    ]);
+  }
+
+  ContourObject additionalFields(bool allow) {
+    return ContourObject(schema, [
+      ...operations,
+      ContourOperation.check('additionalFields', (field, currentValue) {
+        if (!allow && currentValue != null) {
+          final extraFields =
+              currentValue.keys
+                  .where((key) => !schema.containsKey(key))
+                  .toList();
+          if (extraFields.isNotEmpty) {
+            return ContourParseResult<Map<String, dynamic>>(null, [
+              ContourError(
+                field: field,
+                type: ContourErrorType.check,
+                message:
+                    'contains additional fields: ${extraFields.join(', ')}',
+              ),
+            ]);
+          }
         }
         return ContourParseResult<Map<String, dynamic>>(currentValue, []);
       }),
@@ -155,7 +153,9 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
   Map<String, dynamic>? get value {
     final result = <String, dynamic>{};
     for (final entry in _instances.entries) {
-      result[entry.key] = entry.value.value;
+      if (entry.value.value != null) {
+        result[entry.key] = entry.value.value;
+      }
     }
     return result;
   }
@@ -169,7 +169,11 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
       return;
     }
     for (final entry in _instances.entries) {
-      entry.value.value = value[entry.key];
+      if (value.containsKey(entry.key)) {
+        entry.value.value = value[entry.key];
+      } else {
+        entry.value.value = null;
+      }
     }
   }
 
@@ -183,22 +187,40 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
   @override
   bool get valid => errors.isEmpty;
 
-  // Potential option
-  // operator[] (VariableKey key) => field(key);
+  /// Modified operator [] to return the instance for compound types.
+  dynamic operator [](String key) {
+    final instance = _instances[key];
+    if (instance == null) return null;
+    if (instance is ObjectVariableInstance ||
+        instance is ListVariableInstance) {
+      return instance;
+    }
+    return instance.value;
+  }
+
+  void operator []=(String key, dynamic value) {
+    final instance = _instances[key];
+    if (instance == null) return;
+
+    if (value is Map<String, dynamic> && instance is ObjectVariableInstance) {
+      instance.value = value;
+    } else if (value is List && instance is ListVariableInstance) {
+      instance.value = value;
+    } else if (value is num && instance is SingleVariableInstance<num>) {
+      instance.value = value;
+    } else if (value is String && instance is SingleVariableInstance<String>) {
+      instance.value = value;
+    } else {
+      throw Exception("Invalid value type for key $key");
+    }
+  }
+
+  ObjectVariableInstance? getObjectInstance(String key) {
+    final instance = _instances[key];
+    return instance is ObjectVariableInstance ? instance : null;
+  }
+
+  VariableInstance? getInstance(String key) {
+    return _instances[key];
+  }
 }
-
-// class User {
-//   final String name;
-//   final int age;
-
-//   User(this.name, this.age);
-// }
-
-// const user = object({
-//   'name': ContourType<String>(),
-//   'age': ContourType<int>(),
-// }).instance("user");
-
-// user.field("address").value = "John Doe";
-
-// user["name"] = "John Doe";

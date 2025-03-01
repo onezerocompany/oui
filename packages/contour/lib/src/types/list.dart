@@ -7,11 +7,13 @@ class ContourList extends ContourType<List, ContourList> {
   const ContourList(this.item, [super.operations = const []]);
 
   @override
-  List coerce(dynamic value) {
+  List? coerce(dynamic value) {
     if (value is List) {
-      return value.map((value) => item.coerce(value)).toList();
+      return value
+          .map((item) => item != null ? this.item.coerce(item) : null)
+          .toList();
     }
-    return [item.coerce(value)];
+    return null;
   }
 
   @override
@@ -55,7 +57,11 @@ class ContourList extends ContourType<List, ContourList> {
   ]);
 
   @override
-  ContourList get optional => ContourList(item, operations);
+  ContourList get optional {
+    final operations =
+        this.operations.where((op) => op.name != 'required').toList();
+    return ContourList(item, operations);
+  }
 
   @override
   ContourList fallback(List value) => ContourList(item, [
