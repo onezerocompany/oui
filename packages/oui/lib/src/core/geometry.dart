@@ -21,7 +21,6 @@ import 'package:flutter/widgets.dart'
         Wrap;
 import 'package:oui/src/components/box.dart' show ContentModifier;
 import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
-import 'package:oui/src/core/screen.dart' show Screen;
 
 import 'component.dart';
 import 'utils.dart';
@@ -791,7 +790,7 @@ class SizeModifier extends ComponentModifier with ContentModifier {
   @override
   Widget modify(Widget? child, ComponentContext context) {
     if (child == null) return const SizedBox.shrink();
-    if (size == null && context.type == Screen) {
+    if (size == null) {
       final config = context.config.screens;
       if (config.defaultPanelWidth != null) {
         return Size(

@@ -26,7 +26,6 @@ import 'state.dart' show State, StateModifier;
 
 /// Context for modifiers, providing necessary information for modification.
 class ComponentContext extends ResponsiveContext {
-  final Type type;
   final BuildContext build;
   final BoxColors colors;
   final BoxLevel level;
@@ -40,7 +39,6 @@ class ComponentContext extends ResponsiveContext {
     required super.orientation,
     required super.density,
     required super.theme,
-    required this.type,
     required this.build,
     required this.colors,
     required this.level,
@@ -49,10 +47,9 @@ class ComponentContext extends ResponsiveContext {
     required this.modifiers,
   });
 
-  factory ComponentContext.withDetails(
-    BuildContext context,
-    Type type,
-    ComponentModifiers modifiers, {
+  factory ComponentContext.forContext(
+    BuildContext context, {
+    ComponentModifiers modifiers = const [],
     BoxLevel? boxLevel,
   }) {
     final responsive = ResponsiveContext.of(context);
@@ -69,7 +66,6 @@ class ComponentContext extends ResponsiveContext {
         .accented(accent.level);
 
     return ComponentContext(
-      type: type,
       build: context,
       colors: colors,
       width: responsive.width,
@@ -85,10 +81,12 @@ class ComponentContext extends ResponsiveContext {
   }
 
   Config get config => Config.of(build);
+  ColorPalette get palette => ColorPalette.of(build);
+  Type get type => build.widget.runtimeType;
 
   @override
   String toString() {
-    return 'ComponentContext{type: $type, width: $width, height: $height, orientation: $orientation, density: $density, theme: $theme, accent: $accent, state: $state}';
+    return 'ComponentContext{width: $width, height: $height, orientation: $orientation, density: $density, theme: $theme, accent: $accent, state: $state}';
   }
 
   @override
@@ -96,7 +94,6 @@ class ComponentContext extends ResponsiveContext {
     if (identical(this, other)) return true;
 
     return other is ComponentContext &&
-        other.type == type &&
         other.width == width &&
         other.height == height &&
         other.orientation == orientation &&
@@ -109,15 +106,16 @@ class ComponentContext extends ResponsiveContext {
 
   @override
   int get hashCode {
-    return type.hashCode ^
-        width.hashCode ^
-        height.hashCode ^
-        orientation.hashCode ^
-        density.hashCode ^
-        theme.hashCode ^
-        accent.hashCode ^
-        state.hashCode ^
-        modifiers.hashCode;
+    return Object.hash(
+      width,
+      height,
+      orientation,
+      density,
+      theme,
+      accent,
+      state,
+      modifiers,
+    );
   }
 
   static ComponentContext of(BuildContext buildContext) {
@@ -223,11 +221,7 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
   }
 
   ComponentContext _componentContext(BuildContext context) {
-    return ComponentContext.withDetails(
-      context,
-      runtimeType,
-      modifiers,
-    );
+    return ComponentContext.forContext(context);
   }
 
   @nonVirtual

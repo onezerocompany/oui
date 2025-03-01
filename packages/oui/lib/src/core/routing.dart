@@ -1,120 +1,59 @@
-import 'package:flutter/foundation.dart' show ChangeNotifier, SynchronousFuture;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart'
-    show BuildContext, GlobalKey, RouteInformation, RouterDelegate, Widget;
-import 'package:flutter/widgets.dart' as widgets show RouteInformationParser;
+    show
+        BuildContext,
+        ChangeNotifier,
+        RouteInformation,
+        RouteInformationParser,
+        RouteInformationProvider,
+        RouterConfig,
+        RouterDelegate,
+        Widget,
+        WidgetsBindingObserver;
 import 'package:oui/src/core/_index.dart';
 
-import 'localization.dart';
-import 'scaffold.dart';
-import 'screen.dart';
-import 'screen_registry.dart';
-
-/// Represents a segment of a path in the Oui routing system.
 class PathSegment {
-  /// Unique identifier for the path segment.
-  final String id;
-
-  /// Optional pattern to match the segment.
-  final String? pattern;
-
-  /// Indicates if the segment is parametric.
-  final bool isParametric;
-
-  /// Private constructor for creating a path segment.
-  const PathSegment._({
-    required this.id,
-    this.isParametric = false,
-    this.pattern,
-  }) : assert(id.length != 0, 'The id of a path segment cannot be empty.');
-
-  /// Creates a static path segment.
-  ///
-  /// Example:
-  /// ```dart
-  /// var segment = PathSegment.static('home');
-  /// ```
-  factory PathSegment.static(String value) {
-    assert(value.isNotEmpty, 'The value of a static segment cannot be empty.');
-    return PathSegment._(
-      id: value,
-      pattern: '^${RegExp.escape(value)}\$',
-    );
-  }
-
-  /// Creates a parametric path segment with an optional pattern.
-  ///
-  /// This factory constructor allows you to create a path segment that can
-  /// match a specific pattern, making it useful for defining dynamic routes.
-  ///
-  /// Example:
-  /// ```dart
-  /// // Create a segment that matches any digits
-  /// var segment = PathSegment.argument('id', pattern: r'\d+');
-  ///
-  /// // Create a segment without a specific pattern
-  /// var segmentWithoutPattern = PathSegment.argument('name');
-  ///
-  /// // Create a segment that matches any word characters
-  /// var segmentWithWordPattern = PathSegment.argument('username', pattern: r'\w+');
-  /// ```
-  ///
-  /// [id] is the identifier for the path segment.
-  /// [pattern] is an optional regular expression pattern that the segment should match.
-  factory PathSegment.argument(String id, {String? pattern}) {
-    assert(id.isNotEmpty, 'The id of an argument segment cannot be empty.');
-    if (pattern != null) {
-      // check the pattern is valid
-      try {
-        RegExp(pattern);
-      } catch (e) {
-        throw FormatException(
-          'The pattern for an argument segment is not a valid regular expression: $pattern',
+  const PathSegment.static(String value)
+      : id = value,
+        pattern = null,
+        isArgument = false,
+        assert(
+          value.length > 0,
+          'The value of a static segment cannot be empty.',
         );
-      }
 
-      assert(
-        RegExp(pattern).isMultiLine == false,
-        'The pattern for an argument segment cannot be multiline.',
-      );
+  const PathSegment.argument(
+    this.id, {
+    this.pattern,
+  })  : isArgument = true,
+        assert(
+          id.length > 0,
+          'The id of an argument segment cannot be empty.',
+        );
+
+  final String id;
+  final RegExp? pattern;
+  final bool isArgument;
+
+  bool match(String value) {
+    if (isArgument && pattern != null) {
+      return pattern!.hasMatch(value);
+    } else if (isArgument) {
+      return true;
+    } else {
+      return id.toLowerCase() == value.toLowerCase();
     }
-    return PathSegment._(
-      id: id,
-      pattern: pattern,
-      isParametric: true,
-    );
   }
 
-  /// Returns a string representation of the path segment.
   @override
   String toString() {
-    return 'PathSegment(id: $id, pattern: $pattern, isParametric: $isParametric)';
+    return 'PathSegment(id: $id, pattern: $pattern)';
   }
 }
 
-/// A list of [PathSegment]s.
-typedef PathSegments = List<PathSegment>;
-
-/// Represents a path in the OUI routing system composed of multiple segments.
-///
-/// A path is used to match and parse URL segments for routing purposes.
 class Path {
-  /// The ordered list of segments that make up this path.
-  final PathSegments segments;
-
-  int get length => segments.length;
-
-  /// Creates a new [Path] with the given [segments].
   const Path(this.segments);
 
-  /// Creates a new [Path] from a string representation.
-  ///
-  /// This constructor splits the given [path] by '/' and creates static
-  /// segments for each non-empty part.
-  ///
-  /// Example:
-  /// ```dart
-  /// var path = Path.from('/home/user/profile');
-  /// ```
   Path.fromString(String path)
       : segments = path.split('/').where((segment) => segment.isNotEmpty).map(
           (segment) {
@@ -126,10 +65,22 @@ class Path {
           },
         ).toList();
 
-  /// Returns true if this path contains no segments.
-  bool get isEmpty => segments.isEmpty;
+  final List<PathSegment> segments;
 
   static const empty = Path([]);
+
+  int get length => segments.length;
+  bool get isEmpty => segments.isEmpty;
+
+  bool get valid {
+    if (segments.isEmpty) return false;
+    for (final segment in segments) {
+      if (segment.isArgument && segment.pattern != null) {
+        return !segment.pattern!.isMultiLine;
+      }
+    }
+    return true;
+  }
 
   PathMatch match(List<String> segments, List<Screen> screens) {
     final matches = _segmentMatches(segments);
@@ -154,7 +105,7 @@ class Path {
       }
 
       final segment = segments[i];
-      if (segment.isParametric) {
+      if (segment.isArgument) {
         if (!_matchParametricSegment(segment, pathSegment, matches)) {
           return matches;
         }
@@ -331,17 +282,10 @@ class PathMatch {
     this.expectedSegmentCount,
   );
 
-  /// Represents no match found
-  static const noMatch = PathMatch([], [], [], 0);
-
   /// Removes the last [count] segments from the match
   PathMatch pop([int count = 1]) {
     if (count <= 0) {
       return this;
-    }
-
-    if (count >= screens.length) {
-      return PathMatch.noMatch;
     }
 
     final screensToPop = screens.skip(screens.length - count);
@@ -368,79 +312,87 @@ class PathMatch {
   }
 }
 
-/// A route information parser that converts URIs to [PathMatch] objects.
-///
-/// This parser is used in conjunction with the Oui routing system to handle
-/// route information parsing and restoration in a Flutter application.
-class RouteInformationParser extends widgets.RouteInformationParser<PathMatch> {
-  /// The root screen of the application's routing hierarchy.
-  final ScreenRegistry _registry;
+class _RouteInformationProvider extends RouteInformationProvider
+    with ChangeNotifier, WidgetsBindingObserver {
+  _RouteInformationProvider(this.router);
 
-  /// Creates an [RouteInformationParser] with the specified root screen.
-  ///
-  /// The [_root] parameter defines the entry point of the application's
-  /// routing hierarchy.
-  const RouteInformationParser(this._registry);
+  final Router router;
 
-  /// Parses route information into an [PathMatch] object.
-  ///
-  /// This method takes the current [RouteIn1formation] and [BuildContext],
-  /// extracts the URI segments and locale, and matches them against the root screen.
+  @override
+  // TODO: implement value
+  RouteInformation get value => throw UnimplementedError();
+}
+
+class _RouteInformationParser extends RouteInformationParser<PathMatch> {
+  const _RouteInformationParser(this.registry);
+
+  final ScreenRegistry registry;
+
+  @override
+  RouteInformation? restoreRouteInformation(PathMatch configuration) {
+    return RouteInformation(
+      uri: configuration.uri,
+      state: configuration.state,
+    );
+  }
+
   @override
   Future<PathMatch> parseRouteInformationWithDependencies(
     RouteInformation routeInformation,
     BuildContext context,
   ) {
-    final segments = routeInformation.uri.pathSegments
-        .where((segment) => segment.isNotEmpty)
-        .toList();
-
-    return SynchronousFuture(
-      _registry.resolve(
-        segments: segments,
-        context: ComponentContext.withDetails(context, type, modifiers),
-      ),
+    final match = registry.resolve(
+      context: ComponentContext.forContext(context),
+      segments: routeInformation.uri.pathSegments,
     );
-  }
-
-  /// Converts an [PathMatch] back into [RouteInformation].
-  ///
-  /// This method is used when restoring the application's navigation state.
-  @override
-  RouteInformation restoreRouteInformation(PathMatch configuration) {
-    return RouteInformation(uri: configuration.uri);
+    return SynchronousFuture(match);
   }
 }
 
-class Router extends RouterDelegate<PathMatch> with ChangeNotifier {
-  PathMatch activeMatch = PathMatch.noMatch;
-  final GlobalKey<ScaffoldState> routerKey = GlobalKey<ScaffoldState>();
+class _RouterDelegate extends RouterDelegate<PathMatch> with ChangeNotifier {
+  _RouterDelegate(this.registry);
 
-  Router();
-
-  @override
-  PathMatch? get currentConfiguration => activeMatch;
-
-  @override
-  Future<void> setNewRoutePath(PathMatch configuration) {
-    activeMatch = configuration;
-    notifyListeners();
-    return SynchronousFuture(null);
-  }
+  final ScreenRegistry registry;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(key: routerKey);
+    return const Scaffold(
+      match: 
+    );
+  }
+
+  @override
+  Future<void> setInitialRoutePath(PathMatch configuration) {
+    // TODO: implement setInitialRoutePath
+    return super.setInitialRoutePath(configuration);
   }
 
   @override
   Future<bool> popRoute() {
-    final willPop = routerKey.currentState?.activeMatch.canPop ?? false;
-    if (willPop && routerKey.currentState != null) {
-      routerKey.currentState!.activeMatch =
-          routerKey.currentState!.activeMatch.pop();
-      notifyListeners();
-    }
-    return SynchronousFuture(willPop);
+    // TODO: implement popRoute
+    throw UnimplementedError();
   }
+
+  @override
+  Future<void> setNewRoutePath(PathMatch configuration) {
+    // TODO: implement setNewRoutePath
+    throw UnimplementedError();
+  }
+}
+
+class Router implements RouterConfig<PathMatch> {
+  Router({
+    required ScreenRegistry registry,
+  })  : routeInformationProvider = _RouteInformationProvider(),
+        routeInformationParser = const _RouteInformationParser(),
+        routerDelegate = _RouterDelegate();
+
+  @override
+  final RouteInformationProvider routeInformationProvider;
+
+  @override
+  final RouteInformationParser<PathMatch> routeInformationParser;
+
+  @override
+  final RouterDelegate<PathMatch> routerDelegate;
 }

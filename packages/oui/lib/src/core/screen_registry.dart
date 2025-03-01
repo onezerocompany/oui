@@ -37,6 +37,36 @@ class ScreenRegistryEntry {
   }
 
   List<Screen> get screens => [...parents, screen];
+
+  /// Creates a [PathMatch] by combining static path segments with provided dynamic segment values.
+  ///
+  /// This method creates a path match that includes all static segments and any provided dynamic
+  /// segments from both the current screen and its parent screens.
+  ///
+  /// Parameters:
+  ///   - [dynamicSegments]: A map where keys are the IDs of parametric segments and values are
+  ///     their corresponding values. Any parametric segments not provided in the map will be omitted.
+  ///
+  /// Example:
+  /// ```dart
+  /// final match = entry.createPathMatch({
+  ///   'userId': '123',
+  ///   'tab': 'profile'
+  /// });
+  /// ```
+  PathMatch pathMatch([Map<String, String> dynamicSegments = const {}]) {
+    final segments = path.segments
+        .map((segment) {
+          if (!segment.isParametric) {
+            return segment.id;
+          }
+          return dynamicSegments[segment.id];
+        })
+        .whereType<String>()
+        .toList();
+
+    return path.match(segments, screens);
+  }
 }
 
 typedef ScreenRegistryEntries = List<ScreenRegistryEntry>;
@@ -141,14 +171,6 @@ class ScreenRegistry {
     return null;
   }
 
-  PathMatch get defaultRoute {
-    for (final entry in _entries.forLocale(null) ?? []) {
-      if (entry.path.isDefault) {
-        return entry.path.match([], entry.screens);
-      }
-    }
-  }
-
   /// Matches the given list of [segments] against the paths in the registry.
   ///
   /// Returns the best matching [PathMatch] object, or the root match if no
@@ -158,40 +180,55 @@ class ScreenRegistry {
     Screen? screen,
     required ComponentContext context,
   }) {
+    // Get registry entries for the current locale
     final entries = _entries.resolve(context.build);
-    List<PathMatch> matches = entries
-        .map(
-          (entry) => PathMatch(
-            [entry.screen],
-            [],
-            leftovers,
-            expectedSegmentCount,
-          ),
-        )
-        .toList();
+
+    List<PathMatch> matches = [];
 
     if (screen != null) {
-      for (final ScreenRegistryEntry entry in entries ?? []) {
-        if (entry.screen == screen) {
-          matches.add(entry.path.match([], entry.screens));
-        }
+      // If looking for a specific screen, only match entries for that screen
+      matches = entries
+          .where((entry) => entry.screen == screen)
+          .map((entry) => entry.pathMatch())
+          .toList();
+
+      // If no matches found, fall back to root screens
+      if (matches.isEmpty) {
+        matches = entries
+            .where((entry) => entry.parents.isEmpty)
+            .map((entry) => entry.pathMatch())
+            .toList();
       }
     } else if (segments.isNotEmpty) {
+      // Match segments against all entries
       matches = entries
-              ?.map((entry) => entry.path.match(segments, entry.screens))
-              .whereType<PathMatch>()
-              .toList() ??
-          [];
+          .map((entry) => entry.path.match(segments, entry.screens))
+          .whereType<PathMatch>()
+          .toList();
+    } else {
+      // Default case: return root screens
+      matches = entries
+          .where((entry) => entry.parents.isEmpty)
+          .map((entry) => entry.pathMatch())
+          .toList();
     }
 
+    if (matches.isEmpty) {
+      return PathMatch.noMatch;
+    }
+
+    // Sort matches by rate and count in a single pass
     matches.sort((a, b) {
+      // First compare match rates
       final rateComparison = b.rate.compareTo(a.rate);
       if (rateComparison != 0) {
         return rateComparison;
       }
+      // If rates are equal, compare count
       return b.count.compareTo(a.count);
     });
 
+    // Find first match with available screens
     final bestMatch = matches.firstWhereOrNull(
       (match) => match.screens.every(
         (screen) => screen.available(context),

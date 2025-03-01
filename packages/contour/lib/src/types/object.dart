@@ -182,4 +182,23 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
 
   @override
   bool get valid => errors.isEmpty;
+
+  // Potential option
+  // operator[] (VariableKey key) => field(key);
 }
+
+// class User {
+//   final String name;
+//   final int age;
+
+//   User(this.name, this.age);
+// }
+
+// const user = object({
+//   'name': ContourType<String>(),
+//   'age': ContourType<int>(),
+// }).instance("user");
+
+// user.field("address").value = "John Doe";
+
+// user["name"] = "John Doe";

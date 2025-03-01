@@ -22,7 +22,6 @@ import 'typography.dart';
 /// Encapsulates all static configuration data for your app.
 class StaticAppContext {
   final Config config;
-  final RouteInformationParser routerInformationParser;
   final Router router;
   final ColorPalette colorPalette;
   final Typography typography;
@@ -30,7 +29,6 @@ class StaticAppContext {
 
   const StaticAppContext({
     required this.config,
-    required this.routerInformationParser,
     required this.router,
     required this.colorPalette,
     required this.typography,
@@ -170,8 +168,9 @@ class _OuiAppState extends State<OuiApp> {
       child: _DynamicAppContextProvider(
         config: widget.config,
         child: WidgetsApp.router(
-          routerDelegate: staticAppContext.router,
-          routeInformationParser: staticAppContext.routerInformationParser,
+          // routerDelegate: staticAppContext.router,
+          // routeInformationParser: staticAppContext.routerInformationParser,
+          routerConfig: staticAppContext.routerConfig,
           color: const ui.Color.fromARGB(205, 0, 0, 0),
           debugShowCheckedModeBanner: false,
           restorationScopeId: 'oui_app',
