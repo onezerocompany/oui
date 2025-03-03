@@ -23,6 +23,7 @@ void main() {
       );
     });
 
+    // TODO: Should actually be list with value in it
     test('coerce should return null for non-list values', () {
       final listType = ContourList(ContourNumber());
       expect(listType.coerce('not a list'), isNull);

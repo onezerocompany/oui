@@ -8,6 +8,7 @@ void main() {
       expect(stringType.coerce('test'), 'test');
     });
 
+    // TODO: Convert non string to string when possible
     test('coerce should return null for non-string values', () {
       final stringType = ContourString();
       expect(stringType.coerce(123), isNull);

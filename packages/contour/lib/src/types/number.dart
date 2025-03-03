@@ -94,6 +94,9 @@ class ContourNumber extends ContourType<num, ContourNumber> {
     ]);
   }
 
+  // TODO: add integer check/transform
+  // TODO: add precision checks/transform
+
   @override
   SingleVariableInstance<num> instance(String name) {
     return SingleVariableInstance<num>(this, name);

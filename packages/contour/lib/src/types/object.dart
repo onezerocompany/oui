@@ -153,6 +153,7 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
   Map<String, dynamic>? get value {
     final result = <String, dynamic>{};
     for (final entry in _instances.entries) {
+      // TODO: allow for nullable variables
       if (entry.value.value != null) {
         result[entry.key] = entry.value.value;
       }
@@ -201,18 +202,7 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
   void operator []=(String key, dynamic value) {
     final instance = _instances[key];
     if (instance == null) return;
-
-    if (value is Map<String, dynamic> && instance is ObjectVariableInstance) {
-      instance.value = value;
-    } else if (value is List && instance is ListVariableInstance) {
-      instance.value = value;
-    } else if (value is num && instance is SingleVariableInstance<num>) {
-      instance.value = value;
-    } else if (value is String && instance is SingleVariableInstance<String>) {
-      instance.value = value;
-    } else {
-      throw Exception("Invalid value type for key $key");
-    }
+    instance.value = value;
   }
 
   ObjectVariableInstance? getObjectInstance(String key) {
