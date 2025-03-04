@@ -44,15 +44,17 @@ class TestContourType extends ContourType<int, TestContourType> {
         }),
       ]);
 
+  static const int _maxAllowedValue = 100;
+
   TestContourType.withCheck()
     : super([
         ContourOperation.check('lessThan100', (field, value) {
-          if (value! >= 100) {
+          if (value! >= _maxAllowedValue) {
             return ContourParseResult(value, [
               ContourError(
                 field: field,
                 type: ContourErrorType.check,
-                message: 'Value must be less than 100',
+                message: 'Value must be less than $_maxAllowedValue',
               ),
             ]);
           }

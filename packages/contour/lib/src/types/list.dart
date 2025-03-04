@@ -7,15 +7,13 @@ class ContourList extends ContourType<List, ContourList> {
 
   @override
   List? coerce(dynamic value) {
-    if (value == null) {
-      return null;
-    }
+    if (value == null) return null;
     if (value is List) {
       return value
           .map((item) => item != null ? this.item.coerce(item) : null)
           .toList();
     }
-    return [value];
+    return [item.coerce(value)];
   }
 
   @override

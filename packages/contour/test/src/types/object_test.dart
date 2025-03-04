@@ -34,13 +34,15 @@ void main() {
       expect(result.value, {'name': 'John', 'age': 30});
     });
 
-    test('parse should return empty fileds for non-map fields ', () {
+    test('parse should return empty fields for non-map fields ', () {
       final objectType = ContourObject({
         'name': ContourString(),
         'age': ContourNumber(),
       }).additionalFields(false);
       final result = objectType.parse({'bla': 'not a map'});
       expect(result.value, {'name': null, 'age': null});
+      expect(result.errors, isNotEmpty);
+      expect(result.errors.first.message, 'contains additional fields: bla');
     });
 
     test('parse should add field for non-map fields ', () {
@@ -50,6 +52,7 @@ void main() {
       }).additionalFields(true);
       final result = objectType.parse({'bla': 'not a map'});
       expect(result.value, {'name': null, 'age': null, 'bla': 'not a map'});
+      expect(result.errors, isEmpty);
     });
 
     test('optional should remove required operation', () {
@@ -197,7 +200,7 @@ void main() {
           'last': ContourString(),
         }),
         'age': ContourObject({
-          'dayOfbirth': ContourObject({
+          'dayOfBirth': ContourObject({
             'day': ContourNumber(),
             'month': ContourNumber(),
             'year': ContourNumber(),
@@ -209,14 +212,13 @@ void main() {
       instance.value = {
         'name': {'first': 'John', 'last': 'Doe'},
         'age': {
-          'dayOfbirth': {'day': 1, 'month': 1, 'year': 1990},
+          'dayOfBirth': {'day': 1, 'month': 1, 'year': 1990},
           'value': 30,
         },
       };
-      //expect(instance['name'], {'first': 'John', 'last': 'Doe'});
       expect(instance['name']['first'], 'John');
       expect(instance['name']['last'], 'Doe');
-      expect(instance['age']['dayOfbirth']['day'], 1);
+      expect(instance['age']['dayOfBirth']['day'], 1);
     });
 
     test('should update value using recursive bracket notation', () {

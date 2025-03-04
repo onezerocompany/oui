@@ -25,7 +25,7 @@ void main() {
 
     test('coerce should return a list for single non-list values', () {
       final listType = ContourList(ContourNumber());
-      expect(listType.coerce('not a list'), ['not a list']);
+      expect(listType.coerce('not a list'), [null]);
       expect(listType.coerce(123), [123]);
     });
 

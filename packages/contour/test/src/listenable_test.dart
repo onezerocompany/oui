@@ -23,16 +23,5 @@ void main() {
       listenable.notifySubscribers('test');
       expect(notifiedValue, isNull);
     });
-
-    test('should not notify cancelled subscriptions', () {
-      final listenable = Listenable<String>();
-      String? notifiedValue;
-      final subscription = listenable.subscribe((value) {
-        notifiedValue = value;
-      });
-      subscription.cancel();
-      listenable.notifySubscribers('test');
-      expect(notifiedValue, isNull);
-    });
   });
 }

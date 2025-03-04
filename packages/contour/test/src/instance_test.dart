@@ -14,14 +14,19 @@ void main() {
     test('should update value and notify subscribers', () {
       final instance = SingleVariableInstance(ContourString(), 'test');
       bool notified = false;
+      bool secondSubscriberNotified = false;
       instance.subscribe((value) {
         notified = true;
+      });
+      instance.subscribe((value) {
+        secondSubscriberNotified = true;
       });
       instance.value = 'new value';
       expect(instance.value, 'new value');
       expect(instance.errors, isEmpty);
       expect(instance.valid, isTrue);
       expect(notified, isTrue);
+      expect(secondSubscriberNotified, isTrue);
     });
 
     test('should update errors and validity when value is invalid', () {

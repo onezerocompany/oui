@@ -94,10 +94,6 @@ class ContourNumber extends ContourType<num, ContourNumber> {
     ]);
   }
 
-  // TODO: add integer check/transform
-  // TODO: add precision checks/transform
-  // Are these still needed? please check number_test.dart
-
   @override
   SingleVariableInstance<num> instance(String name) {
     return SingleVariableInstance<num>(this, name);
