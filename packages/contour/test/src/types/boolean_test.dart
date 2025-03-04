@@ -25,10 +25,32 @@ void main() {
       expect(result, isTrue);
     });
 
+    test('equals should validate boolean value', () {
+      final booleanType = ContourBoolean().equals(true);
+      final instance = booleanType.instance('test');
+      instance.value = false;
+      expect(instance.errors.isNotEmpty, isTrue);
+      expect(instance.errors.first.message, 'should equal be true');
+
+      instance.value = true;
+      expect(instance.errors.isEmpty, isTrue);
+    });
+
     test('optional should remove required operation', () {
       final booleanType = ContourBoolean().required.optional;
       final result = booleanType.operations.any((op) => op.name == 'required');
       expect(result, isFalse);
+    });
+
+    test('optional should validate boolean value', () {
+      final booleanType = ContourBoolean().required.optional;
+      final instance = booleanType.instance('test');
+
+      instance.value = null;
+      expect(instance.errors.isEmpty, isTrue);
+
+      instance.value = true;
+      expect(instance.errors.isEmpty, isTrue);
     });
 
     test('required should add a required operation', () {
@@ -37,10 +59,33 @@ void main() {
       expect(result, isTrue);
     });
 
+    test('required should validate boolean value', () {
+      final booleanType = ContourBoolean().required;
+      final instance = booleanType.instance('test');
+
+      instance.value = null;
+      expect(instance.errors.isNotEmpty, isTrue);
+      expect(instance.errors.first.message, 'is required');
+
+      instance.value = true;
+      expect(instance.errors.isEmpty, isTrue);
+    });
+
     test('fallback should add a fallback operation', () {
       final booleanType = ContourBoolean().fallback(true);
       final result = booleanType.operations.any((op) => op.name == 'fallback');
       expect(result, isTrue);
+    });
+
+    test('fallback should validate boolean value', () {
+      final booleanType = ContourBoolean().fallback(true);
+      final instance = booleanType.instance('test');
+
+      instance.value = null;
+      expect(instance.value, true);
+
+      instance.value = false;
+      expect(instance.value, false);
     });
   });
 }

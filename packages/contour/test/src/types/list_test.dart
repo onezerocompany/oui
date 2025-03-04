@@ -23,11 +23,10 @@ void main() {
       );
     });
 
-    // TODO: Should actually be list with value in it
-    test('coerce should return null for non-list values', () {
+    test('coerce should return a list for single non-list values', () {
       final listType = ContourList(ContourNumber());
-      expect(listType.coerce('not a list'), isNull);
-      expect(listType.coerce(123), isNull);
+      expect(listType.coerce('not a list'), ['not a list']);
+      expect(listType.coerce(123), [123]);
     });
 
     test('optional should remove required operation', () {
@@ -36,10 +35,33 @@ void main() {
       expect(result, isFalse);
     });
 
+    test('optional should validate list value', () {
+      final listType = ContourList(ContourNumber()).required.optional;
+      final instance = listType.instance('test');
+
+      instance.value = null;
+      expect(instance.errors.isEmpty, isTrue);
+
+      instance.value = [1, 2, 3];
+      expect(instance.errors.isEmpty, isTrue);
+    });
+
     test('required should add a required operation', () {
       final listType = ContourList(ContourNumber()).required;
       final result = listType.operations.any((op) => op.name == 'required');
       expect(result, isTrue);
+    });
+
+    test('required should validate list value', () {
+      final listType = ContourList(ContourNumber()).required;
+      final instance = listType.instance('test');
+
+      instance.value = null;
+      expect(instance.errors.isNotEmpty, isTrue);
+      expect(instance.errors.first.message, 'is required');
+
+      instance.value = [1, 2, 3];
+      expect(instance.errors.isEmpty, isTrue);
     });
 
     test('fallback should add a fallback operation', () {
@@ -47,5 +69,40 @@ void main() {
       final result = listType.operations.any((op) => op.name == 'fallback');
       expect(result, isTrue);
     });
+
+    test('fallback should validate list value', () {
+      final listType = ContourList(ContourNumber()).fallback([1, 2, 3]);
+      final instance = listType.instance('test');
+
+      instance.value = null;
+      expect(instance.value, [1, 2, 3]);
+
+      instance.value = [4, 5, 6];
+      expect(instance.value, [4, 5, 6]);
+    });
+
+    test('instance should create a correct instance', () {
+      final listType = ContourList(ContourNumber());
+      final instance = listType.instance('testList');
+      expect(instance, isNotNull);
+      expect(instance.name, 'testList');
+      expect(instance.value, isNull);
+    });
+
+    test('should handle empty lists', () {
+      final listType = ContourList(ContourNumber());
+      expect(listType.coerce([]), []);
+    });
+
+    test(
+      'should return empty list when parse complete list with invalid elements',
+      () {
+        final listType = ContourList(ContourNumber().required);
+        final result = listType.parse([1, 'not a number', 3]);
+        expect(result.errors.isEmpty, true);
+        expect(result.value, []);
+      },
+    );
+    // Check your expected behavior based on implementation
   });
 }

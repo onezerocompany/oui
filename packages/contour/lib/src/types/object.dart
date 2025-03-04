@@ -1,7 +1,7 @@
 import 'package:contour/src/key.dart' show VariableKey;
 import 'package:contour/src/types/list.dart' show ListVariableInstance;
 
-import '../instance.dart' show VariableInstance, SingleVariableInstance;
+import '../instance.dart' show VariableInstance;
 import '../type.dart'
     show
         ContourError,
@@ -26,8 +26,13 @@ class ContourObject extends ContourType<Map<String, dynamic>, ContourObject> {
 
   @override
   ContourParseResult<Map<String, dynamic>> parse(value, {String name = '.'}) {
+    if (value == null) {
+      return super.parse(value, name: name);
+    }
+
     final Map<String, dynamic> values = {};
     final ContourErrors errors = [];
+
     for (final entry in schema.entries) {
       final entryResult = entry.value.parse(value[entry.key], name: entry.key);
       if (entryResult.errors.isNotEmpty) {
@@ -81,11 +86,11 @@ class ContourObject extends ContourType<Map<String, dynamic>, ContourObject> {
         this.operations.where((op) => op.name != 'fallback').toList();
     return ContourObject(schema, [
       ...operations,
-      ContourOperation.check('fallback', (field, currentValue) {
-        if (currentValue == null) {
-          return ContourParseResult<Map<String, dynamic>>(value, []);
-        }
-        return ContourParseResult<Map<String, dynamic>>(currentValue, []);
+      ContourOperation.transform('fallback', (field, currentValue) {
+        return ContourParseResult<Map<String, dynamic>>(
+          currentValue ?? value,
+          [],
+        );
       }),
     ]);
   }
@@ -126,6 +131,7 @@ ContourObject object(Map<String, ContourType> schema) =>
 
 class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
   final Map<String, VariableInstance> _instances = {};
+  ContourErrors _errors = [];
 
   ObjectVariableInstance(super.type, super.name)
     : assert(type is ContourObject) {
@@ -153,36 +159,53 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
   Map<String, dynamic>? get value {
     final result = <String, dynamic>{};
     for (final entry in _instances.entries) {
-      // TODO: allow for nullable variables
-      if (entry.value.value != null) {
-        result[entry.key] = entry.value.value;
-      }
+      result[entry.key] = entry.value.value;
     }
     return result;
   }
 
   @override
-  set value(Map<String, dynamic>? value) {
-    if (value == null) {
-      for (final entry in _instances.entries) {
-        entry.value.value = null;
-      }
-      return;
-    }
-    for (final entry in _instances.entries) {
-      if (value.containsKey(entry.key)) {
-        entry.value.value = value[entry.key];
+  set value(Map<String, dynamic>? inputValue) {
+    final result = (type as ContourObject).parse(inputValue, name: name);
+    _errors = result.errors;
+
+    final valueToUse = result.value;
+
+    if (inputValue == null) {
+      if (valueToUse == null) {
+        // If we have no fallback, set all child instances to null
+        for (final entry in _instances.entries) {
+          entry.value.value = null;
+        }
       } else {
-        entry.value.value = null;
+        // We have a fallback - set each child instance with the fallback value
+        for (final entry in _instances.entries) {
+          final fallbackValue = valueToUse[entry.key];
+          entry.value.value = fallbackValue;
+        }
+      }
+    } else {
+      // Normal case - set values from input
+      for (final entry in _instances.entries) {
+        if (inputValue.containsKey(entry.key)) {
+          entry.value.value = inputValue[entry.key];
+        }
       }
     }
+
+    notifySubscribers(valueToUse);
   }
 
   @override
   ContourErrors get errors {
-    return _instances.values.fold([], (previous, element) {
+    final fieldErrors = _instances.values.fold<ContourErrors>([], (
+      previous,
+      element,
+    ) {
       return [...previous, ...element.errors];
     });
+
+    return [..._errors, ...fieldErrors];
   }
 
   @override
