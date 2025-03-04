@@ -80,8 +80,8 @@ class ContourBoolean extends ContourType<bool, ContourBoolean> {
   }
 
   @override
-  SingleVariableInstance<bool> instance(String name) {
-    return SingleVariableInstance<bool>(this, name);
+  SingleVariableInstance<bool> instance(String name, [dynamic value]) {
+    return SingleVariableInstance<bool>(this, name, value);
   }
 }
 

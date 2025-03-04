@@ -124,8 +124,8 @@ class ContourNumber extends ContourType<num, ContourNumber> {
   }
 
   @override
-  SingleVariableInstance<num> instance(String name) {
-    return SingleVariableInstance<num>(this, name);
+  VariableInstance<num> instance(String name, [dynamic value]) {
+    return SingleVariableInstance<num>(this, name, value);
   }
 }
 

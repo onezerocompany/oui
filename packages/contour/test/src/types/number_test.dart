@@ -165,4 +165,16 @@ void main() {
     instance.value = 1;
     expect(instance.value, 1);
   });
+
+  test('initial value should be null', () {
+    final numberType = ContourNumber();
+    final instance = numberType.instance('test');
+    expect(instance.value, isNull);
+  });
+
+  test('initial value should be set', () {
+    final numberType = ContourNumber();
+    final instance = numberType.instance('test', 123);
+    expect(instance.value, 123);
+  });
 }

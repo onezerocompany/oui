@@ -121,8 +121,8 @@ class ContourObject extends ContourType<Map<String, dynamic>, ContourObject> {
   }
 
   @override
-  ObjectVariableInstance instance(String name) {
-    return ObjectVariableInstance(this, name);
+  ObjectVariableInstance instance(String name, [dynamic value]) {
+    return ObjectVariableInstance(this, name, value);
   }
 }
 
@@ -133,11 +133,14 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
   final Map<String, VariableInstance> _instances = {};
   ContourErrors _errors = [];
 
-  ObjectVariableInstance(super.type, super.name)
+  ObjectVariableInstance(super.type, super.name, [dynamic value])
     : assert(type is ContourObject) {
     for (final field in (type as ContourObject).schema.entries) {
       _instances[field.key] = field.value.instance(field.key);
       _instances[field.key]!.subscribe((_) => notifySubscribers(value));
+    }
+    if (value != null) {
+      this.value = value;
     }
   }
 
