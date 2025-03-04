@@ -1,7 +1,6 @@
-import 'package:oui/src/core/metadata.dart';
-
-import 'locales.dart' show Locale;
-import 'screen.dart' show Screen;
+import 'package:oui/src/core/context.dart' show DynamicContext;
+import 'package:oui/src/core/locales.dart' show Locale;
+import 'package:oui/src/core/metadata.dart' show Metadata;
 
 enum ActionLocation {
   custom(0);
@@ -20,7 +19,39 @@ class ActionMetadata extends Metadata {
   });
 }
 
-class ActionContext {}
+class ActionContext extends DynamicContext {
+  const ActionContext({
+    required super.config,
+    required super.router,
+    required super.palette,
+    required super.typography,
+    required super.registry,
+    required super.build,
+    required super.locale,
+    required super.width,
+    required super.height,
+    required super.orientation,
+    required super.density,
+    required super.theme,
+  });
+
+  factory ActionContext.from(DynamicContext context) {
+    return ActionContext(
+      config: context.config,
+      router: context.router,
+      palette: context.palette,
+      typography: context.typography,
+      registry: context.registry,
+      build: context.build,
+      locale: context.locale,
+      width: context.width,
+      height: context.height,
+      orientation: context.orientation,
+      density: context.density,
+      theme: context.theme,
+    );
+  }
+}
 
 typedef ActionRunner = Future<void> Function(ActionContext context);
 
@@ -33,17 +64,18 @@ class Action {
     required this.metadata,
   });
 
-  static Action navigate(Screen screen) {
-    return Action(
-      (context) async {},
-      metadata: ActionMetadata(
-        id: "navigate_to_${screen.metadata.id}",
-        name: {Locale.any: "Navigate to ${screen.metadata.name}"},
-      ),
-    );
-  }
-
   Future<void> execute(ActionContext context) async {
+    print("Executing action ${metadata.id}");
     await runner(context);
   }
+
+  static Action navigate(String path) => Action(
+        (context) async {
+          await context.router.navigate(context, path: path);
+        },
+        metadata: const ActionMetadata(
+          id: "uri_navigate",
+          name: {Locale.any: "Navigate to URL"},
+        ),
+      );
 }

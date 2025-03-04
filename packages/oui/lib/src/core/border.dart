@@ -2,15 +2,15 @@ import 'package:flutter/painting.dart' as painting
     show Border, BorderSide, BoxBorder;
 import 'package:flutter/rendering.dart'
     show BoxBorder, BoxDecoration, Decoration, ShapeDecoration;
-import 'package:oui/src/components/box.dart' show DecorationModifier;
-import 'package:oui/src/core/component.dart';
-import 'package:oui/src/core/interpolation.dart';
-import 'package:oui/src/core/responsive.dart';
 
-import 'colors.dart';
-import 'corners.dart';
-import 'geometry.dart';
-import 'utils.dart';
+import '../components/box.dart' show DecorationModifier;
+import 'colors.dart' show Color, ColorExtension;
+import 'component.dart' show Component, ComponentContext, ComponentModifier;
+import 'context.dart' show ContextCondition;
+import 'corners.dart' show CornerBorder;
+import 'geometry.dart' show RectangleSide;
+import 'interpolation.dart' show DoubleInterpolator, Interpolable;
+import 'utils.dart' show OuiShapeDecoration;
 
 /// An enumeration that defines the alignment of the border.
 ///
@@ -305,7 +305,7 @@ mixin ModifiableBorder<Type extends Component> on Component<Type> {
     BorderSide? bottom,
     BorderSide? left,
     BorderAlign align = BorderAlign.inside,
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       BorderModifier(
@@ -325,7 +325,7 @@ mixin ModifiableBorder<Type extends Component> on Component<Type> {
     RectangleSide boxSide,
     BorderSide borderSide, {
     BorderAlign align = BorderAlign.inside,
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       BorderModifier(
@@ -345,7 +345,7 @@ mixin ModifiableBorder<Type extends Component> on Component<Type> {
     double thickness = 1,
     Color? color,
     BorderAlign align = BorderAlign.inside,
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       BorderModifier(

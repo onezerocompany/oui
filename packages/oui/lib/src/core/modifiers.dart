@@ -1,4 +1,5 @@
 import 'package:oui/oui.dart';
+import 'package:oui/src/core/context.dart';
 
 final allModifiers = [
   // Wrapper Modifiers
@@ -57,7 +58,7 @@ extension ModifierSorting on ComponentModifiers {
     return aIndex - bIndex;
   }
 
-  ComponentModifiers resolve(ResponsiveContext context) {
+  ComponentModifiers resolve(DynamicContext context) {
     final applicable = where(
       (modifier) => modifier.condition?.call(context) ?? true,
     ).toList();

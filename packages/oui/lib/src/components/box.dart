@@ -1,6 +1,7 @@
 import 'package:flutter/painting.dart' show BoxDecoration, Decoration;
 import 'package:flutter/widgets.dart'
     show BuildContext, DecoratedBox, InheritedWidget, Widget, SizedBox;
+import 'package:oui/src/core/context.dart';
 
 import '../core/background.dart' show BackgroundModifier, ModifiableBackground;
 import '../core/border.dart' show ModifiableBorder;
@@ -23,7 +24,6 @@ import '../core/geometry.dart'
         ModifiableSize,
         MultiChildAligner;
 import '../core/modifiers.dart';
-import '../core/responsive.dart' show ResponsiveCondition;
 import '../core/shadow.dart' show ModifiableShadow;
 import '../core/state.dart' show ModifiableState;
 import '../core/utils.dart' show FirstOfTypeExtension;
@@ -104,7 +104,7 @@ class BoxContentProviderModifier extends ComponentModifier {
     if (other is BoxContentProviderModifier) {
       return BoxContentProviderModifier(
         content: [...content, ...other.content],
-        builder: other.builder ?? builder,
+        builder: builder ?? other.builder,
         direction: other.direction,
       );
     } else {
@@ -169,6 +169,7 @@ abstract class BoxLike<T extends Component<T>> extends Component<T>
         child: widget,
       );
     }
+
     return widget;
   }
 }
@@ -192,7 +193,7 @@ class Box extends BoxLike<Box> {
   Box contents(
     List<Widget> content, {
     FlowDirection direction = FlowDirection.topToBottom,
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       BoxContentProviderModifier(
@@ -205,7 +206,7 @@ class Box extends BoxLike<Box> {
 
   Box content(
     Widget content, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return contents(
       [content],
@@ -216,7 +217,7 @@ class Box extends BoxLike<Box> {
 
   Box contentBuilder(
     ComponentWidgetBuilder builder, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       BoxContentProviderModifier(

@@ -9,14 +9,13 @@ import 'package:flutter/widgets.dart'
         ShapeDecoration,
         Stack,
         Widget;
-import 'package:oui/src/components/box.dart'
-    show ContentModifier, DecorationModifier;
-import 'package:oui/src/core/responsive.dart';
 
-import 'colors.dart';
-import 'component.dart';
-import 'geometry.dart';
-import 'utils.dart';
+import '../components/box.dart' show ContentModifier, DecorationModifier;
+import 'colors.dart' show Color, Gradient;
+import 'component.dart' show Component, ComponentContext, ComponentModifier;
+import 'context.dart' show ContextCondition;
+import 'geometry.dart' show Alignment, RectangleFit;
+import 'utils.dart' show OuiShapeDecoration;
 
 /// A class that represents the background of a widget, which can be a color,
 /// gradient, image, or a custom widget.
@@ -272,7 +271,7 @@ mixin ModifiableBackground<Type extends Component> on Component<Type> {
 
   Type background(
     Background background, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       BackgroundModifier(
@@ -285,7 +284,7 @@ mixin ModifiableBackground<Type extends Component> on Component<Type> {
 
   Type backgroundBuilder(
     BackgroundBuilder builder, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       BackgroundModifier(
@@ -296,7 +295,7 @@ mixin ModifiableBackground<Type extends Component> on Component<Type> {
     );
   }
 
-  Type backgroundColor(Color color, {ResponsiveCondition? condition}) {
+  Type backgroundColor(Color color, {ContextCondition? condition}) {
     return withModifier(
       BackgroundModifier(
         background: Background.color(color),
@@ -307,7 +306,7 @@ mixin ModifiableBackground<Type extends Component> on Component<Type> {
 
   Type backgroundImage(
     BackgroundImage image, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       BackgroundModifier(
@@ -317,7 +316,7 @@ mixin ModifiableBackground<Type extends Component> on Component<Type> {
     );
   }
 
-  Type backgroundGradient(Gradient gradient, {ResponsiveCondition? condition}) {
+  Type backgroundGradient(Gradient gradient, {ContextCondition? condition}) {
     return withModifier(
       BackgroundModifier(
         background: Background.gradient(gradient),

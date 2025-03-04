@@ -1,11 +1,20 @@
 import 'dart:math';
-import 'dart:ui' as ui show Color, Brightness;
+import 'dart:ui' as ui show Color;
 
 import 'package:flutter/rendering.dart' as rendering
     show Gradient, SweepGradient, LinearGradient, RadialGradient, Offset;
 import 'package:flutter/widgets.dart'
-    show BuildContext, InheritedWidget, MediaQuery, Widget;
-import 'package:oui/oui.dart';
+    show BuildContext, InheritedWidget, Widget;
+
+import 'component.dart'
+    show Component, ComponentContext, ComponentModifier, WrapperModifier;
+import 'config.dart' show ColorConfig;
+import 'context.dart' show ContextCondition;
+import 'geometry.dart' show FlowDirection;
+import 'interpolation.dart'
+    show Curve, DoubleInterpolator, Interpolable, Interpolator, LinearCurve;
+import 'state.dart' show State, StatefulContainer;
+import 'utils.dart' show EnumContainer, LeveledContainer;
 
 /// Enum representing different RGB color spaces.
 enum RgbColorSpace {
@@ -1466,10 +1475,6 @@ class ColorPalette {
   String toString() {
     return 'ColorPalette(\n  levels: $levels,\n  barrier: $barrier\n)';
   }
-
-  static ColorPalette of(BuildContext context) {
-    return StaticAppContext.of(context).colorPalette;
-  }
 }
 
 /// Enum representing the types of gradients available.
@@ -1605,16 +1610,11 @@ enum DynamicTheme {
   bool get isLight {
     return this == DynamicTheme.light || this == DynamicTheme.muted;
   }
+}
 
-  static DynamicTheme of(BuildContext context) {
-    final brightness = MediaQuery.of(context).platformBrightness;
-
-    if (brightness == ui.Brightness.dark) {
-      return DynamicTheme.dark;
-    } else {
-      return DynamicTheme.light;
-    }
-  }
+abstract class DynamicThemeContext {
+  const DynamicThemeContext(this.theme);
+  final DynamicTheme theme;
 }
 
 class DynamicContainer<T> extends EnumContainer<DynamicTheme, T> {
@@ -1633,12 +1633,15 @@ class DynamicContainer<T> extends EnumContainer<DynamicTheme, T> {
     );
   }
 
+  T resolve(DynamicThemeContext context) {
+    return get(context.theme);
+  }
+
   @override
   List<DynamicTheme> get keys => DynamicTheme.values;
 
   List<T> get all => DynamicTheme.values.map(get).toList();
 
-  @override
   @override
   String toString() {
     return 'DynamicContainer('
@@ -1704,7 +1707,7 @@ class AccentModifier extends ComponentModifier with WrapperModifier {
 mixin ModifiableAccent<Type extends Component> on Component<Type> {
   Type accented(
     int accent, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       AccentModifier(

@@ -30,5 +30,12 @@
       "source.organizeImports": "always"
     }
   },
-  "deno.enable": true
+  "deno.enable": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "**/.dart_tool": true
+  },
+  "dart.analysisExcludedFolders": ["**/.dart_tool/**"]
 }

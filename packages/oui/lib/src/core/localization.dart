@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart' show BuildContext;
-import 'package:oui/src/core/locales.dart' show Locale, LocaleExtension;
-import 'package:oui/src/core/utils.dart';
+import 'package:oui/src/core/_index.dart';
 
 typedef Localized<T> = Map<Locale, T>;
 
@@ -21,7 +20,7 @@ extension LocalizedExtension<T> on Localized<T> {
   /// Returns the localized value corresponding to the [locale] or [fallback] locale,
   /// or the first entry in the [_values] map if no match is found.
   /// If no match is found, the default value is returned.
-  T? forLocale(Locale? locale, [Locale? fallback = Locale.en]) {
+  T? _forLocale(Locale? locale, [Locale? fallback = Locale.en]) {
     if (locale != null) {
       // Try exact match first (language + country)
       final exactMatch = keys.firstWhereOrNull(
@@ -68,8 +67,8 @@ extension LocalizedExtension<T> on Localized<T> {
   /// Returns the localized value for the current locale of the application.
   /// This method retrieves the current locale from the [BuildContext] and
   /// returns the corresponding localized value.
-  T? resolve(BuildContext context) {
-    return forLocale(context.currentLocale);
+  T? resolve(LocaleContext context) {
+    return _forLocale(context.locale);
   }
 
   /// Maps the localized values to a new type using the provided [transform] function.
@@ -82,3 +81,5 @@ extension LocalizedExtension<T> on Localized<T> {
     );
   }
 }
+
+typedef Locales = List<Locale>;

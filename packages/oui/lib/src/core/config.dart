@@ -1,16 +1,4 @@
-import 'package:flutter/widgets.dart' show BuildContext;
-import 'package:oui/src/core/app.dart' show StaticAppContext;
-import 'package:oui/src/core/icons.dart' show Icon;
-import 'package:oui/src/core/localization.dart' show Localized;
-import 'package:oui/src/core/screen.dart' show Screen;
-
-import 'colors.dart' show Color;
-import 'geometry.dart' show RangedDimension, Size;
-import 'locales.dart' show Locale, Locales;
-import 'metadata.dart' show Metadata;
-import 'responsive.dart' show ResponsiveBreakpoints;
-import 'typography.dart' show TypographyConfig;
-import 'utils.dart' show Range;
+import 'package:oui/oui.dart';
 
 class Version {
   final int major;
@@ -151,6 +139,7 @@ class Config {
   final TypographyConfig typography;
   final ResponsiveConfig responsive;
   final ScreenRegistryConfig registry;
+  final AuthProviderBuilder? auth;
 
   const Config({
     required this.details,
@@ -163,11 +152,8 @@ class Config {
     this.locales = const [
       Locale.en,
     ],
+    this.auth,
   });
-
-  static Config of(BuildContext context) {
-    return StaticAppContext.of(context).config;
-  }
 
   @override
   int get hashCode => Object.hash(

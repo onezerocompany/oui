@@ -6,6 +6,7 @@ export 'border.dart';
 export 'colors.dart';
 export 'component.dart';
 export 'config.dart';
+export 'context.dart';
 export 'contour.dart';
 export 'corners.dart';
 export 'geometry.dart';

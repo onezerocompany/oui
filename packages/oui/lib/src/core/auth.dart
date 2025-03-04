@@ -12,3 +12,5 @@ abstract class AuthProvider extends Listenable {
   String? get userId;
   bool get authenticated;
 }
+
+typedef AuthProviderBuilder = AuthProvider Function();

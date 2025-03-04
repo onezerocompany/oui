@@ -1,6 +1,3 @@
-import 'package:flutter/widgets.dart' show BuildContext, MediaQuery;
-import 'package:oui/oui.dart';
-
 class ResponsiveBreakpoints {
   final double xs = 0;
   final double sm;
@@ -82,91 +79,9 @@ enum Density {
   bool isEqualTo(Density other) => this == other;
 }
 
-class ResponsiveContext {
-  final ScreenSize width;
-  final ScreenSize height;
-  final ScreenOrientation orientation;
-  final Density density;
-  final DynamicTheme theme;
-
-  const ResponsiveContext({
-    required this.width,
-    required this.height,
-    required this.orientation,
-    required this.density,
-    required this.theme,
-  });
-
-  factory ResponsiveContext.from(Config config, BuildContext context) {
-    final query = MediaQuery.of(context);
-    final screenSize = query.size;
-
-    return ResponsiveContext(
-      width: config.responsive.horizontal.sizeFor(screenSize.width),
-      height: config.responsive.vertical.sizeFor(screenSize.height),
-      orientation: screenSize.width > screenSize.height
-          ? ScreenOrientation.landscape
-          : ScreenOrientation.portrait,
-      density: Density.medium,
-      theme: DynamicTheme.of(context),
-    );
-  }
-
-  static ResponsiveContext of(BuildContext context) {
-    return DynamicAppContext.of(context).responsive;
-  }
-
-  @override
-  String toString() {
-    return 'ResponsiveContext{width: $width, height: $height, orientation: $orientation, density: $density, theme: $theme}';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is ResponsiveContext &&
-        other.width == width &&
-        other.height == height &&
-        other.orientation == orientation &&
-        other.density == density &&
-        other.theme == theme;
-  }
-
-  @override
-  int get hashCode {
-    return width.hashCode ^
-        height.hashCode ^
-        orientation.hashCode ^
-        density.hashCode ^
-        theme.hashCode;
-  }
-}
-
-typedef ResponsiveCondition = bool Function(ResponsiveContext context);
-
-class ResponsiveValueEntry<T> {
-  final ResponsiveCondition condition;
-  final T value;
-
-  const ResponsiveValueEntry(
-    this.condition,
-    this.value,
-  );
-}
-
-class ResponsiveValueContainer<T> {
-  final T fallback;
-  final List<ResponsiveValueEntry<T>> entries;
-
-  const ResponsiveValueContainer(this.entries, this.fallback);
-
-  T resolve(ResponsiveContext context) {
-    return entries
-        .firstWhere(
-          (entry) => entry.condition(context),
-          orElse: () => ResponsiveValueEntry((_) => true, fallback),
-        )
-        .value;
-  }
+mixin ResponsiveContext {
+  ScreenSize get width;
+  ScreenSize get height;
+  ScreenOrientation get orientation;
+  Density get density;
 }
