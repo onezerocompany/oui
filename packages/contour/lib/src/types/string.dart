@@ -9,7 +9,7 @@ class ContourString extends ContourType<String, ContourString> {
     if (value is String) {
       return value;
     }
-    return null;
+    return value?.toString();
   }
 
   ContourString equals(String value) {

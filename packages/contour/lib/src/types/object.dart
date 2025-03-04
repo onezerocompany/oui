@@ -1,4 +1,5 @@
 import 'package:contour/src/key.dart' show VariableKey;
+import 'package:contour/src/types/list.dart' show ListVariableInstance;
 
 import '../instance.dart' show VariableInstance;
 import '../type.dart'
@@ -25,8 +26,13 @@ class ContourObject extends ContourType<Map<String, dynamic>, ContourObject> {
 
   @override
   ContourParseResult<Map<String, dynamic>> parse(value, {String name = '.'}) {
+    if (value == null) {
+      return super.parse(value, name: name);
+    }
+
     final Map<String, dynamic> values = {};
     final ContourErrors errors = [];
+
     for (final entry in schema.entries) {
       final entryResult = entry.value.parse(value[entry.key], name: entry.key);
       if (entryResult.errors.isNotEmpty) {
@@ -44,34 +50,6 @@ class ContourObject extends ContourType<Map<String, dynamic>, ContourObject> {
     }
 
     return ContourParseResult<Map<String, dynamic>>(values, errors);
-  }
-
-  ContourObject additionalFields(bool allowed) {
-    final operations =
-        this.operations.where((op) => op.name != 'additionalFields').toList();
-
-    return ContourObject(schema, [
-      ...operations,
-      ContourOperation.check('additionalFields', (field, currentValue) {
-        if (currentValue != null) {
-          final additionalFields =
-              currentValue.keys
-                  .where((key) => !schema.containsKey(key))
-                  .toList();
-          if (additionalFields.isNotEmpty && !allowed) {
-            return ContourParseResult<Map<String, dynamic>>(null, [
-              for (final field in additionalFields)
-                ContourError(
-                  field: field,
-                  type: ContourErrorType.check,
-                  message: 'additional field is not allowed: $field',
-                ),
-            ]);
-          }
-        }
-        return ContourParseResult<Map<String, dynamic>>(currentValue, []);
-      }),
-    ]);
   }
 
   @override
@@ -108,9 +86,34 @@ class ContourObject extends ContourType<Map<String, dynamic>, ContourObject> {
         this.operations.where((op) => op.name != 'fallback').toList();
     return ContourObject(schema, [
       ...operations,
-      ContourOperation.check('fallback', (field, currentValue) {
-        if (currentValue == null) {
-          return ContourParseResult<Map<String, dynamic>>(value, []);
+      ContourOperation.transform('fallback', (field, currentValue) {
+        return ContourParseResult<Map<String, dynamic>>(
+          currentValue ?? value,
+          [],
+        );
+      }),
+    ]);
+  }
+
+  ContourObject additionalFields(bool allow) {
+    return ContourObject(schema, [
+      ...operations,
+      ContourOperation.check('additionalFields', (field, currentValue) {
+        if (!allow && currentValue != null) {
+          final extraFields =
+              currentValue.keys
+                  .where((key) => !schema.containsKey(key))
+                  .toList();
+          if (extraFields.isNotEmpty) {
+            return ContourParseResult<Map<String, dynamic>>(null, [
+              ContourError(
+                field: field,
+                type: ContourErrorType.check,
+                message:
+                    'contains additional fields: ${extraFields.join(', ')}',
+              ),
+            ]);
+          }
         }
         return ContourParseResult<Map<String, dynamic>>(currentValue, []);
       }),
@@ -128,6 +131,7 @@ ContourObject object(Map<String, ContourType> schema) =>
 
 class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
   final Map<String, VariableInstance> _instances = {};
+  ContourErrors _errors = [];
 
   ObjectVariableInstance(super.type, super.name)
     : assert(type is ContourObject) {
@@ -161,44 +165,75 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
   }
 
   @override
-  set value(Map<String, dynamic>? value) {
-    if (value == null) {
-      for (final entry in _instances.entries) {
-        entry.value.value = null;
+  set value(Map<String, dynamic>? inputValue) {
+    final result = (type as ContourObject).parse(inputValue, name: name);
+    _errors = result.errors;
+
+    final valueToUse = result.value;
+
+    if (inputValue == null) {
+      if (valueToUse == null) {
+        // If we have no fallback, set all child instances to null
+        for (final entry in _instances.entries) {
+          entry.value.value = null;
+        }
+      } else {
+        // We have a fallback - set each child instance with the fallback value
+        for (final entry in _instances.entries) {
+          final fallbackValue = valueToUse[entry.key];
+          entry.value.value = fallbackValue;
+        }
       }
-      return;
+    } else {
+      // Normal case - set values from input
+      for (final entry in _instances.entries) {
+        if (inputValue.containsKey(entry.key)) {
+          entry.value.value = inputValue[entry.key];
+        }
+      }
     }
-    for (final entry in _instances.entries) {
-      entry.value.value = value[entry.key];
-    }
+
+    notifySubscribers(valueToUse);
   }
 
   @override
   ContourErrors get errors {
-    return _instances.values.fold([], (previous, element) {
+    final fieldErrors = _instances.values.fold<ContourErrors>([], (
+      previous,
+      element,
+    ) {
       return [...previous, ...element.errors];
     });
+
+    return [..._errors, ...fieldErrors];
   }
 
   @override
   bool get valid => errors.isEmpty;
 
-  // Potential option
-  // operator[] (VariableKey key) => field(key);
+  /// Modified operator [] to return the instance for compound types.
+  dynamic operator [](String key) {
+    final instance = _instances[key];
+    if (instance == null) return null;
+    if (instance is ObjectVariableInstance ||
+        instance is ListVariableInstance) {
+      return instance;
+    }
+    return instance.value;
+  }
+
+  void operator []=(String key, dynamic value) {
+    final instance = _instances[key];
+    if (instance == null) return;
+    instance.value = value;
+  }
+
+  ObjectVariableInstance? getObjectInstance(String key) {
+    final instance = _instances[key];
+    return instance is ObjectVariableInstance ? instance : null;
+  }
+
+  VariableInstance? getInstance(String key) {
+    return _instances[key];
+  }
 }
-
-// class User {
-//   final String name;
-//   final int age;
-
-//   User(this.name, this.age);
-// }
-
-// const user = object({
-//   'name': ContourType<String>(),
-//   'age': ContourType<int>(),
-// }).instance("user");
-
-// user.field("address").value = "John Doe";
-
-// user["name"] = "John Doe";
