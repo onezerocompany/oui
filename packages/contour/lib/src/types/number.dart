@@ -81,7 +81,8 @@ class ContourNumber extends ContourType<num, ContourNumber> {
     return ContourNumber([
       ...operations,
       ContourOperation.check('isInteger', (field, currentValue) {
-        if ((currentValue ?? 0.001) % 1 != 0) {
+-      if ((currentValue ?? 0.001) % 1 != 0) {
++      if (currentValue == null || currentValue % 1 != 0) {
           return ContourParseResult<num>(null, [
             ContourError(
               field: field,
