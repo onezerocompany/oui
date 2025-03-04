@@ -129,5 +129,40 @@ void main() {
       instance.value = 1;
       expect(instance.errors.isEmpty, isTrue);
     });
+
+    test('isInteger should add a isInteger operation', () {
+      final numberType = ContourNumber().isInteger();
+      final result = numberType.operations.any((op) => op.name == 'isInteger');
+      expect(result, isTrue);
+    });
+
+    test('isInteger should validate number value', () {
+      final numberType = ContourNumber().isInteger();
+      final instance = numberType.instance('test');
+
+      instance.value = 1.1;
+      expect(instance.errors.isNotEmpty, isTrue);
+      expect(instance.errors.first.message, 'should be an integer');
+
+      instance.value = 1;
+      expect(instance.errors.isEmpty, isTrue);
+    });
+  });
+
+  test('toInt should add a toInteger operation', () {
+    final numberType = ContourNumber().toInteger();
+    final result = numberType.operations.any((op) => op.name == 'toInteger');
+    expect(result, isTrue);
+  });
+
+  test('toInt should validate number value', () {
+    final numberType = ContourNumber().toInteger();
+    final instance = numberType.instance('test');
+
+    instance.value = 1.1;
+    expect(instance.value, 1);
+
+    instance.value = 1;
+    expect(instance.value, 1);
   });
 }
