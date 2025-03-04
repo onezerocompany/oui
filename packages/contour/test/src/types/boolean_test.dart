@@ -90,14 +90,14 @@ void main() {
   });
 
   test('initial value should be null', () {
-    final numberType = ContourBoolean();
-    final instance = numberType.instance('test');
+    final booleanType = ContourBoolean();
+    final instance = booleanType.instance('test');
     expect(instance.value, isNull);
   });
 
   test('initial value should be set', () {
-    final numberType = ContourBoolean();
-    final instance = numberType.instance('test', true);
+    final booleanType = ContourBoolean();
+    final instance = booleanType.instance('test', true);
     expect(instance.value, true);
   });
 }

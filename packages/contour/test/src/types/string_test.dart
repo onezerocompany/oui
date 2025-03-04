@@ -100,14 +100,14 @@ void main() {
   });
 
   test('initial value should be null', () {
-    final numberType = ContourString();
-    final instance = numberType.instance('test');
+    final stringType = ContourString();
+    final instance = stringType.instance('test');
     expect(instance.value, isNull);
   });
 
   test('initial value should be set', () {
-    final numberType = ContourString();
-    final instance = numberType.instance('test', 'value');
+    final stringType = ContourString();
+    final instance = stringType.instance('test', 'value');
     expect(instance.value, 'value');
   });
 }
