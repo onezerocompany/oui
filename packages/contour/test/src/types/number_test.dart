@@ -149,13 +149,13 @@ void main() {
     });
   });
 
-  test('toInt should add a toInteger operation', () {
+  test('toInteger should add a toInteger operation', () {
     final numberType = ContourNumber().toInteger();
     final result = numberType.operations.any((op) => op.name == 'toInteger');
     expect(result, isTrue);
   });
 
-  test('toInt should validate number value', () {
+  test('toInteger should validate number value', () {
     final numberType = ContourNumber().toInteger();
     final instance = numberType.instance('test');
 
