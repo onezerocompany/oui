@@ -90,13 +90,15 @@ class ContourList extends ContourType<List, ContourList> {
   ]);
 
   @override
-  VariableInstance<List> instance(String name) {
-    return ListVariableInstance(this, name);
+  VariableInstance<List> instance(String name, [dynamic value]) {
+    return ListVariableInstance(this, name, value);
   }
 }
 
 class ListVariableInstance extends VariableInstance<List> {
-  ListVariableInstance(super.type, super.name);
+  ListVariableInstance(super.type, super.name, value) {
+    this.value = value;
+  }
   ContourErrors _errors = [];
   List? _value;
 
