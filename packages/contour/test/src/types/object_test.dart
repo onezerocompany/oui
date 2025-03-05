@@ -56,7 +56,7 @@ void main() {
       }).additionalFields(true);
       final result = objectType.parse({'bla': 'not a map'});
       expect(result.value, {'name': null, 'age': null, 'bla': 'not a map'});
-      expect(result.errors, isEmpty);
+      expect(result.errors, isNotEmpty);
     });
 
     test('optional should remove required operation', () {
@@ -136,7 +136,28 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('additionalFields should validate map value', () {
+    test('should validate additionalFields and allow', () {
+      final objectType = ContourObject({
+        'name': ContourString(),
+        'age': ContourNumber(),
+      }).additionalFields(true);
+      final instance = objectType.instance('test');
+      instance.value = {'name': 'John', 'age': 30};
+      expect(instance.errors.isEmpty, isTrue);
+      instance.value = {
+        'name': 'John',
+        'age': 30,
+        'extra': 'field',
+      }; // extra field
+      expect(instance.errors.isNotEmpty, isTrue);
+      expect(
+        instance.errors.first.message,
+        'contains additional fields: extra',
+      );
+      expect(instance.value, {'name': 'John', 'age': 30, 'extra': 'field'});
+    });
+
+    test('shoudl validate additionalFields and remove', () {
       final objectType = ContourObject({
         'name': ContourString(),
         'age': ContourNumber(),
@@ -154,6 +175,7 @@ void main() {
         instance.errors.first.message,
         'contains additional fields: extra',
       );
+      expect(instance.value, {'name': 'John', 'age': 30});
     });
 
     test('should access value using bracket notation', () {

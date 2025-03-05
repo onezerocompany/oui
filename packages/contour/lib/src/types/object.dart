@@ -1,15 +1,5 @@
-import 'package:contour/src/key.dart' show VariableKey;
+import 'package:contour/contour.dart';
 import 'package:contour/src/types/list.dart' show ListVariableInstance;
-
-import '../instance.dart' show VariableInstance;
-import '../type.dart'
-    show
-        ContourError,
-        ContourErrorType,
-        ContourErrors,
-        ContourOperation,
-        ContourParseResult,
-        ContourType;
 
 class ContourObject extends ContourType<Map<String, dynamic>, ContourObject> {
   final Map<String, ContourType> schema;
@@ -44,6 +34,7 @@ class ContourObject extends ContourType<Map<String, dynamic>, ContourObject> {
 
     final objectResult = super.parse(value, name: name);
     if (objectResult.errors.isNotEmpty) {
+      values.addAll(objectResult.value ?? {});
       errors.addAll(objectResult.errors);
     } else {
       values.addAll(objectResult.value ?? {});
@@ -99,20 +90,35 @@ class ContourObject extends ContourType<Map<String, dynamic>, ContourObject> {
     return ContourObject(schema, [
       ...operations,
       ContourOperation.check('additionalFields', (field, currentValue) {
-        if (!allow && currentValue != null) {
+        if (currentValue != null) {
           final extraFields =
               currentValue.keys
                   .where((key) => !schema.containsKey(key))
                   .toList();
           if (extraFields.isNotEmpty) {
-            return ContourParseResult<Map<String, dynamic>>(null, [
-              ContourError(
-                field: field,
-                type: ContourErrorType.check,
-                message:
-                    'contains additional fields: ${extraFields.join(', ')}',
-              ),
-            ]);
+            if (!allow) {
+              // remove extra fields
+              for (final key in extraFields) {
+                currentValue.remove(key);
+              }
+              return ContourParseResult<Map<String, dynamic>>(null, [
+                ContourError(
+                  field: field,
+                  type: ContourErrorType.check,
+                  message:
+                      'contains additional fields: ${extraFields.join(', ')}',
+                ),
+              ]);
+            } else {
+              return ContourParseResult<Map<String, dynamic>>(currentValue, [
+                ContourError(
+                  field: field,
+                  type: ContourErrorType.check,
+                  message:
+                      'contains additional fields: ${extraFields.join(', ')}',
+                ),
+              ]);
+            }
           }
         }
         return ContourParseResult<Map<String, dynamic>>(currentValue, []);
@@ -137,7 +143,7 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
     : assert(type is ContourObject) {
     for (final field in (type as ContourObject).schema.entries) {
       _instances[field.key] = field.value.instance(field.key);
-      _instances[field.key]!.subscribe((_) => notifySubscribers(value));
+      _instances[field.key]!.subscribe((_) => notifySubscribers(this.value));
     }
     if (value != null) {
       this.value = value;
@@ -159,7 +165,7 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
   }
 
   @override
-  Map<String, dynamic>? get value {
+  Map<String, dynamic> get value {
     final result = <String, dynamic>{};
     for (final entry in _instances.entries) {
       result[entry.key] = entry.value.value;
@@ -173,6 +179,14 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
     _errors = result.errors;
 
     final valueToUse = result.value;
+
+    // First, clear any additional field instances that might have been added previously
+    final schemaKeys = (type as ContourObject).schema.keys.toSet();
+    final keysToRemove =
+        _instances.keys.where((k) => !schemaKeys.contains(k)).toList();
+    for (final key in keysToRemove) {
+      _instances.remove(key);
+    }
 
     if (inputValue == null) {
       if (valueToUse == null) {
@@ -188,15 +202,53 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
         }
       }
     } else {
-      // Normal case - set values from input
+      // Handle schema-defined fields
       for (final entry in _instances.entries) {
-        if (inputValue.containsKey(entry.key)) {
-          entry.value.value = inputValue[entry.key];
+        if (valueToUse?.containsKey(entry.key) ?? false) {
+          entry.value.value = valueToUse![entry.key];
+        }
+      }
+
+      // Check if additional fields are allowed
+      bool hasAdditionalFieldsOp = false;
+      bool allowAdditionalFields = false;
+
+      for (final op in (type as ContourObject).operations) {
+        if (op.name == 'additionalFields') {
+          hasAdditionalFieldsOp = true;
+          // If the operation is present and the additional fields still exist in valueToUse,
+          // then they are allowed
+          if (valueToUse != null) {
+            final additionalKeys =
+                valueToUse.keys
+                    .where((key) => !schemaKeys.contains(key))
+                    .toList();
+            allowAdditionalFields = additionalKeys.isNotEmpty;
+          }
+          break;
+        }
+      }
+
+      // Handle additional fields if they're allowed
+      if (hasAdditionalFieldsOp &&
+          allowAdditionalFields &&
+          valueToUse != null) {
+        for (final key in valueToUse.keys) {
+          if (!schemaKeys.contains(key)) {
+            // Create a basic instance for this additional field
+            final value = valueToUse[key];
+
+            // Use a ContourString instance as a generic holder
+            // This is a simple approach - in a real implementation, you might want to
+            // detect the type and use the appropriate ContourType
+            _instances[key] = ContourString().instance(key, value);
+            _instances[key]!.subscribe((_) => notifySubscribers(this.value));
+          }
         }
       }
     }
 
-    notifySubscribers(valueToUse);
+    notifySubscribers(value);
   }
 
   @override
@@ -214,7 +266,7 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
   @override
   bool get valid => errors.isEmpty;
 
-  /// Modified operator [] to return the instance for compound types.
+  /// Returns the instance for compound types or the value for primitive types
   dynamic operator [](String key) {
     final instance = _instances[key];
     if (instance == null) return null;
@@ -227,7 +279,11 @@ class ObjectVariableInstance extends VariableInstance<Map<String, dynamic>> {
 
   void operator []=(String key, dynamic value) {
     final instance = _instances[key];
-    if (instance == null) return;
+    if (instance == null) {
+      // For non-schema fields, we don't add them dynamically via bracket notation
+      // They should only be added through the value setter
+      return;
+    }
     instance.value = value;
   }
 

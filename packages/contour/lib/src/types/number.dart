@@ -77,21 +77,26 @@ class ContourNumber extends ContourType<num, ContourNumber> {
   }
 
   // add  check to verify if number is an integer
-  ContourNumber isInteger() {
+  ContourNumber integer(bool force) {
     return ContourNumber([
       ...operations,
-      ContourOperation.check('isInteger', (field, currentValue) {
-        if ((currentValue ?? 0.001) % 1 != 0) {
-          return ContourParseResult<num>(null, [
-            ContourError(
-              field: field,
-              type: ContourErrorType.check,
-              message: 'should be an integer',
-            ),
-          ]);
-        }
-        return ContourParseResult<num>(currentValue, []);
-      }),
+      if (!force)
+        ContourOperation.check('integer', (field, currentValue) {
+          if ((currentValue ?? 0.001) % 1 != 0) {
+            return ContourParseResult<num>(null, [
+              ContourError(
+                field: field,
+                type: ContourErrorType.check,
+                message: 'should be an integer',
+              ),
+            ]);
+          }
+          return ContourParseResult<num>(currentValue, []);
+        })
+      else
+        ContourOperation.transform('integer', (field, currentValue) {
+          return ContourParseResult<num>(currentValue?.toInt(), []);
+        }),
     ]);
   }
 
@@ -109,16 +114,6 @@ class ContourNumber extends ContourType<num, ContourNumber> {
           ]);
         }
         return ContourParseResult<num>(currentValue, []);
-      }),
-    ]);
-  }
-
-  // add a transformation to integer
-  ContourNumber toInteger() {
-    return ContourNumber([
-      ...operations,
-      ContourOperation.transform('toInteger', (field, currentValue) {
-        return ContourParseResult<num>(currentValue?.toInt(), []);
       }),
     ]);
   }
