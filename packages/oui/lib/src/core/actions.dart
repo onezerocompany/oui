@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:oui/src/core/context.dart' show DynamicContext;
 import 'package:oui/src/core/locales.dart' show Locale;
 import 'package:oui/src/core/metadata.dart' show Metadata;
@@ -33,6 +36,7 @@ class ActionContext extends DynamicContext {
     required super.orientation,
     required super.density,
     required super.theme,
+    required super.auth,
   });
 
   factory ActionContext.from(DynamicContext context) {
@@ -49,11 +53,12 @@ class ActionContext extends DynamicContext {
       orientation: context.orientation,
       density: context.density,
       theme: context.theme,
+      auth: context.auth,
     );
   }
 }
 
-typedef ActionRunner = Future<void> Function(ActionContext context);
+typedef ActionRunner = FutureOr<void> Function(ActionContext context);
 
 class Action {
   final Metadata metadata;
@@ -64,8 +69,10 @@ class Action {
     required this.metadata,
   });
 
-  Future<void> execute(ActionContext context) async {
-    print("Executing action ${metadata.id}");
+  FutureOr<void> execute(ActionContext context) async {
+    if (kDebugMode) {
+      print("Executing action: ${metadata.id}");
+    }
     await runner(context);
   }
 

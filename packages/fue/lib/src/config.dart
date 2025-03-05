@@ -1,5 +1,4 @@
-import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
-import 'package:oui/oui.dart';
+import 'package:fue/fue.dart';
 
 class FirebaseConfig {
   final FirebaseOptions options;
@@ -10,7 +9,12 @@ class FirebaseConfig {
 class FueConfig extends Config {
   final FirebaseConfig firebase;
 
-  const FueConfig({
+  @override
+  buildAuthProvider() {
+    return FirebaseAuthProvider();
+  }
+
+  FueConfig({
     required super.details,
     required super.registry,
     required this.firebase,

@@ -141,6 +141,8 @@ class Config {
   final ScreenRegistryConfig registry;
   final AuthProviderBuilder? auth;
 
+  AuthProvider? buildAuthProvider() => auth?.call();
+
   const Config({
     required this.details,
     required this.registry,
@@ -149,9 +151,7 @@ class Config {
     this.screens = const ScreenConfig(),
     this.typography = const TypographyConfig(),
     this.responsive = const ResponsiveConfig(),
-    this.locales = const [
-      Locale.en,
-    ],
+    this.locales = const [Locale.en],
     this.auth,
   });
 

@@ -28,7 +28,6 @@ import 'component.dart'
         ComponentModifiers,
         ComponentWidgetBuilder,
         ConditionalComponent;
-import 'geometry.dart' show Size, SizeModifier;
 import 'icons.dart' show Icon;
 import 'localization.dart' show Localized;
 import 'metadata.dart' show Metadata;
@@ -115,17 +114,13 @@ class ScreenMetadata extends Metadata {
 }
 
 class ScreenBoxContentModifier extends ComponentModifier {
-  final Component? header;
   final ComponentWidgetBuilder? headerBuilder;
   final List<ConditionalComponent> sections;
-  final Component? footer;
   final ComponentWidgetBuilder? footerBuilder;
 
   const ScreenBoxContentModifier({
-    this.header,
     this.headerBuilder,
     this.sections = const [],
-    this.footer,
     this.footerBuilder,
     super.condition,
   });
@@ -134,10 +129,8 @@ class ScreenBoxContentModifier extends ComponentModifier {
   ScreenBoxContentModifier merge(ComponentModifier other) {
     if (other is ScreenBoxContentModifier) {
       return ScreenBoxContentModifier(
-        header: header ?? other.header,
         headerBuilder: headerBuilder ?? other.headerBuilder,
         sections: [...sections, ...other.sections],
-        footer: footer ?? other.footer,
         footerBuilder: footerBuilder ?? other.footerBuilder,
       );
     }
@@ -159,17 +152,7 @@ class ScreenBox extends BoxLike<ScreenBox> {
     );
   }
 
-  ScreenBox header(Component component, {ContextCondition? condition}) {
-    return withModifier(
-      ScreenBoxContentModifier(
-        header: component,
-        condition: condition,
-      ),
-      stacks: true,
-    );
-  }
-
-  ScreenBox headerBuilder(
+  ScreenBox header(
     ComponentWidgetBuilder builder, {
     ContextCondition? condition,
   }) {
@@ -182,17 +165,7 @@ class ScreenBox extends BoxLike<ScreenBox> {
     );
   }
 
-  ScreenBox footer(Component component, {ContextCondition? condition}) {
-    return withModifier(
-      ScreenBoxContentModifier(
-        footer: component,
-        condition: condition,
-      ),
-      stacks: true,
-    );
-  }
-
-  ScreenBox footerBuilder(
+  ScreenBox footer(
     ComponentWidgetBuilder builder, {
     ContextCondition? condition,
   }) {
@@ -200,6 +173,23 @@ class ScreenBox extends BoxLike<ScreenBox> {
       ScreenBoxContentModifier(
         footerBuilder: builder,
         condition: condition,
+      ),
+      stacks: true,
+    );
+  }
+
+  ScreenBox section(
+    ComponentWidgetBuilder builder, {
+    ContextCondition? condition,
+  }) {
+    return withModifier(
+      ScreenBoxContentModifier(
+        sections: [
+          ConditionalComponent(
+            builder: builder,
+            condition: condition,
+          ),
+        ],
       ),
       stacks: true,
     );
@@ -218,8 +208,8 @@ class ScreenBox extends BoxLike<ScreenBox> {
               acc?.merge(provider) ?? provider,
         );
 
-    final header = provider?.headerBuilder?.call(context) ?? provider?.header;
-    final footer = provider?.footerBuilder?.call(context) ?? provider?.footer;
+    final header = provider?.headerBuilder?.call(context);
+    final footer = provider?.footerBuilder?.call(context);
     final sections = provider?.sections
             .where((section) => section.isAvailable(context))
             .toList() ??
@@ -284,34 +274,34 @@ abstract class Screen {
 
 typedef Screens = List<Screen>;
 
-class RenderedScreen {
-  final Screen screen;
-  final Component content;
+// class RenderedScreen {
+//   final Screen screen;
+//   final Component content;
 
-  ScreenMetadata get metadata => screen.metadata;
+//   ScreenMetadata get metadata => screen.metadata;
 
-  const RenderedScreen(
-    this.screen,
-    this.content,
-  );
+//   const RenderedScreen(
+//     this.screen,
+//     this.content,
+//   );
 
-  static RenderedScreen fromScreen(Screen screen) {
-    return RenderedScreen(
-      screen,
-      screen.build(
-        const ScreenBox().defaultBackground().border().rounded(),
-      ),
-    );
-  }
+//   static RenderedScreen fromScreen(Screen screen) {
+//     return RenderedScreen(
+//       screen,
+//       screen.build(
+//         const ScreenBox().defaultBackground().rounded().border(),
+//       ),
+//     );
+//   }
 
-  Size? get size {
-    final modifier = (content.modifiers
-        .whereType<SizeModifier>()
-        .where((modifier) => modifier.condition == null)
-        .firstOrNull);
-    if (modifier is SizeModifier) {
-      return modifier.size;
-    }
-    return null;
-  }
-}
+//   Size? get size {
+//     final modifier = (content.modifiers
+//         .whereType<SizeModifier>()
+//         .where((modifier) => modifier.condition == null)
+//         .firstOrNull);
+//     if (modifier is SizeModifier) {
+//       return modifier.size;
+//     }
+//     return null;
+//   }
+// }

@@ -30,10 +30,11 @@ import 'package:flutter/widgets.dart'
 import 'package:oui/src/core/border.dart' show BorderSide;
 import 'package:oui/src/core/component.dart' show ComponentContext;
 import 'package:oui/src/core/config.dart' show Config;
-import 'package:oui/src/core/geometry.dart' show RectangleSide, Size;
+import 'package:oui/src/core/geometry.dart'
+    show RectangleSide, Size, SizeModifier;
 import 'package:oui/src/core/routing.dart' show PathMatch;
 import 'package:oui/src/core/screen.dart'
-    show RenderedScreen, ScreenDisplayType;
+    show Screen, ScreenBox, ScreenDisplayType, Screens;
 import 'package:oui/src/core/state.dart' show State, StateContext;
 
 import '../components/box.dart' show Box, BoxLevel, BoxLevelContext;
@@ -116,9 +117,9 @@ class RailedContainer extends StatelessWidget {
 
 class ScaffoldLayout {
   final Size size;
-  final List<RenderedScreen> panels;
-  final List<RenderedScreen> sheets;
-  final List<RenderedScreen> modals;
+  final Screens panels;
+  final Screens sheets;
+  final Screens modals;
 
   ScaffoldLayout({
     required this.size,
@@ -130,7 +131,7 @@ class ScaffoldLayout {
 
 class ScaffoldLayoutBuilder extends StatelessWidget {
   final Config config;
-  final List<RenderedScreen> screens;
+  final Screens screens;
   final Function(BuildContext context, ScaffoldLayout layout) builder;
 
   const ScaffoldLayoutBuilder({
@@ -140,26 +141,31 @@ class ScaffoldLayoutBuilder extends StatelessWidget {
     super.key,
   });
 
-  ScaffoldLayout _buildLayout(
-    Size size,
-    double minPanelWidth,
-  ) {
-    final panels = <RenderedScreen>[];
-    final sheets = <RenderedScreen>[];
-    final modals = <RenderedScreen>[];
+  ScaffoldLayout _buildLayout(Size size) {
+    final panels = <Screen>[];
+    final sheets = <Screen>[];
+    final modals = <Screen>[];
 
-    bool canAddPanel(RenderedScreen screen) {
+    double panelWidth(Screen screen) {
+      final panelModifiers = screen.build(const ScreenBox()).modifiers;
+      final sizeModifiers = panelModifiers.whereType<SizeModifier>().where(
+            (modifier) => modifier.condition == null,
+          );
+
+      return sizeModifiers.first.size?.width.start ??
+          config.scaffold.defaultPanelSize.width.start;
+    }
+
+    bool canAddPanel(Screen screen) {
       if (!panels.iterator.moveNext()) {
         return true;
       }
       final totalMinWidth = panels.fold<double>(
         0,
-        (previousValue, screen) =>
-            previousValue + (screen.size?.width.start ?? minPanelWidth),
+        (previousValue, screen) => previousValue + panelWidth(screen),
       );
 
-      return totalMinWidth + (screen.size?.width.start ?? minPanelWidth) <=
-          size.width.start;
+      return totalMinWidth + panelWidth(screen) <= size.width.start;
     }
 
     for (final screen in screens) {
@@ -190,7 +196,6 @@ class ScaffoldLayoutBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final minPanelWidth = config.scaffold.defaultPanelSize.width.start;
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = Size.fixed(
@@ -199,7 +204,7 @@ class ScaffoldLayoutBuilder extends StatelessWidget {
         );
         return builder(
           context,
-          _buildLayout(size, minPanelWidth),
+          _buildLayout(size),
         );
       },
     );
@@ -222,7 +227,7 @@ class ScaffoldPanels extends StatelessWidget {
   }
 }
 
-class Scaffold extends StatelessWidget {
+class Scaffold extends StatefulWidget {
   const Scaffold({
     super.key,
     PathMatch? currentMatch,
@@ -230,9 +235,14 @@ class Scaffold extends StatelessWidget {
 
   final PathMatch? _currentMatch;
 
+  @override
+  State<Scaffold> createState() => _ScaffoldState();
+}
+
+class _ScaffoldState extends State<Scaffold> {
   List<Widget> _buildPanels(
     BuildContext context,
-    List<RenderedScreen> panels,
+    List<Screen> panels,
   ) {
     return panels
         .expand(
@@ -277,8 +287,10 @@ class Scaffold extends StatelessWidget {
   Widget _buildScaffold(ComponentContext context) {
     return ScaffoldLayoutBuilder(
       config: context.config,
-      screens:
-          _currentMatch?.screens.map(RenderedScreen.fromScreen).toList() ?? [],
+      screens: widget._currentMatch?.screens
+              .map(RenderedScreen.fromScreen)
+              .toList() ??
+          [],
       builder: (context, layout) {
         final main = SafeArea(
           child: RailedContainer(

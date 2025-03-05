@@ -18,6 +18,8 @@ dependencies:
     sdk: flutter
   oui:
     path: ../oui
+  contour:
+    path: ../contour
 
 dev_dependencies:
   flutter_test:

@@ -29,18 +29,19 @@ class StaticContext {
     required this.palette,
     required this.typography,
     required this.registry,
-    this.auth,
+    required this.auth,
   });
 
   factory StaticContext.forConfig(Config config) {
     final registry = ScreenRegistry.fromConfig(config);
+    final auth = config.buildAuthProvider();
     return StaticContext(
       config: config,
-      router: Router(registry, config),
+      router: Router(registry, config, auth),
       palette: ColorPalette.fromConfig(config.colors),
       typography: Typography.fromConfig(config.typography),
       registry: registry,
-      auth: config.auth?.call(),
+      auth: auth,
     );
   }
 
@@ -70,23 +71,6 @@ class StaticContext {
             other.typography == typography &&
             other.registry == registry);
   }
-
-  /// Creates a copy of this StaticContext with the specified fields replaced.
-  StaticContext copyWith({
-    Config? config,
-    Router? router,
-    ColorPalette? palette,
-    Typography? typography,
-    ScreenRegistry? registry,
-  }) {
-    return StaticContext(
-      config: config ?? this.config,
-      router: router ?? this.router,
-      palette: palette ?? this.palette,
-      typography: typography ?? this.typography,
-      registry: registry ?? this.registry,
-    );
-  }
 }
 
 class DynamicContext extends StaticContext
@@ -97,6 +81,7 @@ class DynamicContext extends StaticContext
     required super.palette,
     required super.typography,
     required super.registry,
+    required super.auth,
     required this.build,
     required this.locale,
     required this.width,
@@ -138,6 +123,7 @@ class DynamicContext extends StaticContext
       palette: staticContext.palette,
       typography: staticContext.typography,
       registry: staticContext.registry,
+      auth: staticContext.auth,
       build: buildContext,
       locale: Locale.fromFlutterLocale(flutterLocale),
       width:
@@ -198,37 +184,6 @@ class DynamicContext extends StaticContext
             other.build == build);
   }
 
-  @override
-  DynamicContext copyWith({
-    Config? config,
-    Router? router,
-    ColorPalette? palette,
-    Typography? typography,
-    ScreenRegistry? registry,
-    BuildContext? build,
-    Locale? locale,
-    ScreenSize? width,
-    ScreenSize? height,
-    ScreenOrientation? orientation,
-    Density? density,
-    DynamicTheme? theme,
-  }) {
-    return DynamicContext(
-      config: config ?? this.config,
-      router: router ?? this.router,
-      palette: palette ?? this.palette,
-      typography: typography ?? this.typography,
-      registry: registry ?? this.registry,
-      build: build ?? this.build,
-      locale: locale ?? this.locale,
-      width: width ?? this.width,
-      height: height ?? this.height,
-      orientation: orientation ?? this.orientation,
-      density: density ?? this.density,
-      theme: theme ?? this.theme,
-    );
-  }
-
   static DynamicContext of(BuildContext context) {
     final inherited =
         context.dependOnInheritedWidgetOfExactType<_ContextProvider>();
@@ -285,17 +240,12 @@ class _ContextProviderState extends State<ContextProvider> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!mounted) return;
-
-    staticContext = StaticContext.forConfig(widget.config);
-
-    // Safely access MediaQuery and Locale with fallbacks
     _currentMediaQuery = MediaQuery.maybeOf(context);
     try {
       _currentLocale = Localizations.localeOf(context);
     } catch (e) {
-      _currentLocale = const widgets.Locale('en'); // Default locale as fallback
+      _currentLocale = widget.config.locales.first.flutterLocale;
     }
-
     _initializeDynamicContext();
   }
 

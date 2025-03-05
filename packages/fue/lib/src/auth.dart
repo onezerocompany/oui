@@ -1,12 +1,25 @@
-import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, User;
 import 'package:oui/oui.dart' show AuthProvider;
 
 class FirebaseAuthProvider extends AuthProvider {
-  const FirebaseAuthProvider();
+  FirebaseAuthProvider() {
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      _user = user;
+      notifyListeners();
+    });
+  }
+
+  User? _user;
 
   @override
   bool get authenticated {
-    return false;
+    return _user != null;
+  }
+
+  bool get isAnonymous {
+    return _user?.isAnonymous ?? false;
   }
 
   @override
@@ -14,7 +27,7 @@ class FirebaseAuthProvider extends AuthProvider {
     return FirebaseAuth.instance.currentUser?.uid;
   }
 
-  Future<void> anonymousSignIn() async {
+  Future<void> signInAnonymously() async {
     await FirebaseAuth.instance.signInAnonymously();
   }
 

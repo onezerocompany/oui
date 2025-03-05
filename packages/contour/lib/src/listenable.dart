@@ -16,9 +16,7 @@ class Listenable<T> {
 
   void notifySubscribers(T? value) {
     for (final sub in List<Subscription<T>>.from(_subscriptions)) {
-      if (sub.isActive) {
-        sub.callback(value);
-      }
+      sub.callback(value);
     }
   }
 }
@@ -26,16 +24,10 @@ class Listenable<T> {
 class Subscription<T> {
   final Listenable<T> listenable;
   final void Function(T? value) callback;
-  bool _isActive = true;
 
   Subscription(this.listenable, this.callback);
 
-  bool get isActive => _isActive;
-
   void cancel() {
-    if (_isActive) {
-      listenable._removeSubscription(this);
-      _isActive = false;
-    }
+    listenable._removeSubscription(this);
   }
 }

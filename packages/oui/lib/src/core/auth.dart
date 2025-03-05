@@ -1,11 +1,11 @@
-import 'package:contour/contour.dart' show Listenable;
+import 'package:flutter/widgets.dart' show ChangeNotifier;
 
 import 'screen.dart' show Screen;
 
-abstract class AuthProvider extends Listenable {
+abstract class AuthProvider with ChangeNotifier {
   final Screen? unauthenticatedScreen;
 
-  const AuthProvider({
+  AuthProvider({
     this.unauthenticatedScreen,
   });
 

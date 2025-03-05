@@ -11,14 +11,7 @@ import 'package:flutter/widgets.dart'
         RouterConfig,
         RouterDelegate,
         Widget;
-import 'package:oui/src/core/actions.dart' show Action, ActionMetadata;
-import 'package:oui/src/core/config.dart' show Config;
-import 'package:oui/src/core/locales.dart' show Locale;
-import 'package:oui/src/core/scaffold.dart' show Scaffold;
-import 'package:oui/src/core/screen.dart' show Screen;
-import 'package:oui/src/core/screen_registry.dart' show ScreenRegistry;
-
-import 'context.dart' show DynamicContext, StaticContext;
+import 'package:oui/oui.dart';
 
 class PathSegment {
   const PathSegment._(this.id, this.pattern);
@@ -238,8 +231,7 @@ class _RouteInformationParser extends RouteInformationParser<PathMatch> {
     RouteInformation routeInformation,
     BuildContext buildContext,
   ) {
-    final staticContext = StaticContext.forConfig(config);
-    final context = DynamicContext.forContexts(staticContext, buildContext);
+    final context = DynamicContext.of(buildContext);
     final match = registry.resolve(context, uri: routeInformation.uri);
     return SynchronousFuture(match);
   }
@@ -299,6 +291,10 @@ class _RouteInformationProvider extends RouteInformationProvider
       notifyListeners();
     }
   }
+
+  void refresh() {
+    notifyListeners();
+  }
 }
 
 class _RouterDelegate extends RouterDelegate<PathMatch> with ChangeNotifier {
@@ -352,11 +348,18 @@ class _RouterDelegate extends RouterDelegate<PathMatch> with ChangeNotifier {
 }
 
 class Router implements RouterConfig<PathMatch> {
-  Router(ScreenRegistry registry, Config config) {
+  Router(
+    ScreenRegistry registry,
+    Config config,
+    AuthProvider? auth,
+  ) {
     routerDelegate = _RouterDelegate();
     backButtonDispatcher = _BackButtonDispatcher(routerDelegate);
     routeInformationParser = _RouteInformationParser(registry, config);
     routeInformationProvider = _RouteInformationProvider(registry);
+    auth?.addListener(() {
+      refresh();
+    });
   }
 
   @override
@@ -370,6 +373,11 @@ class Router implements RouterConfig<PathMatch> {
 
   @override
   late final RouterDelegate<PathMatch> routerDelegate;
+
+  void refresh() {
+    final provider = routeInformationProvider as _RouteInformationProvider;
+    return provider.refresh();
+  }
 
   /// Navigates to the given path or screen with the provided arguments
   Future<void> navigate(
@@ -386,16 +394,4 @@ class Router implements RouterConfig<PathMatch> {
       arguments: arguments,
     );
   }
-}
-
-mixin NavigationActions {
-  static Action navigate(String path) => Action(
-        (context) async {
-          await context.router.navigate(context, path: path);
-        },
-        metadata: const ActionMetadata(
-          id: "uri_navigate",
-          name: {Locale.any: "Navigate to URL"},
-        ),
-      );
 }
