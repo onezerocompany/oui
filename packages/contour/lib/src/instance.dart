@@ -16,6 +16,9 @@ abstract class VariableInstance<T> extends Listenable<T> {
 
 /// An instance of a variable with a specific type.
 class SingleVariableInstance<T> extends VariableInstance<T> {
+  /// Creates a new instance with the specified type and name.
+  /// 
+  /// If [value] is provided, it will be set as the initial value of this instance.
   SingleVariableInstance(super.type, super.name, [dynamic value]) {
     this.value = value;
   }
