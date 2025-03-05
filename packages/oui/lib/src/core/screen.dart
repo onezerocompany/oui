@@ -1,38 +1,17 @@
 import 'package:flutter/widgets.dart'
     show
         BoxDecoration,
+        Center,
         Column,
         CrossAxisAlignment,
-        MainAxisAlignment,
         DecoratedBox,
         Decoration,
         Expanded,
         ListView,
+        MainAxisAlignment,
         MainAxisSize,
         Widget;
-import 'package:oui/src/core/context.dart';
-
-import '../components/box.dart'
-    show
-        BoxLevel,
-        BoxLevelContext,
-        BoxLike,
-        ContentModifier,
-        DecorationModifier;
-import 'background.dart' show BackgroundModifier;
-import 'component.dart'
-    show
-        Component,
-        ComponentContext,
-        ComponentModifier,
-        ComponentModifiers,
-        ComponentWidgetBuilder,
-        ConditionalComponent;
-import 'icons.dart' show Icon;
-import 'localization.dart' show Localized;
-import 'metadata.dart' show Metadata;
-import 'modifiers.dart' show ModifierSorting;
-import 'routing.dart' show Path;
+import 'package:oui/oui.dart';
 
 /// This enum is used to specify how a screen should be displayed within the
 /// application's user interface. The different screen types provide flexibility
@@ -144,6 +123,16 @@ class ScreenBox extends BoxLike<ScreenBox> {
     super.modifiers,
   });
 
+  factory ScreenBox.base() {
+    return const ScreenBox(
+      modifiers: [
+        BackgroundModifier(auto: true),
+        BorderModifier(Border.all(BorderSide(thickness: 1)), auto: true),
+        CornerModifier(roundness: SizeLevel.medium),
+      ],
+    );
+  }
+
   @override
   ScreenBox copyWith({ComponentModifiers? modifiers}) {
     return ScreenBox(
@@ -223,12 +212,14 @@ class ScreenBox extends BoxLike<ScreenBox> {
         if (header != null) header,
         if (sections.isNotEmpty)
           Expanded(
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: sections.length,
-              itemBuilder: (_, index) {
-                return sections[index].builder(context);
-              },
+            child: Center(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: sections.length,
+                itemBuilder: (_, index) {
+                  return sections[index].builder(context);
+                },
+              ),
             ),
           ),
         if (footer != null) footer,
@@ -265,43 +256,17 @@ class ScreenBox extends BoxLike<ScreenBox> {
 
 /// Represents a screen in the OUI framework.
 abstract class Screen {
+  const Screen();
+
   ScreenMetadata get metadata;
-  Component build(ScreenBox screen);
+
+  // Routing properties
   bool available(DynamicContext context) => true;
   Uri? redirect(DynamicContext context) => null;
+
+  Component content(ScreenBox screen);
+
   List<Screen> get children => const [];
 }
 
 typedef Screens = List<Screen>;
-
-// class RenderedScreen {
-//   final Screen screen;
-//   final Component content;
-
-//   ScreenMetadata get metadata => screen.metadata;
-
-//   const RenderedScreen(
-//     this.screen,
-//     this.content,
-//   );
-
-//   static RenderedScreen fromScreen(Screen screen) {
-//     return RenderedScreen(
-//       screen,
-//       screen.build(
-//         const ScreenBox().defaultBackground().rounded().border(),
-//       ),
-//     );
-//   }
-
-//   Size? get size {
-//     final modifier = (content.modifiers
-//         .whereType<SizeModifier>()
-//         .where((modifier) => modifier.condition == null)
-//         .firstOrNull);
-//     if (modifier is SizeModifier) {
-//       return modifier.size;
-//     }
-//     return null;
-//   }
-// }

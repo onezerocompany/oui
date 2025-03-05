@@ -23,10 +23,12 @@ import 'package:flutter/widgets.dart'
         SafeArea,
         SlideTransition,
         Stack,
+        StatefulWidget,
         StatelessWidget,
         Transform,
         Tween,
         Widget;
+import 'package:flutter/widgets.dart' as widgets show State;
 import 'package:oui/src/core/border.dart' show BorderSide;
 import 'package:oui/src/core/component.dart' show ComponentContext;
 import 'package:oui/src/core/config.dart' show Config;
@@ -34,7 +36,7 @@ import 'package:oui/src/core/geometry.dart'
     show RectangleSide, Size, SizeModifier;
 import 'package:oui/src/core/routing.dart' show PathMatch;
 import 'package:oui/src/core/screen.dart'
-    show Screen, ScreenBox, ScreenDisplayType, Screens;
+    show Screen, ScreenBox, ScreenDisplayType;
 import 'package:oui/src/core/state.dart' show State, StateContext;
 
 import '../components/box.dart' show Box, BoxLevel, BoxLevelContext;
@@ -117,9 +119,9 @@ class RailedContainer extends StatelessWidget {
 
 class ScaffoldLayout {
   final Size size;
-  final Screens panels;
-  final Screens sheets;
-  final Screens modals;
+  final ScaffoldPanels panels;
+  final ScaffoldPanels sheets;
+  final ScaffoldPanels modals;
 
   ScaffoldLayout({
     required this.size,
@@ -131,57 +133,46 @@ class ScaffoldLayout {
 
 class ScaffoldLayoutBuilder extends StatelessWidget {
   final Config config;
-  final Screens screens;
+  final List<ScaffoldPanel> _unsortedPanels;
   final Function(BuildContext context, ScaffoldLayout layout) builder;
 
   const ScaffoldLayoutBuilder({
     required this.config,
-    required this.screens,
     required this.builder,
+    required List<ScaffoldPanel> panels,
     super.key,
-  });
+  }) : _unsortedPanels = panels;
 
   ScaffoldLayout _buildLayout(Size size) {
-    final panels = <Screen>[];
-    final sheets = <Screen>[];
-    final modals = <Screen>[];
+    final panels = <ScaffoldPanel>[];
+    final sheets = <ScaffoldPanel>[];
+    final modals = <ScaffoldPanel>[];
 
-    double panelWidth(Screen screen) {
-      final panelModifiers = screen.build(const ScreenBox()).modifiers;
-      final sizeModifiers = panelModifiers.whereType<SizeModifier>().where(
-            (modifier) => modifier.condition == null,
-          );
-
-      return sizeModifiers.first.size?.width.start ??
-          config.scaffold.defaultPanelSize.width.start;
-    }
-
-    bool canAddPanel(Screen screen) {
+    bool canAddPanel(ScaffoldPanel panel) {
       if (!panels.iterator.moveNext()) {
         return true;
       }
       final totalMinWidth = panels.fold<double>(
         0,
-        (previousValue, screen) => previousValue + panelWidth(screen),
+        (previousValue, screen) => previousValue + panel.size.width.start,
       );
-
-      return totalMinWidth + panelWidth(screen) <= size.width.start;
+      return totalMinWidth + panel.size.width.start <= size.width.start;
     }
 
-    for (final screen in screens) {
-      switch (screen.metadata.type) {
+    for (final panel in _unsortedPanels) {
+      switch (panel.screen.metadata.type) {
         case ScreenDisplayType.panel:
-          if (canAddPanel(screen)) {
-            panels.add(screen);
+          if (canAddPanel(panel)) {
+            panels.add(panel);
           } else {
-            sheets.add(screen);
+            sheets.add(panel);
           }
           break;
         case ScreenDisplayType.sheet:
-          sheets.add(screen);
+          sheets.add(panel);
           break;
         case ScreenDisplayType.modal:
-          modals.add(screen);
+          modals.add(panel);
           break;
       }
     }
@@ -211,44 +202,91 @@ class ScaffoldLayoutBuilder extends StatelessWidget {
   }
 }
 
-class ScaffoldPanels extends StatelessWidget {
-  final List<Widget> panels;
+// class ScaffoldPanels extends StatelessWidget {
+//   final List<Widget> panels;
 
-  const ScaffoldPanels(
-    this.panels, {
-    super.key,
-  });
+//   const ScaffoldPanels(
+//     this.panels, {
+//     super.key,
+//   });
 
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: panels,
-    );
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return Row(
+//       children: panels,
+//     );
+//   }
+// }
+
+class ScaffoldPanel {
+  final Screen screen;
+  final Size size;
+
+  const ScaffoldPanel(
+    this.screen,
+    this.size,
+  );
 }
+
+typedef ScaffoldPanels = List<ScaffoldPanel>;
 
 class Scaffold extends StatefulWidget {
   const Scaffold({
     super.key,
     PathMatch? currentMatch,
+    required this.config,
   }) : _currentMatch = currentMatch;
 
   final PathMatch? _currentMatch;
+  final Config config;
 
   @override
-  State<Scaffold> createState() => _ScaffoldState();
+  widgets.State<Scaffold> createState() => _ScaffoldState();
 }
 
-class _ScaffoldState extends State<Scaffold> {
+class _ScaffoldState extends widgets.State<Scaffold> {
+  ScaffoldPanels _panels = [];
+
+  Size _panelSize(Screen screen) {
+    final panelModifiers = screen.content(const ScreenBox()).modifiers;
+    final sizeModifiers = panelModifiers.whereType<SizeModifier>().where(
+          (modifier) => modifier.condition == null,
+        );
+    return sizeModifiers.first.size ?? widget.config.scaffold.defaultPanelSize;
+  }
+
+  ScaffoldPanels _createPanelsFromMatch(PathMatch? match) {
+    return match?.screens.map((screen) {
+          return ScaffoldPanel(screen, _panelSize(screen));
+        }).toList() ??
+        [];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _panels = _createPanelsFromMatch(widget._currentMatch);
+  }
+
+  @override
+  void didUpdateWidget(covariant Scaffold oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget._currentMatch != widget._currentMatch) {
+      setState(() {
+        _panels = _createPanelsFromMatch(widget._currentMatch);
+      });
+    }
+  }
+
   List<Widget> _buildPanels(
     BuildContext context,
-    List<Screen> panels,
+    ScaffoldPanels panels,
   ) {
     return panels
         .expand(
-          (screen) => [
+          (panel) => [
             Flexible(
-              flex: screen.size?.width.weight ?? 1,
+              flex: panel.size.width.weight,
               fit: FlexFit.loose,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 400),
@@ -270,12 +308,14 @@ class _ScaffoldState extends State<Scaffold> {
                   padding: const EdgeInsets.all(8.0),
                   // Using the screen's ID as a key to ensure AnimatedSwitcher
                   // can detect changes and perform animations
-                  key: Key(screen.metadata.id),
-                  child: screen.content,
+                  key: Key(panel.screen.metadata.id),
+                  child: panel.screen.content(
+                    ScreenBox.base(),
+                  ),
                 ),
               ),
             ),
-            if (screen != panels.last)
+            if (panel != panels.last)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
               ),
@@ -287,10 +327,7 @@ class _ScaffoldState extends State<Scaffold> {
   Widget _buildScaffold(ComponentContext context) {
     return ScaffoldLayoutBuilder(
       config: context.config,
-      screens: widget._currentMatch?.screens
-              .map(RenderedScreen.fromScreen)
-              .toList() ??
-          [],
+      panels: _panels,
       builder: (context, layout) {
         final main = SafeArea(
           child: RailedContainer(
@@ -321,12 +358,16 @@ class _ScaffoldState extends State<Scaffold> {
               Positioned.fill(
                 child: ImageFiltered(
                   imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: layout.sheets[layout.sheets.length - 2].content,
+                  child: layout.sheets[layout.sheets.length - 2].screen.content(
+                    ScreenBox.base(),
+                  ),
                 ),
               ),
             if (layout.sheets.isNotEmpty)
               Positioned.fill(
-                child: layout.sheets.last.content,
+                child: layout.sheets.last.screen.content(
+                  ScreenBox.base(),
+                ),
               ),
           ],
         );

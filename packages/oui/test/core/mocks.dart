@@ -35,7 +35,7 @@ class MockScreen implements Screen {
   }
 
   @override
-  Component<Widget> build(ScreenBox content) {
+  Component<Widget> content(ScreenBox content) {
     return content;
   }
 }

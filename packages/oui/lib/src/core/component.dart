@@ -1,4 +1,3 @@
-import 'package:contour/contour.dart';
 import 'package:flutter/foundation.dart' show nonVirtual;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart'
@@ -44,7 +43,6 @@ class ComponentContext extends DynamicContext {
     required this.accent,
     required this.state,
     required this.modifiers,
-    required this.data,
   });
 
   factory ComponentContext.forContexts(
@@ -52,23 +50,11 @@ class ComponentContext extends DynamicContext {
     DynamicContext dynamicContext,
     ComponentModifiers modifiers,
   ) {
-    final parent = ComponentContext.maybeOf(buildContext);
-
     final accent = modifiers.firstOfType<AccentModifier>()?.accent ??
         Accent.of(buildContext);
     final state =
         modifiers.firstOfType<StateModifier>()?.state ?? State.of(buildContext);
-    final data =
-        modifiers.whereType<DataModifier>().fold<Map<String, VariableInstance>>(
-              parent?.data ?? {},
-              (acc, modifier) =>
-                  modifier.merge(DataModifier(acc)) is DataModifier
-                      ? (modifier.merge(DataModifier(acc)) as DataModifier).data
-                      : acc,
-            );
-
     final level = BoxLevel.of(buildContext);
-
     final colors = dynamicContext.palette.levels
         .get(dynamicContext.theme)
         .get(level.level)
@@ -94,7 +80,6 @@ class ComponentContext extends DynamicContext {
       accent: accent,
       state: state,
       modifiers: modifiers.resolve(dynamicContext),
-      data: data,
     );
   }
 
@@ -103,14 +88,12 @@ class ComponentContext extends DynamicContext {
   final Accent accent;
   final State state;
   final ComponentModifiers modifiers;
-  final Map<String, VariableInstance> data;
 
   Type get type => build.widget.runtimeType;
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-
     return other is ComponentContext &&
         other.width == width &&
         other.height == height &&
@@ -236,15 +219,6 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
         ],
       );
     }
-  }
-
-  ComponentType data(String key, ContourType type) {
-    return withModifier(
-      DataModifier({
-        key: type.instance(key),
-      }),
-      stacks: true,
-    );
   }
 
   Widget builder(ComponentContext context);
@@ -389,95 +363,6 @@ mixin ModifiableInteractive<Type extends Component> on Component<Type> {
         tapAction: tapAction,
       ),
     );
-  }
-}
-
-class DataWrapper extends StatefulWidget {
-  final ComponentContext context;
-  final Widget child;
-
-  const DataWrapper({
-    super.key,
-    required this.child,
-    required this.context,
-  });
-
-  @override
-  widgets.State<DataWrapper> createState() => _DataWrapperState();
-}
-
-class _DataWrapperState extends widgets.State<DataWrapper> {
-  List<Subscription> subscriptions = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeListeners();
-  }
-
-  @override
-  void didUpdateWidget(DataWrapper oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.context.data != widget.context.data) {
-      _removeListeners();
-      _initializeListeners();
-    }
-  }
-
-  void _initializeListeners() {
-    for (var instance in widget.context.data.values) {
-      final subscription = instance.subscribe((listener) {
-        if (mounted) {
-          setState(() {});
-        }
-      });
-      subscriptions.add(subscription);
-    }
-  }
-
-  void _removeListeners() {
-    for (var subscription in subscriptions) {
-      subscription.cancel();
-    }
-    subscriptions.clear();
-  }
-
-  @override
-  void dispose() {
-    _removeListeners();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
-  }
-}
-
-class DataModifier extends ComponentModifier with WrapperModifier {
-  final Map<String, VariableInstance> data;
-
-  const DataModifier(
-    this.data, {
-    super.condition,
-  });
-
-  @override
-  Widget wrap(Widget child, ComponentContext context) {
-    return DataWrapper(
-      context: context,
-      child: child,
-    );
-  }
-
-  @override
-  ComponentModifier merge(ComponentModifier other) {
-    if (other is DataModifier) {
-      return DataModifier(
-        {...data, ...other.data},
-      );
-    }
-    return this;
   }
 }
 

@@ -298,14 +298,16 @@ class _RouteInformationProvider extends RouteInformationProvider
 }
 
 class _RouterDelegate extends RouterDelegate<PathMatch> with ChangeNotifier {
-  _RouterDelegate();
+  _RouterDelegate(this.config);
 
   PathMatch? _currentMatch;
+  final Config config;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       currentMatch: _currentMatch,
+      config: config,
     );
   }
 
@@ -353,7 +355,7 @@ class Router implements RouterConfig<PathMatch> {
     Config config,
     AuthProvider? auth,
   ) {
-    routerDelegate = _RouterDelegate();
+    routerDelegate = _RouterDelegate(config);
     backButtonDispatcher = _BackButtonDispatcher(routerDelegate);
     routeInformationParser = _RouteInformationParser(registry, config);
     routeInformationProvider = _RouteInformationProvider(registry);

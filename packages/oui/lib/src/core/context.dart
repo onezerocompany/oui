@@ -15,6 +15,7 @@ import 'package:oui/src/core/auth.dart' show AuthProvider;
 import 'package:oui/src/core/colors.dart'
     show ColorPalette, DynamicTheme, DynamicThemeContext;
 import 'package:oui/src/core/config.dart' show Config;
+import 'package:oui/src/core/data.dart' show DataManager;
 import 'package:oui/src/core/locales.dart' show Locale, LocaleContext;
 import 'package:oui/src/core/responsive.dart'
     show Density, ResponsiveContext, ScreenOrientation, ScreenSize;
@@ -23,13 +24,14 @@ import 'package:oui/src/core/screen_registry.dart' show ScreenRegistry;
 import 'package:oui/src/core/typography.dart' show Typography;
 
 class StaticContext {
-  const StaticContext({
+  StaticContext({
     required this.config,
     required this.router,
     required this.palette,
     required this.typography,
     required this.registry,
     required this.auth,
+    required this.data,
   });
 
   factory StaticContext.forConfig(Config config) {
@@ -42,6 +44,7 @@ class StaticContext {
       typography: Typography.fromConfig(config.typography),
       registry: registry,
       auth: auth,
+      data: DataManager(),
     );
   }
 
@@ -51,6 +54,7 @@ class StaticContext {
   final Typography typography;
   final ScreenRegistry registry;
   final AuthProvider? auth;
+  final DataManager data;
 
   @override
   int get hashCode => Object.hash(
@@ -75,13 +79,14 @@ class StaticContext {
 
 class DynamicContext extends StaticContext
     implements ResponsiveContext, DynamicThemeContext, LocaleContext {
-  const DynamicContext({
+  DynamicContext({
     required super.config,
     required super.router,
     required super.palette,
     required super.typography,
     required super.registry,
     required super.auth,
+    required super.data,
     required this.build,
     required this.locale,
     required this.width,
@@ -125,6 +130,7 @@ class DynamicContext extends StaticContext
       registry: staticContext.registry,
       auth: staticContext.auth,
       build: buildContext,
+      data: staticContext.data,
       locale: Locale.fromFlutterLocale(flutterLocale),
       width:
           staticContext.config.responsive.horizontal.sizeFor(screenSize.width),
