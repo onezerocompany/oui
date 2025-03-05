@@ -2,8 +2,6 @@
 
 import 'dart:ui' as widgets show Locale;
 
-import 'package:flutter/widgets.dart' show BuildContext, Localizations;
-
 enum Locale {
   /// Any language
   any('*'),
@@ -903,14 +901,7 @@ enum Locale {
   }
 }
 
-typedef Locales = List<Locale>;
-
-extension LocaleExtension on BuildContext {
-  /// Returns the current locale of the application.
-  ///
-  /// This method retrieves the current locale from the `AppContext` and returns it.
-  Locale get currentLocale {
-    final current = Localizations.localeOf(this);
-    return Locale.fromFlutterLocale(current);
-  }
+abstract class LocaleContext {
+  const LocaleContext(this.locale);
+  final Locale locale;
 }

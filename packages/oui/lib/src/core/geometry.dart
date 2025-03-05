@@ -20,7 +20,7 @@ import 'package:flutter/widgets.dart'
         Widget,
         Wrap;
 import 'package:oui/src/components/box.dart' show ContentModifier;
-import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
+import 'package:oui/src/core/context.dart';
 
 import 'component.dart';
 import 'utils.dart';
@@ -519,7 +519,7 @@ class InsetModifier extends ComponentModifier with ContentModifier {
 mixin ModifiableInset<Type extends Component> on Component<Type> {
   Type inset(
     Insets insets, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       InsetModifier(
@@ -819,7 +819,7 @@ mixin ModifiableSize<Type extends Component> on Component<Type> {
   Type fixedSize({
     double? width,
     double? height,
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       SizeModifier.fixed(
@@ -835,7 +835,7 @@ mixin ModifiableSize<Type extends Component> on Component<Type> {
     double maxWidth = double.infinity,
     double minHeight = 0,
     double maxHeight = double.infinity,
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       SizeModifier.dynamic(

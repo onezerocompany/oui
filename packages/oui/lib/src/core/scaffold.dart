@@ -3,29 +3,40 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/widgets.dart'
     show
         AnimatedSwitcher,
+        Animation,
         BuildContext,
         Column,
         CrossAxisAlignment,
         Curves,
         EdgeInsets,
+        FadeTransition,
         FlexFit,
         Flexible,
         ImageFiltered,
+        Key,
         LayoutBuilder,
         MainAxisAlignment,
+        Offset,
         Padding,
         Positioned,
         Row,
         SafeArea,
+        SlideTransition,
         Stack,
-        StatefulWidget,
         StatelessWidget,
         Transform,
+        Tween,
         Widget;
-import 'package:flutter/widgets.dart' as widgets show State;
-import 'package:oui/src/core/_index.dart';
+import 'package:oui/src/core/border.dart' show BorderSide;
+import 'package:oui/src/core/component.dart' show ComponentContext;
+import 'package:oui/src/core/config.dart' show Config;
+import 'package:oui/src/core/geometry.dart' show RectangleSide, Size;
+import 'package:oui/src/core/routing.dart' show PathMatch;
+import 'package:oui/src/core/screen.dart'
+    show RenderedScreen, ScreenDisplayType;
+import 'package:oui/src/core/state.dart' show State, StateContext;
 
-import '../components/box.dart';
+import '../components/box.dart' show Box, BoxLevel, BoxLevelContext;
 
 enum RailContainerStyle {
   // The rails on the sides reach the top and bottom of the container.
@@ -118,10 +129,12 @@ class ScaffoldLayout {
 }
 
 class ScaffoldLayoutBuilder extends StatelessWidget {
+  final Config config;
   final List<RenderedScreen> screens;
   final Function(BuildContext context, ScaffoldLayout layout) builder;
 
   const ScaffoldLayoutBuilder({
+    required this.config,
     required this.screens,
     required this.builder,
     super.key,
@@ -177,8 +190,7 @@ class ScaffoldLayoutBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final minPanelWidth =
-        Config.of(context).scaffold.defaultPanelSize.width.start;
+    final minPanelWidth = config.scaffold.defaultPanelSize.width.start;
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = Size.fixed(
@@ -210,39 +222,13 @@ class ScaffoldPanels extends StatelessWidget {
   }
 }
 
-class Scaffold extends StatefulWidget {
+class Scaffold extends StatelessWidget {
   const Scaffold({
     super.key,
-  });
+    PathMatch? currentMatch,
+  }) : _currentMatch = currentMatch;
 
-  @override
-  widgets.State<Scaffold> createState() => ScaffoldState();
-}
-
-class ScaffoldState extends widgets.State<Scaffold> {
-  PathMatch activeMatch = PathMatch.noMatch;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final newMatch = StaticAppContext.of(context).router.activeMatch;
-    if (newMatch != activeMatch) {
-      setState(() {
-        activeMatch = newMatch;
-      });
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant Scaffold oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final newMatch = StaticAppContext.of(context).router.activeMatch;
-    if (newMatch != activeMatch) {
-      setState(() {
-        activeMatch = newMatch;
-      });
-    }
-  }
+  final PathMatch? _currentMatch;
 
   List<Widget> _buildPanels(
     BuildContext context,
@@ -254,9 +240,29 @@ class ScaffoldState extends widgets.State<Scaffold> {
             Flexible(
               flex: screen.size?.width.weight ?? 1,
               fit: FlexFit.loose,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: screen.content,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                switchInCurve: Curves.fastEaseInToSlowEaseOut,
+                switchOutCurve: Curves.fastEaseInToSlowEaseOut,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.0, 0.01),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  // Using the screen's ID as a key to ensure AnimatedSwitcher
+                  // can detect changes and perform animations
+                  key: Key(screen.metadata.id),
+                  child: screen.content,
+                ),
               ),
             ),
             if (screen != panels.last)
@@ -270,7 +276,9 @@ class ScaffoldState extends widgets.State<Scaffold> {
 
   Widget _buildScaffold(ComponentContext context) {
     return ScaffoldLayoutBuilder(
-      screens: activeMatch.screens.map(RenderedScreen.fromScreen).toList(),
+      config: context.config,
+      screens:
+          _currentMatch?.screens.map(RenderedScreen.fromScreen).toList() ?? [],
       builder: (context, layout) {
         final main = SafeArea(
           child: RailedContainer(
@@ -315,7 +323,7 @@ class ScaffoldState extends widgets.State<Scaffold> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext buildContext) {
     return StateContext(
       state: State.normal,
       child: BoxLevelContext(

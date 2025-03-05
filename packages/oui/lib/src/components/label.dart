@@ -119,7 +119,7 @@ class Label extends Component<Label>
 
   @override
   Widget builder(ComponentContext context) {
-    var label = Text(localized?.resolve(context.build) ?? text ?? '');
+    var label = Text(localized?.resolve(context) ?? text ?? '');
 
     final labelModifiers = context.modifiers.whereType<TextModifier>();
     label = labelModifiers.fold(label, (Text acc, modifier) {

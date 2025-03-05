@@ -76,6 +76,30 @@ class ContourNumber extends ContourType<num, ContourNumber> {
     ]);
   }
 
+  // add  check to verify if number is an integer
+  ContourNumber integer(bool force) {
+    return ContourNumber([
+      ...operations,
+      if (!force)
+        ContourOperation.check('integer', (field, currentValue) {
+          if ((currentValue ?? 0.001) % 1 != 0) {
+            return ContourParseResult<num>(null, [
+              ContourError(
+                field: field,
+                type: ContourErrorType.check,
+                message: 'should be an integer',
+              ),
+            ]);
+          }
+          return ContourParseResult<num>(currentValue, []);
+        })
+      else
+        ContourOperation.transform('integer', (field, currentValue) {
+          return ContourParseResult<num>(currentValue?.toInt(), []);
+        }),
+    ]);
+  }
+
   ContourNumber oneOf(List<num> values) {
     return ContourNumber([
       ...operations,
@@ -95,8 +119,8 @@ class ContourNumber extends ContourType<num, ContourNumber> {
   }
 
   @override
-  SingleVariableInstance<num> instance(String name) {
-    return SingleVariableInstance<num>(this, name);
+  VariableInstance<num> instance(String name, [dynamic value]) {
+    return SingleVariableInstance<num>(this, name, value);
   }
 }
 

@@ -104,5 +104,17 @@ void main() {
       },
     );
     // Check your expected behavior based on implementation
+
+    test('initial value should be null', () {
+      final objectType = ContourList(ContourNumber());
+      final instance = objectType.instance('test');
+      expect(instance.value, null);
+    });
+
+    test('initial value should be set', () {
+      final objectType = ContourList(ContourNumber());
+      final instance = objectType.instance('test', [1, 2, 3]);
+      expect(instance.value, [1, 2, 3]);
+    });
   });
 }

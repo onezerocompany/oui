@@ -98,4 +98,16 @@ void main() {
       expect(instance.errors.isEmpty, isTrue);
     });
   });
+
+  test('initial value should be null', () {
+    final stringType = ContourString();
+    final instance = stringType.instance('test');
+    expect(instance.value, isNull);
+  });
+
+  test('initial value should be set', () {
+    final stringType = ContourString();
+    final instance = stringType.instance('test', 'value');
+    expect(instance.value, 'value');
+  });
 }

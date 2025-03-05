@@ -12,17 +12,15 @@ import 'package:flutter/widgets.dart' as ui
         TextScaler,
         TextStyle,
         TextWidthBasis;
-import 'package:oui/src/components/label.dart'
-    show TextModifier, TextStyleModifier;
-import 'package:oui/src/core/app.dart' show StaticAppContext;
-import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
-import 'package:oui/src/core/utils.dart'
-    show EnumContainer, Range, SizeLevel, SizedContainer, TextExtension;
 
+import '../components/label.dart' show TextModifier, TextStyleModifier;
 import 'colors.dart' show Color;
 import 'component.dart'
     show Component, ComponentContext, ComponentModifier, WrapperModifier;
+import 'context.dart' show ContextCondition;
 import 'interpolation.dart' show Curve, DoubleInterpolator;
+import 'utils.dart'
+    show EnumContainer, Range, SizeLevel, SizedContainer, TextExtension;
 
 class TypographyConfigGroup {
   final Curve curve;
@@ -186,11 +184,7 @@ class TypographyContext {
   }
 
   ui.TextStyle style(ComponentContext context) {
-    return StaticAppContext.of(context.build)
-        .typography
-        .get(group)
-        .get(size)
-        .uiStyle;
+    return context.typography.get(group).get(size).uiStyle;
   }
 
   @override
@@ -255,7 +249,7 @@ mixin ModifiableTypography<Type extends Component> on Component<Type> {
   Type typography(
     TypographyGroup group,
     SizeLevel size, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       TypographyModifier(
@@ -362,7 +356,7 @@ class TextAlignModifier extends ComponentModifier with TextModifier {
 mixin ModifiableTextAlign<Type extends Component> on Component<Type> {
   Type align(
     TextAlign align, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       TextAlignModifier(
@@ -405,7 +399,7 @@ class MaxLinesModifier extends ComponentModifier with TextModifier {
 mixin ModifiableMaxLines<Type extends Component> on Component<Type> {
   Type lines(
     int maxLines, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       MaxLinesModifier(
@@ -448,7 +442,7 @@ class SoftWrapModifier extends ComponentModifier with TextModifier {
 mixin ModifiableSoftWrap<Type extends Component> on Component<Type> {
   Type wrap(
     bool softWrap, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       SoftWrapModifier(
@@ -511,7 +505,7 @@ class TextOverflowModifier extends ComponentModifier with TextModifier {
 mixin ModifiableTextOverflow<Type extends Component> on Component<Type> {
   Type overflow(
     TextOverflow overflow, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       TextOverflowModifier(
@@ -559,7 +553,7 @@ class TextScalerModifier extends ComponentModifier with TextModifier {
 mixin ModifiableTextScaler<Type extends Component> on Component<Type> {
   Type scale(
     ui.TextScaler scaler, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       TextScalerModifier(
@@ -614,7 +608,7 @@ class TextWidthModeModifier extends ComponentModifier with TextModifier {
 mixin ModifiableTextWidthMode<Type extends Component> on Component<Type> {
   Type width(
     TextWidthMode mode, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       TextWidthModeModifier(
@@ -660,7 +654,7 @@ class TextHeightBehaviorModifier extends ComponentModifier with TextModifier {
 mixin ModifiableTextHeightBehavior<Type extends Component> on Component<Type> {
   Type height(
     ui.TextHeightBehavior behavior, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       TextHeightBehaviorModifier(
@@ -703,7 +697,7 @@ class SemanticsLabelModifier extends ComponentModifier with TextModifier {
 mixin ModifiableSemanticsLabel<Type extends Component> on Component<Type> {
   Type semanticLabel(
     String label, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       SemanticsLabelModifier(
@@ -746,7 +740,7 @@ class SelectionColorModifier extends ComponentModifier with TextModifier {
 mixin ModifiableSelectionColor<Type extends Component> on Component<Type> {
   Type selectionColor({
     required Color color,
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       SelectionColorModifier(
@@ -819,7 +813,7 @@ mixin ModifiableTextColor<Type extends Component> on Component<Type> {
 
   Type color(
     Color color, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       TextColorModifier(
@@ -831,7 +825,7 @@ mixin ModifiableTextColor<Type extends Component> on Component<Type> {
 
   Type colorBuilder(
     TextColorBuilder builder, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       TextColorModifier(
@@ -874,7 +868,7 @@ class TextSizeModifier extends ComponentModifier with TextStyleModifier {
 mixin ModifiableTextSize<Type extends Component> on Component<Type> {
   Type size({
     required double size,
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       TextSizeModifier(
@@ -919,7 +913,7 @@ class FontModifier extends ComponentModifier with TextStyleModifier {
 mixin ModifiableFont<Type extends Component> on Component<Type> {
   Type font(
     String font, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       FontModifier(
@@ -1008,7 +1002,7 @@ class TextWeightModifier extends ComponentModifier with TextStyleModifier {
 mixin ModifiableTextWeight<Type extends Component> on Component<Type> {
   Type weight(
     TextWeight weight, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       TextWeightModifier(
@@ -1055,7 +1049,7 @@ class TextSlantModifier extends ComponentModifier with TextStyleModifier {
 mixin ModifiableTextSlant<Type extends Component> on Component<Type> {
   Type slant(
     TextSlant slant, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       TextSlantModifier(
@@ -1111,7 +1105,7 @@ class LetterSpacingModifier extends ComponentModifier with TextStyleModifier {
 mixin ModifiableLetterSpacing<Type extends Component> on Component<Type> {
   Type letterSpacing(
     LetterSpacing letterSpacing, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       LetterSpacingModifier(
@@ -1165,7 +1159,10 @@ class WordSpacingModifier extends ComponentModifier with TextStyleModifier {
 }
 
 mixin ModifiableWordSpacing<Type extends Component> on Component<Type> {
-  Type wordSpacing(WordSpacing wordSpacing, {ResponsiveCondition? condition}) {
+  Type wordSpacing(
+    WordSpacing wordSpacing, {
+    ContextCondition? condition,
+  }) {
     return withModifier(
       WordSpacingModifier(
         wordSpacing: wordSpacing,

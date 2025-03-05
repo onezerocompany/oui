@@ -14,32 +14,29 @@ import 'package:flutter/widgets.dart'
         StatelessWidget,
         Widget;
 import 'package:flutter/widgets.dart' as widgets show State;
-import 'package:oui/src/core/actions.dart' show Action, ActionContext;
-import 'package:oui/src/core/config.dart' show Config;
-import 'package:oui/src/core/modifiers.dart' show ModifierSorting;
-import 'package:oui/src/core/utils.dart' show FirstOfTypeExtension;
 
 import '../components/box.dart' show BoxLevel;
-import 'colors.dart' show Accent, AccentModifier, BoxColors, ColorPalette;
-import 'responsive.dart' show ResponsiveCondition, ResponsiveContext;
+import 'actions.dart' show Action, ActionContext;
+import 'colors.dart' show Accent, AccentModifier, BoxColors;
+import 'context.dart' show ContextCondition, DynamicContext;
+import 'modifiers.dart';
 import 'state.dart' show State, StateModifier;
+import 'utils.dart' show FirstOfTypeExtension;
 
-/// Context for modifiers, providing necessary information for modification.
-class ComponentContext extends ResponsiveContext {
-  final BuildContext build;
-  final BoxColors colors;
-  final BoxLevel level;
-  final Accent accent;
-  final State state;
-  final ComponentModifiers modifiers;
-
+class ComponentContext extends DynamicContext {
   const ComponentContext({
+    required super.config,
+    required super.router,
+    required super.palette,
+    required super.typography,
+    required super.registry,
+    required super.locale,
     required super.width,
     required super.height,
     required super.orientation,
     required super.density,
     required super.theme,
-    required this.build,
+    required super.build,
     required this.colors,
     required this.level,
     required this.accent,
@@ -47,47 +44,51 @@ class ComponentContext extends ResponsiveContext {
     required this.modifiers,
   });
 
-  factory ComponentContext.forContext(
-    BuildContext context, {
-    ComponentModifiers modifiers = const [],
-    BoxLevel? boxLevel,
-  }) {
-    final responsive = ResponsiveContext.of(context);
-    final accent =
-        modifiers.firstOfType<AccentModifier>()?.accent ?? Accent.of(context);
+  factory ComponentContext.forContexts(
+    BuildContext buildContext,
+    DynamicContext dynamicContext,
+    ComponentModifiers modifiers,
+  ) {
+    final accent = modifiers.firstOfType<AccentModifier>()?.accent ??
+        Accent.of(buildContext);
     final state =
-        modifiers.firstOfType<StateModifier>()?.state ?? State.of(context);
-    final palette = ColorPalette.of(context);
-    final level = boxLevel ?? BoxLevel.of(context);
-    final colors = palette.levels
-        .get(responsive.theme)
+        modifiers.firstOfType<StateModifier>()?.state ?? State.of(buildContext);
+    final level = BoxLevel.of(buildContext);
+
+    final colors = dynamicContext.palette.levels
+        .get(dynamicContext.theme)
         .get(level.level)
         .get(state)
         .accented(accent.level);
 
     return ComponentContext(
-      build: context,
+      config: dynamicContext.config,
+      router: dynamicContext.router,
+      palette: dynamicContext.palette,
+      typography: dynamicContext.typography,
+      registry: dynamicContext.registry,
+      locale: dynamicContext.locale,
+      width: dynamicContext.width,
+      height: dynamicContext.height,
+      orientation: dynamicContext.orientation,
+      density: dynamicContext.density,
+      theme: dynamicContext.theme,
+      build: buildContext,
       colors: colors,
-      width: responsive.width,
-      height: responsive.height,
-      orientation: responsive.orientation,
-      density: responsive.density,
-      theme: responsive.theme,
+      level: level,
       accent: accent,
       state: state,
-      level: level,
-      modifiers: modifiers.resolve(responsive),
+      modifiers: modifiers.resolve(dynamicContext),
     );
   }
 
-  Config get config => Config.of(build);
-  ColorPalette get palette => ColorPalette.of(build);
-  Type get type => build.widget.runtimeType;
+  final BoxColors colors;
+  final BoxLevel level;
+  final Accent accent;
+  final State state;
+  final ComponentModifiers modifiers;
 
-  @override
-  String toString() {
-    return 'ComponentContext{width: $width, height: $height, orientation: $orientation, density: $density, theme: $theme, accent: $accent, state: $state}';
-  }
+  Type get type => build.widget.runtimeType;
 
   @override
   bool operator ==(Object other) {
@@ -125,6 +126,11 @@ class ComponentContext extends ResponsiveContext {
     assert(context != null, 'ComponentContext not found in widget tree');
     return context!;
   }
+
+  @override
+  String toString() {
+    return 'ComponentContext{width: $width, height: $height, orientation: $orientation, density: $density, theme: $theme, accent: $accent, state: $state}';
+  }
 }
 
 class ComponentContextProvider extends InheritedWidget {
@@ -145,7 +151,7 @@ class ComponentContextProvider extends InheritedWidget {
 typedef ComponentModifierConditional = bool Function(ComponentContext context);
 
 abstract class ComponentModifier {
-  final ResponsiveCondition? condition;
+  final ContextCondition? condition;
   ComponentModifier merge(ComponentModifier other);
   const ComponentModifier({
     this.condition,
@@ -220,14 +226,14 @@ abstract class Component<ComponentType extends Widget> extends StatelessWidget {
     );
   }
 
-  ComponentContext _componentContext(BuildContext context) {
-    return ComponentContext.forContext(context);
-  }
-
   @nonVirtual
   @override
   Widget build(BuildContext context) {
-    final componentContext = _componentContext(context);
+    final componentContext = ComponentContext.forContexts(
+      context,
+      DynamicContext.of(context),
+      modifiers,
+    );
     return ComponentContextProvider(
       context: componentContext,
       child: _wrapComponent(
@@ -274,6 +280,7 @@ class _InteractiveWrapperState extends widgets.State<InteractiveWrapper> {
 
   @override
   Widget build(BuildContext context) {
+    final componentContext = ComponentContext.of(context);
     return GestureDetector(
       onTapDown: (_) {
         HapticFeedback.selectionClick();
@@ -282,11 +289,11 @@ class _InteractiveWrapperState extends widgets.State<InteractiveWrapper> {
         });
       },
       onTapUp: (_) {
+        widget.tapAction?.execute(ActionContext.from(componentContext));
         HapticFeedback.lightImpact();
         setState(() {
           pressed = false;
         });
-        widget.tapAction?.execute(ActionContext());
       },
       onTapCancel: () {
         setState(() {
@@ -316,7 +323,10 @@ class InteractiveModifier extends ComponentModifier with WrapperModifier {
   @override
   Widget wrap(Widget child, ComponentContext context) {
     if (enabled) {
-      return InteractiveWrapper(child: child);
+      return InteractiveWrapper(
+        tapAction: tapAction,
+        child: child,
+      );
     } else {
       return child;
     }
@@ -338,7 +348,7 @@ mixin ModifiableInteractive<Type extends Component> on Component<Type> {
   Type interactive({
     bool enabled = true,
     Action? tapAction,
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       InteractiveModifier(
@@ -389,7 +399,7 @@ mixin ModifiableExpandable<Type extends Component> on Component<Type> {
   Type expands({
     bool horizontal = true,
     bool vertical = true,
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       ExpandableModifier(

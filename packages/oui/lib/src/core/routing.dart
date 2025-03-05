@@ -1,53 +1,115 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show ChangeNotifier, SynchronousFuture;
 import 'package:flutter/widgets.dart'
     show
+        BackButtonDispatcher,
         BuildContext,
         ChangeNotifier,
         RouteInformation,
         RouteInformationParser,
         RouteInformationProvider,
+        RouteInformationReportingType,
         RouterConfig,
         RouterDelegate,
-        Widget,
-        WidgetsBindingObserver;
-import 'package:oui/src/core/_index.dart';
+        Widget;
+import 'package:oui/src/core/actions.dart' show Action, ActionMetadata;
+import 'package:oui/src/core/config.dart' show Config;
+import 'package:oui/src/core/locales.dart' show Locale;
+import 'package:oui/src/core/scaffold.dart' show Scaffold;
+import 'package:oui/src/core/screen.dart' show Screen;
+import 'package:oui/src/core/screen_registry.dart' show ScreenRegistry;
+
+import 'context.dart' show DynamicContext, StaticContext;
 
 class PathSegment {
-  const PathSegment.static(String value)
-      : id = value,
-        pattern = null,
-        isArgument = false,
-        assert(
-          value.length > 0,
-          'The value of a static segment cannot be empty.',
-        );
+  const PathSegment._(this.id, this.pattern);
 
-  const PathSegment.argument(
-    this.id, {
-    this.pattern,
-  })  : isArgument = true,
-        assert(
-          id.length > 0,
-          'The id of an argument segment cannot be empty.',
-        );
+  factory PathSegment.static(String value) {
+    assert(
+      value.isNotEmpty,
+      'The value of a static segment cannot be empty.',
+    );
+    return PathSegment._(value, null);
+  }
+
+  factory PathSegment.argument(
+    String id, {
+    RegExp? pattern,
+  }) {
+    final resolvedPattern = pattern ?? RegExp(r'.*');
+    assert(
+      !resolvedPattern.isMultiLine,
+      'The pattern of an argument segment cannot be multi-line.',
+    );
+    assert(
+      id.isNotEmpty,
+      'The id of an argument segment cannot be empty.',
+    );
+    return PathSegment._(
+      id,
+      resolvedPattern,
+    );
+  }
 
   final String id;
   final RegExp? pattern;
-  final bool isArgument;
 
-  bool match(String value) {
-    if (isArgument && pattern != null) {
-      return pattern!.hasMatch(value);
-    } else if (isArgument) {
-      return true;
-    } else {
-      return id.toLowerCase() == value.toLowerCase();
+  PathSegmentMatch? match(String value) {
+    if (pattern != null) {
+      final match = pattern!.firstMatch(value);
+      if (match != null) {
+        final resolved = match.groupCount > 0 ? match.group(1) : match.group(0);
+        return PathSegmentMatch(
+          id: id,
+          original: value,
+          isArgument: true,
+          value: resolved,
+        );
+      }
+    } else if (id.toLowerCase() == value.toLowerCase()) {
+      return PathSegmentMatch(
+        id: id,
+        original: value,
+        isArgument: false,
+      );
     }
+    return null;
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is PathSegment &&
+        other.id == id &&
+        (other.pattern?.pattern == pattern?.pattern);
+  }
+
+  @override
+  int get hashCode => Object.hash(id, pattern?.pattern);
 
   @override
   String toString() {
     return 'PathSegment(id: $id, pattern: $pattern)';
+  }
+}
+
+class PathSegmentMatch {
+  const PathSegmentMatch({
+    required this.id,
+    required this.original,
+    required this.isArgument,
+    String? value,
+  }) : _value = value;
+
+  final String id;
+  final String original;
+  final bool isArgument;
+  final String? _value;
+
+  String get content => _value ?? original;
+
+  @override
+  String toString() {
+    return 'PathSegmentMatch(id: $id, original: $original, value: $content)';
   }
 }
 
@@ -72,327 +134,268 @@ class Path {
   int get length => segments.length;
   bool get isEmpty => segments.isEmpty;
 
-  bool get valid {
-    if (segments.isEmpty) return false;
-    for (final segment in segments) {
-      if (segment.isArgument && segment.pattern != null) {
-        return !segment.pattern!.isMultiLine;
-      }
-    }
-    return true;
-  }
-
-  PathMatch match(List<String> segments, List<Screen> screens) {
-    final matches = _segmentMatches(segments);
-    final leftovers = segments.skip(matches.length).toList();
-    return PathMatch(
-      screens,
-      matches,
-      leftovers,
-      segments.length,
-    );
-  }
-
-  /// Matches the given path segments against the defined segments.
-  /// Returns a list of [PathSegmentMatch] if all segments match, otherwise an empty list.
-  List<PathSegmentMatch> _segmentMatches(List<String> path) {
+  // Finds all the segments that match the given path segments
+  // When a segment is not found, the search stops
+  // Returns a list of PathMatch objects
+  List<PathSegmentMatch> _matchingSegments(List<String> path) {
     final List<PathSegmentMatch> matches = [];
 
     for (var i = 0; i < segments.length; i++) {
       final pathSegment = path.elementAtOrNull(i);
-      if (pathSegment == null) {
-        return matches;
-      }
+
+      // Stop searching if there are no more segments
+      if (pathSegment == null) return matches;
 
       final segment = segments[i];
-      if (segment.isArgument) {
-        if (!_matchParametricSegment(segment, pathSegment, matches)) {
-          return matches;
-        }
+      final match = segment.match(pathSegment);
+      if (match != null) {
+        matches.add(match);
       } else {
-        if (!_matchStaticSegment(segment, pathSegment, matches)) {
-          return matches;
-        }
+        return matches;
       }
     }
 
     return matches;
   }
 
-  /// Matches a parametric segment and adds it to the matches list if successful.
-  bool _matchParametricSegment(
-    PathSegment segment,
-    String pathSegment,
-    List<PathSegmentMatch> matches,
-  ) {
-    if (segment.pattern != null) {
-      final match = RegExp(segment.pattern!).firstMatch(pathSegment);
-      if (match != null) {
-        final value = match.groupCount > 0 ? match.group(1) : match.group(0);
-        matches.add(
-          PathSegmentMatch(
-            segment: segment,
-            original: pathSegment,
-            value: value,
-          ),
-        );
-        return true;
-      }
-      return false;
-    } else {
-      matches.add(
-        PathSegmentMatch(
-          segment: segment,
-          original: pathSegment,
-          value: pathSegment,
-        ),
-      );
-      return true;
-    }
-  }
-
-  /// Matches a static segment and adds it to the matches list if successful.
-  bool _matchStaticSegment(
-    PathSegment segment,
-    String pathSegment,
-    List<PathSegmentMatch> matches,
-  ) {
-    if (segment.id == pathSegment.toLowerCase()) {
-      matches.add(PathSegmentMatch(segment: segment, original: pathSegment));
-      return true;
-    }
-    return false;
-  }
-
-  /// Returns a new [Path] with the given [segments] appended to the end.
-  /// If [segments] is empty, returns this path.
-  Path add(List<PathSegment> segments) {
-    if (segments.isEmpty) {
-      return this;
-    }
-    return Path([...this.segments, ...segments]);
-  }
-
-  @override
-  String toString() {
-    return segments.map((s) => s.id).join('/');
+  PathMatch match(Uri uri, List<Screen> screens) {
+    final matches = _matchingSegments(uri.pathSegments);
+    return PathMatch(
+      segments: matches,
+      leftovers: uri.pathSegments.skip(matches.length).toList(),
+      matchRate: segments.isEmpty ? 0.0 : matches.length / segments.length,
+      screens: screens,
+    );
   }
 }
 
-/// Represents a match for a specific path segment.
-///
-/// This class holds details about a path segment, its original value,
-/// and an optional transformed value.
-///
-/// Example usage:
-/// ```dart
-/// final segment = PathSegment(id: 'userId');
-/// final match = PathSegmentMatch(
-///   segment: segment,
-///   original: '123',
-///   value: 'user_123',
-/// );
-/// print(match.id);       // Outputs: 'userId'
-/// print(match.content);  // Outputs: 'user_123'
-/// ```
-class PathSegmentMatch {
-  /// The segment associated with this match.
-  final PathSegment segment;
-
-  /// The optional value of the segment match.
-  ///
-  /// If `_value` is `null`, the [original] value will be used as the content.
-  final String? _value;
-
-  /// The original value of the path segment match.
-  final String original;
-
-  /// A unique identifier derived from the associated [segment].
-  String get id => segment.id;
-
-  /// The effective content of the match.
-  ///
-  /// Returns the transformed `_value` if provided; otherwise, returns [original].
-  String get content => _value ?? original;
-
-  /// Creates an instance of [PathSegmentMatch].
-  ///
-  /// - [segment]: The path segment associated with this match.
-  /// - [original]: The original value of the path segment.
-  /// - [value]: An optional transformed value for the segment.
-  ///
-  /// Example:
-  /// ```dart
-  /// final segment = PathSegment(id: 'userId');
-  /// final match = PathSegmentMatch(
-  ///   segment: segment,
-  ///   original: '123',
-  ///   value: 'user_123',
-  /// );
-  /// ```
-  const PathSegmentMatch({
-    required this.segment,
-    required this.original,
-    String? value,
-  }) : _value = value;
-}
-
-/// A list of [PathSegmentMatch] objects.
-typedef PathSegmentMatches = List<PathSegmentMatch>;
-
-/// Represents the result of matching a path against a route pattern.
-/// Contains information about whether the path matches, how many segments matched,
-/// the matched screens, and any path arguments that were extracted.
 class PathMatch {
-  /// List of segments that matched the pattern
+  const PathMatch({
+    required this.segments,
+    required this.leftovers,
+    required this.matchRate,
+    required this.screens,
+  });
+
+  // Segments that matched the pattern
   final List<PathSegmentMatch> segments;
 
-  /// Segments from the path that didn't match any pattern
+  // Segments from the path that didn't match any pattern
   final List<String> leftovers;
 
-  /// The screens associated with the matched path segments
+  // Amount of segments that matched relative to the expected amount
+  // e.g. if 2 segments were expected and 1 matched, this would be 0.5
+  final double matchRate;
+
+  // The screens associated with the matched path segments
   final List<Screen> screens;
 
-  /// Number of sections that were expected to match
-  final int expectedSegmentCount;
-
-  /// The original segments from the path, before any value parsing
-  List<String> get rawSegments =>
-      segments.map((segment) => segment.original).toList();
-
-  /// Whether the path can be popped
+  // Whether the path can be popped
   bool get canPop => screens.isNotEmpty;
 
-  /// Constructs a Uri from the matched raw segments
-  Uri get uri => Uri(pathSegments: rawSegments);
+  // Uri constructed from the matched segments
+  Uri get uri => Uri(path: '/${segments.map((s) => s.original).join('/')}');
 
-  /// Number of segments that matched
-  int get count => segments.length;
-
-  /// Percentage of segments that matched
-  /// Note this can go over 1 (100%)
-  double get rate =>
-      expectedSegmentCount == 0 ? 0 : count / expectedSegmentCount;
-
-  /// Creates a new [PathMatch] with the given [segments], [leftovers], and [screens].
-  const PathMatch(
-    this.screens,
-    this.segments,
-    this.leftovers,
-    this.expectedSegmentCount,
-  );
-
-  /// Removes the last [count] segments from the match
-  PathMatch pop([int count = 1]) {
-    if (count <= 0) {
-      return this;
+  // Parameters from the matched argument segments
+  Map<String, String> get parameters {
+    final params = <String, String>{};
+    for (final segment in segments) {
+      if (segment.isArgument) {
+        params[segment.id] = segment.content;
+      }
     }
-
-    final screensToPop = screens.skip(screens.length - count);
-    final segmentsToPop = screensToPop.map(
-      (screen) => screen.metadata.path.forLocale(null)?.length ?? 0,
-    );
-
-    return PathMatch(
-      screens.sublist(0, screens.length - count),
-      segments.sublist(0, segments.length - count),
-      [
-        ...segments
-            .skip(segmentsToPop.length - count)
-            .map((segment) => segment.original),
-        ...leftovers,
-      ],
-      0,
-    );
+    return params;
   }
+
+  // Returns the value of a parameter by its key
+  String? operator [](String key) => parameters[key];
 
   @override
   String toString() {
-    return 'PathMatch{segments: $segments, leftovers: $leftovers, screens: $screens}';
+    return 'PathMatch(segments: $segments, leftovers: $leftovers, matchRate: $matchRate, screens: $screens)';
   }
 }
 
-class _RouteInformationProvider extends RouteInformationProvider
-    with ChangeNotifier, WidgetsBindingObserver {
-  _RouteInformationProvider(this.router);
+class _BackButtonDispatcher extends BackButtonDispatcher {
+  _BackButtonDispatcher(this.delegate);
 
-  final Router router;
+  final RouterDelegate<PathMatch> delegate;
 
   @override
-  // TODO: implement value
-  RouteInformation get value => throw UnimplementedError();
+  Future<bool> invokeCallback(Future<bool> defaultValue) async {
+    return await delegate.popRoute();
+  }
 }
 
 class _RouteInformationParser extends RouteInformationParser<PathMatch> {
-  const _RouteInformationParser(this.registry);
+  _RouteInformationParser(this.registry, this.config);
 
   final ScreenRegistry registry;
-
-  @override
-  RouteInformation? restoreRouteInformation(PathMatch configuration) {
-    return RouteInformation(
-      uri: configuration.uri,
-      state: configuration.state,
-    );
-  }
+  final Config config;
 
   @override
   Future<PathMatch> parseRouteInformationWithDependencies(
     RouteInformation routeInformation,
-    BuildContext context,
+    BuildContext buildContext,
   ) {
-    final match = registry.resolve(
-      context: ComponentContext.forContext(context),
-      segments: routeInformation.uri.pathSegments,
-    );
+    final staticContext = StaticContext.forConfig(config);
+    final context = DynamicContext.forContexts(staticContext, buildContext);
+    final match = registry.resolve(context, uri: routeInformation.uri);
     return SynchronousFuture(match);
   }
 }
 
-class _RouterDelegate extends RouterDelegate<PathMatch> with ChangeNotifier {
-  _RouterDelegate(this.registry);
+class _RouteInformationProvider extends RouteInformationProvider
+    with ChangeNotifier {
+  _RouteInformationProvider(this.registry)
+      : _value = RouteInformation(
+          uri: Uri(path: '/'),
+        );
 
   final ScreenRegistry registry;
 
   @override
+  RouteInformation get value => _value;
+  RouteInformation _value;
+
+  Future<void> navigate(
+    DynamicContext context, {
+    String? path,
+    Screen? screen,
+    Map<String, String> arguments = const {},
+  }) async {
+    assert(
+      path != null || screen != null,
+      'Either path or screen must be provided.',
+    );
+
+    RouteInformation routeInfo;
+    if (path != null) {
+      final uri = Uri.parse(path);
+      final match = registry.resolve(context, uri: uri);
+      routeInfo = RouteInformation(uri: match.uri);
+    } else {
+      final match = registry.resolve(
+        context,
+        screen: screen!,
+        arguments: arguments,
+      );
+      routeInfo = RouteInformation(uri: match.uri);
+    }
+
+    if (_value.uri != routeInfo.uri) {
+      _value = routeInfo;
+      notifyListeners();
+    }
+  }
+
+  @override
+  void routerReportsNewRouteInformation(
+    RouteInformation routeInformation, {
+    RouteInformationReportingType type = RouteInformationReportingType.none,
+  }) {
+    if (_value.uri != routeInformation.uri) {
+      _value = routeInformation;
+      notifyListeners();
+    }
+  }
+}
+
+class _RouterDelegate extends RouterDelegate<PathMatch> with ChangeNotifier {
+  _RouterDelegate();
+
+  PathMatch? _currentMatch;
+
+  @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      match: 
+    return Scaffold(
+      currentMatch: _currentMatch,
     );
   }
 
   @override
-  Future<void> setInitialRoutePath(PathMatch configuration) {
-    // TODO: implement setInitialRoutePath
-    return super.setInitialRoutePath(configuration);
+  Future<bool> popRoute() async {
+    if (_currentMatch == null || !_currentMatch!.canPop) {
+      return false;
+    }
+
+    // Remove the last screen and create a new match with the remaining screens
+    final updatedScreens =
+        _currentMatch!.screens.sublist(0, _currentMatch!.screens.length - 1);
+    if (updatedScreens.isEmpty) {
+      return false;
+    }
+
+    // Create a new match with one less screen
+    _currentMatch = PathMatch(
+      segments: _currentMatch!.segments,
+      leftovers: _currentMatch!.leftovers,
+      matchRate: _currentMatch!.matchRate,
+      screens: updatedScreens,
+    );
+
+    notifyListeners();
+    return true;
   }
 
   @override
-  Future<bool> popRoute() {
-    // TODO: implement popRoute
-    throw UnimplementedError();
-  }
+  PathMatch? get currentConfiguration => _currentMatch;
 
   @override
   Future<void> setNewRoutePath(PathMatch configuration) {
-    // TODO: implement setNewRoutePath
-    throw UnimplementedError();
+    if (configuration != _currentMatch) {
+      _currentMatch = configuration;
+      notifyListeners();
+    }
+    return SynchronousFuture(null);
   }
 }
 
 class Router implements RouterConfig<PathMatch> {
-  Router({
-    required ScreenRegistry registry,
-  })  : routeInformationProvider = _RouteInformationProvider(),
-        routeInformationParser = const _RouteInformationParser(),
-        routerDelegate = _RouterDelegate();
+  Router(ScreenRegistry registry, Config config) {
+    routerDelegate = _RouterDelegate();
+    backButtonDispatcher = _BackButtonDispatcher(routerDelegate);
+    routeInformationParser = _RouteInformationParser(registry, config);
+    routeInformationProvider = _RouteInformationProvider(registry);
+  }
 
   @override
-  final RouteInformationProvider routeInformationProvider;
+  late final BackButtonDispatcher backButtonDispatcher;
 
   @override
-  final RouteInformationParser<PathMatch> routeInformationParser;
+  late final RouteInformationParser<PathMatch> routeInformationParser;
 
   @override
-  final RouterDelegate<PathMatch> routerDelegate;
+  late final RouteInformationProvider routeInformationProvider;
+
+  @override
+  late final RouterDelegate<PathMatch> routerDelegate;
+
+  /// Navigates to the given path or screen with the provided arguments
+  Future<void> navigate(
+    DynamicContext context, {
+    String? path,
+    Screen? screen,
+    Map<String, String> arguments = const {},
+  }) {
+    final provider = routeInformationProvider as _RouteInformationProvider;
+    return provider.navigate(
+      context,
+      path: path,
+      screen: screen,
+      arguments: arguments,
+    );
+  }
+}
+
+mixin NavigationActions {
+  static Action navigate(String path) => Action(
+        (context) async {
+          await context.router.navigate(context, path: path);
+        },
+        metadata: const ActionMetadata(
+          id: "uri_navigate",
+          name: {Locale.any: "Navigate to URL"},
+        ),
+      );
 }

@@ -92,8 +92,8 @@ class ContourString extends ContourType<String, ContourString> {
   }
 
   @override
-  SingleVariableInstance<String> instance(String name) {
-    return SingleVariableInstance<String>(this, name);
+  SingleVariableInstance<String> instance(String name, [dynamic value]) {
+    return SingleVariableInstance<String>(this, name, value);
   }
 }
 

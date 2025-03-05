@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart'
         ListView,
         MainAxisSize,
         Widget;
+import 'package:oui/src/core/context.dart';
 
 import '../components/box.dart'
     show
@@ -32,7 +33,6 @@ import 'icons.dart' show Icon;
 import 'localization.dart' show Localized;
 import 'metadata.dart' show Metadata;
 import 'modifiers.dart' show ModifierSorting;
-import 'responsive.dart' show ResponsiveCondition;
 import 'routing.dart' show Path;
 
 /// This enum is used to specify how a screen should be displayed within the
@@ -159,7 +159,7 @@ class ScreenBox extends BoxLike<ScreenBox> {
     );
   }
 
-  ScreenBox header(Component component, {ResponsiveCondition? condition}) {
+  ScreenBox header(Component component, {ContextCondition? condition}) {
     return withModifier(
       ScreenBoxContentModifier(
         header: component,
@@ -171,7 +171,7 @@ class ScreenBox extends BoxLike<ScreenBox> {
 
   ScreenBox headerBuilder(
     ComponentWidgetBuilder builder, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       ScreenBoxContentModifier(
@@ -182,7 +182,7 @@ class ScreenBox extends BoxLike<ScreenBox> {
     );
   }
 
-  ScreenBox footer(Component component, {ResponsiveCondition? condition}) {
+  ScreenBox footer(Component component, {ContextCondition? condition}) {
     return withModifier(
       ScreenBoxContentModifier(
         footer: component,
@@ -194,7 +194,7 @@ class ScreenBox extends BoxLike<ScreenBox> {
 
   ScreenBox footerBuilder(
     ComponentWidgetBuilder builder, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       ScreenBoxContentModifier(
@@ -276,8 +276,9 @@ class ScreenBox extends BoxLike<ScreenBox> {
 /// Represents a screen in the OUI framework.
 abstract class Screen {
   ScreenMetadata get metadata;
-  Component build(ScreenBox content);
-  bool available(ComponentContext context) => true;
+  Component build(ScreenBox screen);
+  bool available(DynamicContext context) => true;
+  Uri? redirect(DynamicContext context) => null;
   List<Screen> get children => const [];
 }
 

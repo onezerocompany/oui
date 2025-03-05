@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
-import 'package:oui/src/core/component.dart';
-import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
-import 'package:oui/src/core/utils.dart';
+
+import 'component.dart'
+    show Component, ComponentContext, ComponentModifier, WrapperModifier;
+import 'context.dart' show ContextCondition;
+import 'utils.dart' show EnumContainer;
 
 /// Represents the various states that an object can be in within the OUI framework.
 enum State {
@@ -93,7 +95,7 @@ class StateModifier extends ComponentModifier with WrapperModifier {
 mixin ModifiableState<Type extends Component<Type>> on Component<Type> {
   Type state(
     State state, {
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       StateModifier(

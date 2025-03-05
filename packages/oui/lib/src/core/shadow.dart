@@ -1,12 +1,12 @@
 import 'package:flutter/painting.dart' as painting show BoxShadow;
 import 'package:flutter/widgets.dart'
     show BoxDecoration, BoxShadow, Decoration, ShapeDecoration;
-import 'package:oui/src/components/box.dart' show DecorationModifier;
-import 'package:oui/src/core/responsive.dart' show ResponsiveCondition;
 
-import 'colors.dart';
-import 'component.dart';
-import 'geometry.dart';
+import '../components/box.dart' show DecorationModifier;
+import 'colors.dart' show Color;
+import 'component.dart' show Component, ComponentContext, ComponentModifier;
+import 'context.dart' show ContextCondition;
+import 'geometry.dart' show Offset;
 
 /// A class representing a shadow effect.
 class Shadow {
@@ -141,7 +141,7 @@ mixin ModifiableShadow<Type extends Component> on Component<Type> {
     double spread = 0,
     Color? color,
     Offset offset = Offset.zero,
-    ResponsiveCondition? condition,
+    ContextCondition? condition,
   }) {
     return withModifier(
       ShadowModifier(

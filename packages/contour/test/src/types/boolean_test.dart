@@ -88,4 +88,16 @@ void main() {
       expect(instance.value, false);
     });
   });
+  
+  test('initial value should be null', () {
+    final booleanType = ContourBoolean();
+    final instance = booleanType.instance('test');
+    expect(instance.value, isNull);
+  });
+
+  test('initial value should be set', () {
+    final booleanType = ContourBoolean();
+    final instance = booleanType.instance('test', true);
+    expect(instance.value, true);
+  });
 }
