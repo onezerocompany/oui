@@ -1,0 +1,18 @@
+name: Test Self-Hosted Runner
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-runner:
+    runs-on: onezero-any-ams
+    steps:
+      - name: Test runner
+        run: |
+          echo "Testing OneZero runner"
+          echo "Runner: ${{ runner.name }}"
+          echo "OS: ${{ runner.os }}"
+          echo "Arch: ${{ runner.arch }}"
+          uname -a
